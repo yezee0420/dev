@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 사과 잡기 게임</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #98D8C8 50%, #7CB342 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #c62828;
+            font-size: 2.5rem;
+            text-shadow: 3px 3px 0 #fff;
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: #2e7d32;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            border: 4px solid #4CAF50;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1), 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .basket {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 50px;
+            background: linear-gradient(180deg, #8D6E63 0%, #5D4037 100%);
+            border-radius: 0 0 15px 15px;
+            border: 3px solid #4E342E;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: left 0.05s linear;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .basket::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            border: 4px solid #6D4C41;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            background: transparent;
+        }
+
+        .apple {
+            position: absolute;
+            font-size: 40px;
+            user-select: none;
+            pointer-events: none;
+            z-index: 5;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+        }
+
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+        }
+
+        .game-over-screen {
+            display: none;
+        }
+
+        .start-screen h2, .game-over-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #FFEB3B;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .start-btn, .restart-btn {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            background: linear-gradient(180deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: 3px solid #1B5E20;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .start-btn:hover, .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .instructions p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍎 사과 잡기 게임</h1>
+    <div class="game-info">
+        <span>점수: <span id="score">0</span></span>
+        <span>목표: <span id="target">20</span></span>
+    </div>
+
+    <div class="game-container">
+        <div class="start-screen" id="startScreen">
+            <h2>🍎 사과를 잡아보세요! 🍎</h2>
+            <button class="start-btn" id="startBtn">시작하기</button>
+            <div class="instructions">
+                <p>← → 화살표 또는 마우스로 바구니를 움직이세요</p>
+                <p>떨어지는 사과를 받아 20개 모으면 승리!</p>
+            </div>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <h2 id="gameOverTitle">게임 종료!</h2>
+            <p id="finalScore" style="font-size: 1.5rem; margin-bottom: 20px;"></p>
+            <button class="restart-btn" id="restartBtn">다시 하기</button>
+        </div>
+
+        <div class="basket" id="basket"></div>
+    </div>
+
+    <script>
+        const gameContainer = document.querySelector('.game-container');
+        const basket = document.getElementById('basket');
+        const scoreEl = document.getElementById('score');
+        const targetEl = document.getElementById('target');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameOverTitle = document.getElementById('gameOverTitle');
+        const finalScoreEl = document.getElementById('finalScore');
+
+        const GAME_WIDTH = 500;
+        const GAME_HEIGHT = 600;
+        const BASKET_WIDTH = 80;
+        const BASKET_HEIGHT = 50;
+        const APPLE_SIZE = 40;
+        const TARGET_SCORE = 20;
+
+        let gameRunning = false;
+        let score = 0;
+        let basketX = (GAME_WIDTH - BASKET_WIDTH) / 2;
+        let apples = [];
+        let gameLoop;
+        let spawnInterval;
+
+        const appleEmojis = ['🍎', '🍏'];
+
+        function spawnApple() {
+            if (!gameRunning) return;
+
+            const apple = document.createElement('div');
+            apple.className = 'apple';
+            apple.textContent = appleEmojis[Math.floor(Math.random() * appleEmojis.length)];
+            apple.style.left = Math.random() * (GAME_WIDTH - APPLE_SIZE) + 'px';
+            apple.style.top = '-' + APPLE_SIZE + 'px';
+            apple.dataset.speed = 2 + Math.random() * 3;
+
+            gameContainer.appendChild(apple);
+            apples.push({
+                el: apple,
+                x: parseFloat(apple.style.left),
+                y: -APPLE_SIZE,
+                speed: parseFloat(apple.dataset.speed)
+            });
+        }
+
+        function updateApples() {
+            if (!gameRunning) return;
+
+            for (let i = apples.length - 1; i >= 0; i--) {
+                const apple = apples[i];
+                apple.y += apple.speed;
+                apple.el.style.top = apple.y + 'px';
+
+                // 바구니와 충돌 체크
+                if (apple.y + APPLE_SIZE > GAME_HEIGHT - 70 &&
+                    apple.y < GAME_HEIGHT - 20 &&
+                    apple.x + APPLE_SIZE / 2 > basketX &&
+                    apple.x + APPLE_SIZE / 2 < basketX + BASKET_WIDTH) {
+                    score++;
+                    scoreEl.textContent = score;
+                    apple.el.remove();
+                    apples.splice(i, 1);
+
+                    if (score >= TARGET_SCORE) {
+                        endGame(true);
+                        return;
+                    }
+                }
+                // 바닥에 떨어짐 - 게임 오버
+                else if (apple.y > GAME_HEIGHT) {
+                    endGame(false);
+                    return;
+                }
+            }
+        }
+
+        function endGame(won) {
+            gameRunning = false;
+            clearInterval(spawnInterval);
+            cancelAnimationFrame(gameLoop);
+
+            apples.forEach(a => a.el.remove());
+            apples = [];
+
+            gameOverScreen.style.display = 'flex';
+            if (won) {
+                gameOverTitle.textContent = '🎉 축하합니다! 🎉';
+                finalScoreEl.textContent = '20개의 사과를 모두 잡았어요!';
+            } else {
+                gameOverTitle.textContent = '😢 게임 오버';
+                finalScoreEl.textContent = '최종 점수: ' + score + ' / ' + TARGET_SCORE;
+            }
+        }
+
+        function startGame() {
+            score = 0;
+            scoreEl.textContent = '0';
+            basketX = (GAME_WIDTH - BASKET_WIDTH) / 2;
+            basket.style.left = basketX + 'px';
+
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameRunning = true;
+
+            spawnInterval = setInterval(spawnApple, 800);
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        function loop() {
+            if (gameRunning) {
+                updateApples();
+                gameLoop = requestAnimationFrame(loop);
+            }
+        }
+
+        function moveBasket(e) {
+            if (!gameRunning) return;
+
+            const rect = gameContainer.getBoundingClientRect();
+            let newX;
+
+            if (e.type.includes('key')) {
+                if (e.key === 'ArrowLeft') {
+                    newX = basketX - 25;
+                    e.preventDefault();
+                } else if (e.key === 'ArrowRight') {
+                    newX = basketX + 25;
+                    e.preventDefault();
+                } else return;
+            } else {
+                newX = e.clientX - rect.left - BASKET_WIDTH / 2;
+            }
+
+            basketX = Math.max(0, Math.min(GAME_WIDTH - BASKET_WIDTH, newX));
+            basket.style.left = basketX + 'px';
+        }
+
+        document.addEventListener('keydown', moveBasket);
+        gameContainer.addEventListener('mousemove', moveBasket);
+        gameContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            moveBasket(e.touches[0]);
+        }, { passive: false });
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+    </script>
+</body>
+</html>
