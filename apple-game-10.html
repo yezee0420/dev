@@ -409,7 +409,7 @@
             const { sum } = pathSum(pathIndices);
             if (sum === 10) {
                 playSuccessSound();
-                score += 10;
+                score += 5 * pathIndices.length;
                 fillCells(pathIndices);
                 render();
                 updateUI();
