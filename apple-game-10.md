@@ -66,7 +66,7 @@
 - **선택 표시**: 흰색·주황색 이중 테두리, 1.1배 확대, 주황색 그림자
 - **드래그**: 선택 자국 없음 (user-select, user-drag 비활성화)
 - **효과음**: 합 10 성공 시 짧은 비프음 (523Hz, 0.2초)
-- **플로팅 점수**: 사과 제거 시 획득 점수(+10, +15, +20)가 제거 위치에서 위로 떠오르며 표시
+- **플로팅 점수**: 사과 제거 시 마지막 선택한 사과 위치에서 획득 점수(+10, +15, +20)가 박스 형태로 강조되어 위로 떠오름 (z-index 9999, 주황 배경)
 - **모바일**: 터치 지원
 
 ### 기술 스택
@@ -227,17 +227,20 @@
         .floating-score {
             position: fixed;
             pointer-events: none;
-            font-size: 24px;
-            font-weight: 800;
-            color: #c2410c;
-            text-shadow: 0 0 4px #fff, 0 2px 4px rgba(0,0,0,0.3);
-            z-index: 200;
-            animation: floatUp 0.8s ease-out forwards;
+            font-size: 32px;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+            padding: 8px 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(194,65,12,0.6), 0 0 0 3px #fff;
+            z-index: 9999;
+            animation: floatUp 1s ease-out forwards;
         }
         @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
-            30% { transform: translate(-50%, -80%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            20% { transform: translate(-50%, -60%) scale(1.15); }
+            100% { opacity: 0; transform: translate(-50%, -120%) scale(1.1); }
         }
     </style>
 </head>
@@ -499,7 +502,7 @@
             el.style.left = x + 'px';
             el.style.top = y + 'px';
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 800);
+            setTimeout(() => el.remove(), 1000);
         }
 
         function tryRemove(pathIndices) {
@@ -507,9 +510,10 @@
             const { sum } = pathSum(pathIndices);
             if (sum === 10) {
                 const points = 5 * pathIndices.length;
-                const firstCell = gridEl.querySelector(`[data-index="${pathIndices[0]}"]`);
-                if (firstCell) {
-                    const rect = firstCell.getBoundingClientRect();
+                const lastCell = gridEl.querySelector(`[data-index="${pathIndices[pathIndices.length - 1]}"]`);
+
+                if (lastCell) {
+                    const rect = lastCell.getBoundingClientRect();
                     showFloatingScore(rect.left + rect.width / 2, rect.top + rect.height / 2, points);
                 }
                 playSuccessSound();
