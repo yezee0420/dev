@@ -66,6 +66,7 @@
 - **선택 표시**: 흰색·주황색 이중 테두리, 1.1배 확대, 주황색 그림자
 - **드래그**: 선택 자국 없음 (user-select, user-drag 비활성화)
 - **효과음**: 합 10 성공 시 짧은 비프음 (523Hz, 0.2초)
+- **플로팅 점수**: 사과 제거 시 획득 점수(+10, +15, +20)가 제거 위치에서 위로 떠오르며 표시
 - **모바일**: 터치 지원
 
 ### 기술 스택
@@ -222,6 +223,22 @@
         .modal button:hover { opacity: 0.9; }
 
         .hidden { display: none !important; }
+
+        .floating-score {
+            position: fixed;
+            pointer-events: none;
+            font-size: 24px;
+            font-weight: 800;
+            color: #c2410c;
+            text-shadow: 0 0 4px #fff, 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 200;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+            30% { transform: translate(-50%, -80%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -475,12 +492,28 @@
             if (n) n.classList.add('hidden');
         }
 
+        function showFloatingScore(x, y, points) {
+            const el = document.createElement('div');
+            el.className = 'floating-score';
+            el.textContent = '+' + points;
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
         function tryRemove(pathIndices) {
             if (pathIndices.length === 0) return false;
             const { sum } = pathSum(pathIndices);
             if (sum === 10) {
+                const points = 5 * pathIndices.length;
+                const firstCell = gridEl.querySelector(`[data-index="${pathIndices[0]}"]`);
+                if (firstCell) {
+                    const rect = firstCell.getBoundingClientRect();
+                    showFloatingScore(rect.left + rect.width / 2, rect.top + rect.height / 2, points);
+                }
                 playSuccessSound();
-                score += 5 * pathIndices.length;
+                score += points;
                 fillCells(pathIndices);
                 render();
                 updateUI();
