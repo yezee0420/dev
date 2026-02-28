@@ -1,3 +1,78 @@
+# 사과 합 10 게임 - 완전 재현용 명세
+
+이 문서를 AI나 개발자에게 전달하고 **"이 명세대로 apple-game-10.html 파일을 만들어 줘"** 라고 요청하면 동일한 게임을 만들 수 있습니다.
+
+---
+
+## 사용법
+
+1. 아래 "전체 소스 코드" 섹션의 HTML을 복사해 `apple-game-10.html` 파일로 저장
+2. 또는 AI에게 이 md 파일 전체를 전달하고 "아래 소스 코드로 apple-game-10.html 파일을 생성해 줘" 요청
+
+---
+
+## 게임 설명
+
+### 게임 규칙 요약
+
+| 항목 | 내용 |
+|------|------|
+| 그리드 | Lv1: 3x3, 레벨업 시 4x4, 5x5 |
+| 숫자 | 1~9 (0 제외) |
+| 선택 방식 | 마우스/터치 드래그로 상하좌우 인접한 사과만 스네이크처럼 이어서 선택 |
+| 제거 조건 | 선택한 사과들의 합 = 10 |
+| 채우기 | 제거된 칸에 새 사과 즉시 배치 |
+| 승리 | 레벨별 목표 점수 도달 (20점 간격) |
+| 패배 | 리프레시 2번 사용 후에도 조합이 없을 때 |
+
+### 유효한 조합 (합 10)
+
+- 2칸: 1+9, 2+8, 3+7, 4+6, 5+5
+- 3칸: 1+2+7, 1+3+6, 1+4+5, 2+3+5, 2+4+4
+- 4칸: 1+2+3+4
+
+### 리프레시
+
+- 레벨당 2번 사용 가능
+- 조합을 찾지 못했을 때 보드를 새로 섞음
+- 2번 모두 사용 후에도 조합이 없으면 게임 오버
+
+### 보드 설계
+
+- 초기 보드와 제거 후 리필 시 **최소 1개의 유효 조합**이 항상 존재하도록 생성
+- createBoard: 인접 경로에 합 10 조합 시드
+- fillCells: 랜덤 시도 후 실패 시 시드로 보장
+
+### 레벨 시스템
+
+| 레벨 | 그리드 | 목표 점수 |
+|------|--------|-----------|
+| 1 | 3x3 | 20 |
+| 2 | 4x4 | 40 |
+| 3 | 4x4 | 60 |
+| 4 | 5x5 | 80 |
+| 5 | 5x5 | 100 |
+| 6+ | 5x5 | 100 + 20×(레벨-5) |
+
+### UI/UX
+
+- **사과 아이콘**: CSS로 만든 단순한 사과 모양 (빨간 그라데이션 + 초록 잎), 숫자는 흰색
+- **선택 표시**: 흰색·주황색 이중 테두리, 1.1배 확대, 주황색 그림자
+- **드래그**: 선택 자국 없음 (user-select, user-drag 비활성화)
+- **효과음**: 합 10 성공 시 짧은 비프음 (523Hz, 0.2초)
+- **모바일**: 터치 지원
+
+### 기술 스택
+
+- 단일 HTML (CSS, JS 인라인)
+- Noto Sans KR 폰트 (Google Fonts)
+- Web Audio API (효과음)
+
+---
+
+## 전체 소스 코드
+
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -145,7 +220,7 @@
 </head>
 <body>
     <div class="header">
-        <span>Lv.<span id="level">1</span> <span id="score">0</span>/<span id="target">50</span></span>
+        <span>Lv.<span id="level">1</span> <span id="score">0</span>/<span id="target">20</span></span>
         <button class="refresh-btn" id="refreshBtn">리프레시 <span id="refreshCount">2</span>/2</button>
     </div>
 
@@ -356,16 +431,6 @@
             refreshBtn.disabled = refreshesLeft === 0;
         }
 
-        function getCellIndex(e) {
-            const cell = e.target.closest('.cell');
-            return cell ? parseInt(cell.dataset.index, 10) : -1;
-        }
-
-        function indexToRowCol(i) {
-            const n = getConfig().grid;
-            return { r: Math.floor(i / n), c: i % n };
-        }
-
         function highlightPath(indices) {
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
             indices.forEach(i => {
@@ -520,3 +585,10 @@
     </script>
 </body>
 </html>
+```
+
+---
+
+## AI 요청 예시
+
+> "이 md 파일의 '전체 소스 코드' 섹션에 있는 HTML을 그대로 apple-game-10.html 파일로 생성해 줘. 추가 수정 없이 동일하게 만들어 줘."
