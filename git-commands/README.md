@@ -152,6 +152,7 @@ git-check dev          # 특정 브랜치 기준으로 비교
 | **gh 미인증** | 에러 메시지 + `gh auth login` 안내 |
 | **git repo 밖에서 실행** | "Not inside a git repository" 에러 |
 | **pull 시 충돌** | `--rebase --autostash`로 자동 stash 후 rebase 시도 |
+| **push non-fast-forward 거절** | 자동으로 `git pull --rebase` 후 재시도 |
 
 ### git-check
 

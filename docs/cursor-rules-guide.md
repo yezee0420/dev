@@ -27,6 +27,18 @@
 **한 줄 요약:**  
 `.cursor/rules/` 폴더에 `이름.mdc` 파일을 만들면 그게 규칙이에요.
 
+### ⚠️ 중요: 워크스페이스 루트에만 둔다
+
+Cursor는 **워크스페이스 루트**의 `.cursor/rules/`만 적용합니다. 하위 프로젝트 폴더(예: `bugo-alert/.cursor/rules/`)에 둔 mdc는 **적용되지 않습니다**.
+
+| 구조 | 적용 여부 |
+|------|-----------|
+| `dev/.cursor/rules/*.mdc` | ✅ 적용 (워크스페이스가 `dev`일 때) |
+| `dev/bugo-alert/.cursor/rules/*.mdc` | ❌ 적용 안 됨 |
+
+**권장:** 여러 하위 프로젝트가 있으면 워크스페이스 루트에 `프로젝트명-역할.mdc` 형태로 통합한다.  
+예: `bugo-backend-agent.mdc`, `bugo-parser-agent.mdc` — globs에 `bugo-alert/app/**` 등 경로 지정.
+
 ---
 
 ## 1️⃣ 수준 1 — "항상 이렇게 해 주세요" (기본·공통)
@@ -290,3 +302,21 @@ API 주소 이름, GET/POST 사용법, 응답 모양을 규칙으로 정할 수 
    위 체크리스트에서 "이거부터 넣자" 하는 것 하나씩 규칙 문장으로 적어 보세요.
 
 궁금한 게 있으면 "규칙에 ~ 이런 내용 넣고 싶은데 문장으로 어떻게 써요?"라고 물어보면, 그에 맞는 문장을 만들어 줄 수 있어요.
+
+---
+
+## 8️⃣ dev 프로젝트의 mdc 규칙 현황 (참고)
+
+`dev` 워크스페이스에서 사용 중인 규칙 파일:
+
+| 파일 | 용도 | globs |
+|------|------|-------|
+| `core-language-and-style.mdc` | 기본 언어(한국어), 답변 스타일, 마크다운 형식 | 항상 적용 |
+| `task-completion-notify.mdc` | 작업 완료 시 텍스트/소리/팝업 알림 | 항상 적용 |
+| `bugo-backend-agent.mdc` | BugoAlert 백엔드 인프라 (DB, 스케줄러, dedup) | `bugo-alert/app/models.py`, `app/scheduler/**` 등 |
+| `bugo-parser-agent.mdc` | BugoAlert 크롤링·파싱 (제목 패턴, make_dedup_key) | `bugo-alert/app/crawler/**` |
+| `bugo-dedup-agent.mdc` | BugoAlert 중복 제거 3단계 파이프라인 | `bugo-alert/app/crawler/parser.py`, `app/scheduler/jobs.py` 등 |
+| `bugo-notification-agent.mdc` | BugoAlert 알림 (즐겨찾기 매칭, 이메일) | `bugo-alert/app/notifications/**` 등 |
+| `bugo-ui-agent.mdc` | BugoAlert 프론트엔드 (템플릿, HTMX, Tailwind) | `bugo-alert/app/templates/**` 등 |
+
+**위치:** `dev/.cursor/rules/` (워크스페이스 루트)

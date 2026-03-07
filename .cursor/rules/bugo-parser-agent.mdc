@@ -84,7 +84,7 @@ for title, expected in tests:
 - `_split_org_position()` — '삼성전자 부사장' → ('삼성전자', '부사장'), '전' prefix 처리
 - `_split_rest_to_org_pos()` — rest 문자열에서 `_KNOWN_POSITIONS` 기반 소속/직급 분리
 - `_clean_funeral_hall()` — 장례식장 이름 앞 쓰레기 문자 제거
-- `make_dedup_key()` — key_person + relationship + deceased_name 중복 키
+- `make_dedup_key()` — key_person + relationship 만 사용 (deceased_name 제외 — 기사마다 파싱 여부가 달라 중복 유발)
 
 ## 주의사항
 

@@ -318,7 +318,15 @@ info "Pulling latest ${DEFAULT_BRANCH}..."
 dry git pull origin "$DEFAULT_BRANCH" --rebase --autostash 2>/dev/null || true
 
 info "Pushing ${CURRENT_BRANCH}..."
-dry git push -u origin "$CURRENT_BRANCH"
+if ! dry git push -u origin "$CURRENT_BRANCH"; then
+  if git ls-remote --exit-code origin "$CURRENT_BRANCH" &>/dev/null; then
+    warn "Push rejected (non-fast-forward) — syncing with remote first..."
+    dry git pull origin "$CURRENT_BRANCH" --rebase --autostash
+    dry git push -u origin "$CURRENT_BRANCH"
+  else
+    die "Push failed. Check your connection and permissions."
+  fi
+fi
 success "Pushed to origin/${CURRENT_BRANCH}"
 
 # ─── 5. Pull Request ───────────────────────────────────────────────

@@ -92,8 +92,9 @@ crawl_and_notify()
 
 ## 중복 제거 (dedup)
 
-- `dedup_key` = `key_person|relationship|deceased_name`
-- 같은 dedup_key가 있으면 빈 필드만 보충 업데이트 (merge)
+- `dedup_key` = `key_person|relationship` (deceased_name 제외 — 기사마다 파싱 여부가 달라 중복 유발)
+- 1차: dedup_key 정확 매칭 → 빈 필드 보충 (merge)
+- 2차: 소프트 매칭 (key_person+relationship 7일 이내, funeral_hall+key_person)
 - IntegrityError 발생 시 rollback + skip
 
 ## 스케줄러
