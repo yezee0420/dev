@@ -125,9 +125,6 @@ bugo-alert/
 ├── .env.example              환경변수 템플릿
 ├── requirements.txt          Python 의존성
 ├── README.md
-├── (mdc 규칙은 dev/.cursor/rules/ 에 있음 — 워크스페이스 루트만 적용됨)
-│   bugo-backend-agent.mdc, bugo-parser-agent.mdc, bugo-dedup-agent.mdc,
-│   bugo-notification-agent.mdc, bugo-ui-agent.mdc
 └── app/
     ├── main.py               FastAPI 앱 엔트리포인트
     ├── config.py              Pydantic 설정 (.env)
@@ -157,6 +154,8 @@ bugo-alert/
             ├── obituary_table.html   검색 결과 파셜
             └── favorites_list.html   즐겨찾기 목록 파셜
 ```
+
+**Cursor mdc 규칙:** 워크스페이스 루트(`dev/.cursor/rules/`)에 `bugo-backend-agent`, `bugo-parser-agent`, `bugo-dedup-agent`, `bugo-notification-agent`, `bugo-ui-agent`가 있음. 하위 프로젝트 `.cursor/rules/`는 적용되지 않음.
 
 ---
 
