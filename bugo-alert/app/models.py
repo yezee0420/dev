@@ -48,6 +48,7 @@ class Obituary(Base):
         Index("ix_obituaries_org", "organization"),
         Index("ix_obituaries_published", "published_at"),
         Index("ix_obituaries_dedup", "dedup_key"),
+        Index("ix_obituaries_source_url", "source_url"),
     )
 
 

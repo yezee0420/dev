@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 
 SEARCH_URL = "https://openapi.naver.com/v1/search/news.json"
 
+MAX_PAGES = 10
+PER_PAGE = 100
+
 
 @dataclass
 class NewsItem:
@@ -34,33 +37,26 @@ def _parse_pub_date(raw: str) -> Optional[datetime]:
 
 
 def _strip_html(text: str) -> str:
-    """<b>, </b> 등 간단한 HTML 태그를 제거한다."""
     import re
     return re.sub(r"<[^>]+>", "", text)
 
 
-async def search_obituary_news(
-    query: str = "부고",
-    display: int = 100,
-    start: int = 1,
-    sort: str = "date",
+async def _fetch_page(
+    client: httpx.AsyncClient,
+    headers: dict,
+    query: str,
+    start: int,
 ) -> list[NewsItem]:
-    settings = get_settings()
-    headers = {
-        "X-Naver-Client-Id": settings.naver_client_id,
-        "X-Naver-Client-Secret": settings.naver_client_secret,
-    }
+    """단일 페이지를 가져온다."""
     params = {
         "query": query,
-        "display": display,
+        "display": PER_PAGE,
         "start": start,
-        "sort": sort,
+        "sort": "date",
     }
-
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(SEARCH_URL, headers=headers, params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    resp = await client.get(SEARCH_URL, headers=headers, params=params)
+    resp.raise_for_status()
+    data = resp.json()
 
     items: list[NewsItem] = []
     for raw in data.get("items", []):
@@ -73,6 +69,59 @@ async def search_obituary_news(
                 pub_date=_parse_pub_date(raw.get("pubDate", "")),
             )
         )
-
-    logger.info("네이버 뉴스 검색 결과 %d건 수신 (query=%s)", len(items), query)
     return items
+
+
+async def search_obituary_news(
+    query: str = "부고",
+    max_pages: int = MAX_PAGES,
+) -> list[NewsItem]:
+    """네이버 뉴스를 페이지네이션하여 최대 max_pages * 100건을 수집한다.
+
+    네이버 API 제한: start는 1~1000, display는 최대 100.
+    따라서 최대 1000건까지 수집 가능 (10페이지).
+    """
+    settings = get_settings()
+    if not settings.naver_client_id or settings.naver_client_id == "your_naver_client_id":
+        logger.warning("네이버 API 키 미설정 — 크롤링을 건너뜁니다")
+        return []
+
+    headers = {
+        "X-Naver-Client-Id": settings.naver_client_id,
+        "X-Naver-Client-Secret": settings.naver_client_secret,
+    }
+
+    all_items: list[NewsItem] = []
+    seen_links: set[str] = set()
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        for page in range(max_pages):
+            start = page * PER_PAGE + 1
+            if start > 1000:
+                break
+
+            try:
+                items = await _fetch_page(client, headers, query, start)
+            except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError) as e:
+                logger.warning("네이버 API 페이지 %d 요청 실패: %s", page + 1, e)
+                break
+
+            if not items:
+                break
+
+            for item in items:
+                link = item.original_link or item.naver_link
+                if link not in seen_links:
+                    seen_links.add(link)
+                    all_items.append(item)
+
+            logger.info(
+                "네이버 뉴스 페이지 %d 수신 %d건 (누적 %d건)",
+                page + 1, len(items), len(all_items),
+            )
+
+            if len(items) < PER_PAGE:
+                break
+
+    logger.info("네이버 뉴스 검색 총 %d건 수신 (query=%s)", len(all_items), query)
+    return all_items

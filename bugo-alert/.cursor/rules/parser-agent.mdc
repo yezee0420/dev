@@ -65,11 +65,14 @@ for title, expected in tests:
 ## 데이터 흐름
 
 ```
-네이버 API 100건 → fetch_article_text() → parse_obituary(title, body)
-  ├─ is_obituary_article() → False → skip
-  ├─ parse_title()  → key_person, org, position, relationship
-  └─ parse_body()   → deceased_name, age, funeral_hall, room, date, time, contact
-      → ParsedObituary → scheduler/jobs.py로 전달
+네이버 API 페이지네이션 (최대 1,000건)
+  → URL 캐시 체크 (이미 본 URL은 스킵)
+  → fetch_article_text()
+  → parse_obituary(title, body)
+    ├─ is_obituary_article() → False → skip
+    ├─ parse_title()  → key_person, org, position, relationship
+    └─ parse_body()   → deceased_name, age, funeral_hall, room, date, time, contact
+        → ParsedObituary → scheduler/jobs.py로 전달
 ```
 
 ## 주요 헬퍼 함수
@@ -86,3 +89,5 @@ for title, expected in tests:
 - 정규식 수정 시 다른 패턴의 매칭에 영향을 줄 수 있으므로, 전체 테스트를 반드시 실행한다.
 - `_KNOWN_POSITIONS`에 새 직급을 추가할 때 P3, P3b, P5의 position 목록에도 동일하게 추가한다.
 - 네이버 API 응답의 `title`에는 `<b>` 태그와 `&quot;` 등 HTML 엔티티가 섞여 있으므로 `_clean_text()` 전처리가 필수다.
+- `naver_api.py`에서 API 키가 비어있거나 플레이스홀더면 빈 리스트를 반환한다.
+- 네트워크 오류(`TimeoutException`, `ConnectError`) 시 해당 페이지에서 중단하고 이미 수집된 결과만 반환한다.

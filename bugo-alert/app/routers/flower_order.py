@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -33,6 +33,8 @@ async def flower_order_page(
     db: Session = Depends(get_db),
 ):
     obit = db.query(Obituary).filter(Obituary.id == obituary_id).first()
+    if obit is None:
+        raise HTTPException(status_code=404, detail="부고를 찾을 수 없습니다")
     return request.app.state.templates.TemplateResponse(
         "flower_order.html",
         {

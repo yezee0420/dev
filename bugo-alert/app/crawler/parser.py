@@ -447,12 +447,24 @@ def parse_obituary(title: str, body: str) -> ParsedObituary | None:
     return result
 
 
+def _normalize_dedup(val: str | None) -> str:
+    """중복 제거 키용 정규화: 공백 제거, '씨' 접미사 제거."""
+    if not val:
+        return ""
+    val = val.strip()
+    val = re.sub(r"\s+", "", val)
+    val = re.sub(r"씨$", "", val)
+    return val
+
+
 def make_dedup_key(parsed: ParsedObituary) -> str | None:
-    """중복 제거용 키를 생성한다. key_person + relationship (+ deceased_name)."""
-    parts = [
-        parsed.key_person or "",
-        parsed.relationship or "",
-        parsed.deceased_name or "",
-    ]
-    key = "|".join(p.strip() for p in parts)
-    return key if any(parts) else None
+    """중복 제거용 키를 생성한다. key_person + relationship 만 사용.
+
+    deceased_name 은 기사마다 파싱 성공/실패가 달라
+    같은 부고에 다른 키가 생성되는 문제를 일으키므로 제외한다.
+    """
+    kp = _normalize_dedup(parsed.key_person)
+    rel = _normalize_dedup(parsed.relationship)
+    if not kp:
+        return None
+    return f"{kp}|{rel}"
