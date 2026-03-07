@@ -190,20 +190,21 @@ with open(sys.argv[1]) as f:
 files = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.strip()
 api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 
-prompt = """Summarize this git diff as a commit message. Describe WHAT WAS DONE and WHY — never list file names.
+prompt = """Write a commit message in this EXACT style. Natural language, no file names.
 
-GOOD (work-focused, specific):
-- add mdc file management rule: prefer adding to existing rules over creating new ones
-- add document sync section: update docs when cursor rules change
+GOOD examples:
+- Add document sync section and mdc file management rule
+- Add task completion notification rules and AI analyst strategy toolkit
+- remove venv and node_modules from tracking, add to root .gitignore
 - fix branch cleanup when no changes are staged
 - improve merge flow with auto-merge fallback for CI checks
 
-BAD (file-focused, vague):
+BAD (never do this):
 - update 1 file — docs/cursor-rules-guide.md
-- update git-ship
-- modify 3 files
+- add 3 files, update 2 files — file.ts
+- modify config
 
-Rules: max 72 chars, lowercase verb first (add/fix/improve/refactor), no period. Return ONLY the message."""
+Format: "Add X and Y" or "remove X, add Y" or "fix X". Max 72 chars. Return ONLY the message, nothing else."""
 
 body = {
   "model": "claude-sonnet-4-20250514",
@@ -236,49 +237,72 @@ import sys, re, subprocess
 diff = sys.stdin.read()
 files = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.strip().split("\n") or []
 
-candidates = []
+# 목표: "Add X and Y" / "remove X, add Y" 스타일 (파일명 없이, 자연어)
+# 예: "Add document sync section and mdc file management rule"
+# 예: "remove venv and node_modules from tracking, add to root .gitignore"
 
-# 1) 마크다운 ## 헤더 (새 섹션) — 이모지(8️⃣ 등) 제거
-for m in re.findall(r"^\+#{2,6}\s+(.+?)(?:\s*$|\s+#)", diff, re.M):
-  h = re.sub(r"\d*️⃣\s*", "", m).strip()[:40]
-  if len(h) > 4: candidates.append(("header", h))
+titles = []  # 자연어 제목들
+path_domains = set()
 
-# 2) - **섹션명** 패턴
-for m in re.findall(r"^\+[-*]\s+\*\*([^*]+)\*\*", diff, re.M):
-  h = m.strip()[:35]
-  if len(h) > 3: candidates.append(("header", h))
-
-# 3) 파일 경로 → 도메인 (docs, rules, readme, todo)
-path_hints = []
 for f in files:
-  if "docs/" in f: path_hints.append("docs")
-  elif ".mdc" in f or "rules" in f: path_hints.append("cursor rules")
-  elif "README" in f: path_hints.append("readme")
-  elif "TODO" in f: path_hints.append("todo")
-  elif "git-commands" in f: path_hints.append("git commands")
-for p in list(dict.fromkeys(path_hints))[:2]:
-  candidates.append(("path", p))
+  if "venv" in f or "node_modules" in f: path_domains.add("venv/node_modules")
+  elif "gitignore" in f: path_domains.add("gitignore")
+  elif "docs/" in f or "cursor-rules-guide" in f: path_domains.add("docs")
+  elif ".mdc" in f or "rules" in f: path_domains.add("cursor rules")
+  elif "README" in f: path_domains.add("readme")
+  elif "TODO" in f: path_domains.add("todo")
+  elif "git-commands" in f: path_domains.add("git commands")
 
-# 4) diff 본문 키워드 (규칙, 문서, 동기화, sync 등)
-kw_map = {"규칙":"rules", "문서":"docs", "동기화":"sync", "mdc":"mdc rules", "가이드":"guide", "readme":"readme", "todo":"todo"}
-for kr, en in kw_map.items():
-  if kr in diff or en in diff.lower():
-    candidates.append(("kw", en))
+# 1) .gitignore + venv/node_modules 제거 → 고정 패턴
+has_venv = any("venv" in f or "node_modules" in f for f in files)
+has_gitignore = any("gitignore" in f for f in files)
+if has_venv and has_gitignore:
+  print("remove venv and node_modules from tracking, add to root .gitignore")
+  sys.exit(0)
 
-# 메시지 조합 (header 우선, path/kw는 보조)
+# 2) 마크다운 ## 헤더 → 자연어 변환
+header_map = {
+  "규칙 수정 시 문서 동기화": "document sync when cursor rules change",
+  "문서 동기화": "document sync section",
+  "규칙 파일(mdc) 관리": "mdc file management rule",
+  "작업 완료 알림": "task completion notification rules",
+  "mdc 규칙 현황": "mdc rules overview",
+}
+for m in re.findall(r"^\+#{2,6}\s+(.+?)(?:\s*$|\s+#)", diff, re.M):
+  h = re.sub(r"\d*️⃣\s*", "", m).strip()
+  for kr, en in header_map.items():
+    if kr in h:
+      titles.append(en)
+      break
+  else:
+    if len(h) > 5 and "(" not in h[:20]:
+      titles.append(h[:45].strip())
+
+# 3) - **섹션** 패턴
+for m in re.findall(r"^\+[-*]\s+\*\*([^*]+)\*\*", diff, re.M):
+  h = m.strip()
+  if "규칙" in h or "문서" in h or "동기화" in h: titles.append("document sync and rules")
+  elif len(h) > 4: titles.append(h[:35])
+
+# 4) path_domains → 자연어
+if "docs" in path_domains and not titles: titles.append("docs")
+if "cursor rules" in path_domains: titles.append("cursor rules")
+if "gitignore" in path_domains and "remove" not in diff[:200]: titles.append("root .gitignore")
+if "git commands" in path_domains: titles.append("git commands")
+
+# 5) 조합: Add X and Y / Add X: Y
 seen = set()
 parts = []
-for _, v in candidates:
-  v = v.strip().lower()
-  if v and v not in seen and len(v) > 2:
-    seen.add(v)
-    parts.append(v)
-    if len(", ".join(parts)) > 50: break
+for t in titles:
+  t = t.strip().lower()
+  if t and t not in seen and len(t) > 2:
+    seen.add(t)
+    parts.append(t)
+parts = list(dict.fromkeys(parts))[:3]
 
-summary = ", ".join(parts[:3])[:60] if parts else ""
-if summary:
-  verb = "add" if "docs" in summary or "rules" in summary or "규칙" in diff else "update"
-  msg = f"{verb} {summary}"
+if parts:
+  verb = "Add" if "docs" in str(parts) or "rules" in str(parts) or "규칙" in diff else "Update"
+  msg = verb + " " + " and ".join(parts)
   if len(msg) <= 72: print(msg)
 ' 2>/dev/null
 }
