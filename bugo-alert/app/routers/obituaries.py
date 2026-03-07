@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Query
+from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
@@ -37,8 +37,9 @@ async def index(
     page: int = Query(1, ge=1),
 ):
     per_page = 20
-    total = _search_query(db).count()
-    obituaries = _search_query(db).offset((page - 1) * per_page).limit(per_page).all()
+    query = _search_query(db)
+    total = query.count()
+    obituaries = query.offset((page - 1) * per_page).limit(per_page).all()
     total_pages = max(1, (total + per_page - 1) // per_page)
 
     crawl_status = getattr(request.app.state, "crawl_status", {})
@@ -64,26 +65,14 @@ async def search(
     page: int = Query(1, ge=1),
 ):
     per_page = 20
-    query = _search_query(db, q)
-    total = query.count()
-    obituaries = query.offset((page - 1) * per_page).limit(per_page).all()
+    q_result = _search_query(db, q)
+    total = q_result.count()
+    obituaries = q_result.offset((page - 1) * per_page).limit(per_page).all()
     total_pages = max(1, (total + per_page - 1) // per_page)
 
-    if request.headers.get("HX-Request"):
-        return request.app.state.templates.TemplateResponse(
-            "partials/obituary_table.html",
-            {
-                "request": request,
-                "obituaries": obituaries,
-                "page": page,
-                "total_pages": total_pages,
-                "total": total,
-                "q": q,
-            },
-        )
-
+    template = "partials/obituary_table.html" if request.headers.get("HX-Request") else "search.html"
     return request.app.state.templates.TemplateResponse(
-        "search.html",
+        template,
         {
             "request": request,
             "obituaries": obituaries,
@@ -102,6 +91,8 @@ async def detail(
     db: Session = Depends(get_db),
 ):
     obit = db.query(Obituary).filter(Obituary.id == obituary_id).first()
+    if obit is None:
+        raise HTTPException(status_code=404, detail="부고를 찾을 수 없습니다")
     return request.app.state.templates.TemplateResponse(
         "detail.html",
         {"request": request, "obit": obit},

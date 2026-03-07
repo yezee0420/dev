@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import threading
 import webbrowser
@@ -88,27 +89,32 @@ app.include_router(favorites.router)
 app.include_router(flower_order.router)
 
 
+_crawl_lock = asyncio.Lock()
+
+
 @app.get("/api/crawl-now")
 async def trigger_crawl():
-    """수동 크롤링 트리거."""
+    """수동 크롤링 트리거 (동시 실행 방지)."""
     from app.scheduler.jobs import crawl_and_notify
 
     status = app.state.crawl_status
-    if status["is_running"]:
+
+    if _crawl_lock.locked():
         return {"status": "busy", "message": "크롤링이 이미 진행 중입니다"}
 
-    status["is_running"] = True
-    try:
-        count = await crawl_and_notify()
-        status["last_run"] = datetime.now()
-        status["last_count"] = count or 0
-        status["last_error"] = None
-        return {"status": "ok", "message": f"크롤링 완료 — 신규 {count or 0}건"}
-    except Exception as e:
-        status["last_error"] = str(e)
-        return {"status": "error", "message": str(e)}
-    finally:
-        status["is_running"] = False
+    async with _crawl_lock:
+        status["is_running"] = True
+        try:
+            count = await crawl_and_notify()
+            status["last_run"] = datetime.now()
+            status["last_count"] = count or 0
+            status["last_error"] = None
+            return {"status": "ok", "message": f"크롤링 완료 — 신규 {count or 0}건"}
+        except Exception as e:
+            status["last_error"] = str(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            status["is_running"] = False
 
 
 @app.get("/api/crawl-status")
@@ -121,3 +127,17 @@ async def crawl_status():
         "last_count": s["last_count"],
         "last_error": s["last_error"],
     }
+
+
+@app.get("/health")
+async def health_check():
+    """헬스체크 — DB 연결 확인."""
+    from sqlalchemy import text
+    from app.database import SessionLocal
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}

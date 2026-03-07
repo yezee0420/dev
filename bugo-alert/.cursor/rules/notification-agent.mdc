@@ -21,11 +21,12 @@
 ```
 새 부고 저장 (jobs.py)
   → _match_favorites(db, obit)     즐겨찾기 키워드 검색
-    → 키워드가 부고 정보에 포함?
-      ├─ YES → 이미 발송했는지 NotificationLog 확인
-      │   ├─ 미발송 → _send_notifications()
-      │   └─ 발송됨 → skip
-      └─ NO → skip
+    → 활성 즐겨찾기 전체 조회
+    → 키워드 in-memory 매칭 (keyword in searchable)
+    → 매칭된 favorite_id 목록으로 단일 IN 쿼리: NotificationLog 확인
+    → 미발송 건만 반환
+      ├─ 있음 → _send_notifications()
+      └─ 없음 → skip
 ```
 
 ### 키워드 매칭 범위
@@ -86,8 +87,15 @@ class KakaoNotifier(BaseNotifier):
 | 엔드포인트 | 메서드 | 설명 |
 |-----------|--------|------|
 | `/favorites` | GET | 즐겨찾기 목록 페이지 |
-| `/favorites` | POST | 키워드 추가 (HTMX) |
-| `/favorites/{id}` | DELETE | 키워드 삭제 (HTMX) |
+| `/favorites/add` | POST | 키워드 추가 (입력검증 적용, HTMX) |
+| `/favorites/toggle/{id}` | POST | 활성/비활성 토글 (404 처리, HTMX) |
+| `/favorites/delete/{id}` | DELETE | 키워드 삭제 (404 처리, HTMX) |
+
+### 입력 검증
+
+- `keyword`: 1~200자, strip 후 빈값 불가
+- `email`: 정규식 형식 검증 (`_EMAIL_RE`)
+- 검증 실패 → `HTTPException(400)`
 
 ## 화환 주문 (미완성)
 
@@ -105,3 +113,4 @@ class KakaoNotifier(BaseNotifier):
 - `NotificationLog`로 중복 발송을 방지한다 — 같은 obituary_id + favorite_id 조합은 한 번만
 - 알림 실패 시 `status="failed"`로 기록하고, 재시도 로직은 아직 없음
 - `favorite.keyword`는 부분 문자열 매칭 (`in` 연산) — 정확한 단어 경계 매칭이 아님
+- N+1 쿼리 방지: `_match_favorites()`에서 NotificationLog를 건별 조회 대신 단일 `IN` 쿼리 사용

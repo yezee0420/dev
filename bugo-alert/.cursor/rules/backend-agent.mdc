@@ -49,7 +49,7 @@
 | `created_at` | DateTime | 레코드 생성일 |
 | `dedup_key` | String(200) UNIQUE | 중복 제거 키 |
 
-**인덱스**: key_person, organization, published_at, dedup_key
+**인덱스**: key_person, organization, published_at, dedup_key, source_url
 
 ### Favorite (즐겨찾기)
 
@@ -73,23 +73,46 @@
 
 ```
 crawl_and_notify()
-  1. search_obituary_news()          → 네이버 API 100건
-  2. for item in news_items:
-     a. fetch_article_text()          → 본문 스크래핑
-     b. parse_obituary(title, body)   → ParsedObituary | None
-     c. is None → skip_count++
-     d. _merge_and_save()             → dedup_key 기반 통합
+  1. _seen_urls.load_from_db(db)      → 기존 URL 캐시 로드 (최초 1회)
+  2. search_obituary_news()           → 네이버 API 페이지네이션 (최대 1,000건)
+  3. for item in news_items:
+     a. url in _seen_urls?            → YES → url_skip_count++ (스크래핑 건너뜀)
+     b. fetch_article_text()          → 본문 스크래핑
+     c. _seen_urls.add(url)           → URL 캐시에 추가
+     d. parse_obituary(title, body)   → ParsedObituary | None
+     e. is None → skip_count++
+     f. _merge_and_save()             → dedup_key 기반 통합
         ├─ 기존 있음 → 빈 필드 보충 (merge_count++)
         └─ 신규 → 저장 (new_count++)
-     e. 신규 → _match_favorites()     → 키워드 매칭
-     f. 매칭 → _send_notifications()  → 이메일 발송
+     g. 신규 → _match_favorites()     → 키워드 매칭 (단일 IN 쿼리)
+     h. 매칭 → _send_notifications()  → 이메일 발송
 ```
+
+## URL 스킵 캐시
+
+- `_URLCache` (OrderedDict 기반 LRU) — 최대 50,000건, 초과 시 오래된 항목 자동 제거
+- 서버 시작 후 첫 크롤링 시 DB의 기존 `source_url`을 캐시에 로드
+- 캐시에 존재하는 URL은 스크래핑(네트워크 요청) 자체를 건너뜀
+- `source_url` 컬럼에 인덱스(`ix_obituaries_source_url`) 추가됨
+
+## 페이지네이션
+
+- `search_obituary_news()`가 `start` 파라미터를 100씩 증가시키며 최대 10페이지 수집
+- 네이버 API 제한: `start` ≤ 1000, `display` ≤ 100 → 최대 1,000건
+- 페이지 내 중복 링크는 `seen_links` set으로 제거
+- 결과가 100건 미만이면 다음 페이지 요청 중단
 
 ## 중복 제거 (dedup)
 
 - `dedup_key` = `key_person|relationship|deceased_name`
 - 같은 dedup_key가 있으면 빈 필드만 보충 업데이트 (merge)
 - IntegrityError 발생 시 rollback + skip
+
+## 동시 실행 방지
+
+- `/api/crawl-now` 엔드포인트에 `asyncio.Lock()` 적용
+- `_crawl_lock.locked()` 체크 후 `async with _crawl_lock:` 블록으로 보호
+- 동시 요청 시 두 번째 요청은 즉시 `{"status": "busy"}` 반환
 
 ## 스케줄러
 
@@ -102,8 +125,9 @@ crawl_and_notify()
 
 | 엔드포인트 | 메서드 | 설명 |
 |-----------|--------|------|
-| `/api/crawl-now` | GET | 수동 크롤링 트리거 |
+| `/api/crawl-now` | GET | 수동 크롤링 트리거 (asyncio.Lock 보호) |
 | `/api/crawl-status` | GET | 크롤링 상태 JSON |
+| `/health` | GET | 헬스체크 (DB 연결 확인) |
 
 ## DB 스키마 변경 시 규칙
 
@@ -133,3 +157,6 @@ DATABASE_URL=sqlite:///bugo.db
 - SQLite WAL 모드: 읽기/쓰기 동시 가능하지만, 동시 쓰기는 1개만
 - `raw_text`는 5000자로 자르고 저장 (DB 크기 관리)
 - `crawl_and_notify()`는 async이지만 APScheduler에서는 `asyncio.run()` 래퍼(`run_crawl_job`)로 호출
+- 네이버 API 키 미설정/플레이스홀더 시 크롤링 자동 스킵 (경고 로그만)
+- 네트워크 오류(Timeout, ConnectError 등) 시 해당 페이지에서 중단하고 이미 수집된 것까지만 처리
+- `.gitignore`에 `.env`, `*.db`, `__pycache__/` 등 포함됨
