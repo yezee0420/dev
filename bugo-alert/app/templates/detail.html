@@ -8,65 +8,71 @@
 </div>
 
 <div class="bg-white rounded-xl shadow p-6">
-  <h1 class="text-xl font-bold mb-1">{{ obit.title }}</h1>
+  <h1 class="text-xl font-bold mb-1">
+    {{ obit.key_person or '부고' }}
+    {% if obit.organization %}
+    <span class="text-gray-400 font-normal text-base ml-2">{{ obit.organization }}{% if obit.position %} {{ obit.position }}{% endif %}</span>
+    {% endif %}
+    {% if obit.relationship %}
+    <span class="text-amber-600 font-normal text-base ml-2">{{ obit.relationship }}</span>
+    {% endif %}
+  </h1>
   <p class="text-sm text-gray-400 mb-6">{{ obit.published_at.strftime('%Y-%m-%d %H:%M') if obit.published_at else '' }}</p>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
     <div class="space-y-3">
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">고인</span>
-        <span>{{ obit.deceased_name or '-' }}</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">핵심인물</span>
+        <span class="font-bold">{{ obit.key_person or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">나이</span>
-        <span>{{ obit.age or '-' }}</span>
-      </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">소속</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">소속</span>
         <span>{{ obit.organization or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">직급/직위</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">직급/직위</span>
         <span>{{ obit.position or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">관계</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">관계</span>
         <span>{{ obit.relationship or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">상주(관련인)</span>
-        <span>{{ obit.mourner_name or '-' }}</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">고인</span>
+        <span>{{ obit.deceased_name or '-' }}{% if obit.deceased_age %} (향년 {{ obit.deceased_age }}){% endif %}</span>
       </div>
     </div>
     <div class="space-y-3">
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">장례식장</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">장례식장</span>
         <span>{{ obit.funeral_hall or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">호실</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">호실</span>
         <span>{{ obit.room_number or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">발인일</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">발인일</span>
         <span>{{ obit.funeral_date or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">발인시간</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">발인시간</span>
         <span>{{ obit.funeral_time or '-' }}</span>
       </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">연락처</span>
+      <div class="flex">
+        <span class="font-semibold text-gray-600 w-28 shrink-0">연락처</span>
         <span>{{ obit.contact or '-' }}</span>
-      </div>
-      <div>
-        <span class="font-semibold text-gray-600 w-24 inline-block">비고</span>
-        <span>{{ obit.remarks or '-' }}</span>
       </div>
     </div>
   </div>
 
-  <!-- 액션 버튼 -->
+  {% if obit.related_persons %}
+  <div class="mt-4 p-3 bg-gray-50 rounded-lg text-sm">
+    <span class="font-semibold text-gray-600">관계자:</span>
+    <span class="text-gray-700 ml-1">{{ obit.related_persons }}</span>
+  </div>
+  {% endif %}
+
   <div class="mt-8 flex flex-wrap gap-3">
     <a href="{{ obit.source_url }}" target="_blank"
        class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
@@ -78,7 +84,6 @@
     </a>
   </div>
 
-  <!-- 원문 본문 (접힘) -->
   {% if obit.raw_text %}
   <details class="mt-6">
     <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700">기사 원문 텍스트 보기</summary>

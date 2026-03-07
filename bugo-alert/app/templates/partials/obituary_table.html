@@ -5,9 +5,10 @@
   <table class="w-full text-sm">
     <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
       <tr>
-        <th class="px-4 py-3 text-left">고인</th>
+        <th class="px-4 py-3 text-left">핵심인물</th>
         <th class="px-4 py-3 text-left">소속/직급</th>
         <th class="px-4 py-3 text-left">관계</th>
+        <th class="px-4 py-3 text-left">고인</th>
         <th class="px-4 py-3 text-left">장례식장</th>
         <th class="px-4 py-3 text-left">호실</th>
         <th class="px-4 py-3 text-left">발인</th>
@@ -18,9 +19,10 @@
     <tbody class="divide-y divide-gray-100">
       {% for o in obituaries %}
       <tr class="hover:bg-amber-50 transition">
-        <td class="px-4 py-3 font-medium">{{ o.deceased_name or o.mourner_name or '-' }}</td>
+        <td class="px-4 py-3 font-bold text-gray-900">{{ o.key_person or '-' }}</td>
         <td class="px-4 py-3">{{ o.organization or '-' }}{% if o.position %} <span class="text-gray-400">{{ o.position }}</span>{% endif %}</td>
         <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
+        <td class="px-4 py-3 text-gray-500">{{ o.deceased_name or '-' }}</td>
         <td class="px-4 py-3">{{ o.funeral_hall or '-' }}</td>
         <td class="px-4 py-3">{{ o.room_number or '-' }}</td>
         <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>

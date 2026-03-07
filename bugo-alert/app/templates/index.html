@@ -2,15 +2,89 @@
 {% block title %}대시보드{% endblock %}
 
 {% block content %}
+
+<!-- 크롤링 상태 패널 -->
+<div class="bg-white rounded-xl shadow p-4 mb-6" id="crawl-panel">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4 text-sm">
+      <div>
+        <span class="text-gray-500">크롤링 상태</span>
+        <span id="crawl-indicator" class="ml-2 inline-block w-2 h-2 rounded-full
+          {% if crawl_status.get('is_running') %}bg-amber-400 animate-pulse
+          {% elif crawl_status.get('last_error') %}bg-red-400
+          {% elif crawl_status.get('last_run') %}bg-green-400
+          {% else %}bg-gray-300{% endif %}"></span>
+        <span id="crawl-label" class="text-gray-600 ml-1">
+          {% if crawl_status.get('is_running') %}진행 중...
+          {% elif crawl_status.get('last_error') %}오류 발생
+          {% elif crawl_status.get('last_run') %}정상
+          {% else %}대기 중{% endif %}
+        </span>
+      </div>
+      <div class="border-l pl-4">
+        <span class="text-gray-500">마지막 수집</span>
+        <span class="text-gray-700 ml-1 font-medium">
+          {{ crawl_status.get('last_run').strftime('%m/%d %H:%M:%S') if crawl_status.get('last_run') else '아직 없음' }}
+        </span>
+      </div>
+      <div class="border-l pl-4">
+        <span class="text-gray-500">최근 신규</span>
+        <span class="text-gray-700 ml-1 font-medium">{{ crawl_status.get('last_count', 0) }}건</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="runCrawl()"
+              id="crawl-btn"
+              class="px-4 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        지금 크롤링
+      </button>
+      <a href="/search"
+         class="bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+        상세 검색
+      </a>
+    </div>
+  </div>
+  {% if crawl_status.get('last_error') %}
+  <p class="text-red-500 text-xs mt-2">{{ crawl_status.get('last_error') }}</p>
+  {% endif %}
+  <div id="crawl-message" class="text-sm mt-2 hidden"></div>
+</div>
+
+<script>
+async function runCrawl() {
+  const btn = document.getElementById('crawl-btn');
+  const msg = document.getElementById('crawl-message');
+  btn.disabled = true;
+  btn.textContent = '크롤링 중...';
+  msg.className = 'text-sm mt-2 text-gray-500';
+  msg.textContent = '네이버 뉴스에서 부고 기사를 수집하고 있습니다...';
+  try {
+    const res = await fetch('/api/crawl-now');
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.className = 'text-sm mt-2 text-green-600';
+      msg.textContent = data.message + ' — 페이지를 새로고침합니다...';
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      msg.className = 'text-sm mt-2 text-red-500';
+      msg.textContent = data.message;
+      btn.disabled = false;
+      btn.textContent = '지금 크롤링';
+    }
+  } catch (e) {
+    msg.className = 'text-sm mt-2 text-red-500';
+    msg.textContent = '요청 실패: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = '지금 크롤링';
+  }
+}
+</script>
+
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold">최신 부고</h1>
-    <p class="text-gray-500 text-sm mt-1">총 {{ total }}건 수집됨</p>
+    <p class="text-gray-500 text-sm mt-1">총 {{ total }}건 수집됨 (중복 제거 완료)</p>
   </div>
-  <a href="/search"
-     class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
-    상세 검색
-  </a>
 </div>
 
 {% if obituaries %}
@@ -18,24 +92,24 @@
   <table class="w-full text-sm">
     <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
       <tr>
-        <th class="px-4 py-3 text-left">고인</th>
-        <th class="px-4 py-3 text-left">소속</th>
+        <th class="px-4 py-3 text-left">핵심인물</th>
+        <th class="px-4 py-3 text-left">소속/직급</th>
         <th class="px-4 py-3 text-left">관계</th>
+        <th class="px-4 py-3 text-left">고인</th>
         <th class="px-4 py-3 text-left">장례식장</th>
         <th class="px-4 py-3 text-left">발인</th>
-        <th class="px-4 py-3 text-left">등록일</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% for o in obituaries %}
       <tr class="hover:bg-amber-50 transition">
-        <td class="px-4 py-3 font-medium">{{ o.deceased_name or o.mourner_name or '-' }}</td>
-        <td class="px-4 py-3">{{ o.organization or '-' }}</td>
+        <td class="px-4 py-3 font-bold text-gray-900">{{ o.key_person or '-' }}</td>
+        <td class="px-4 py-3">{{ o.organization or '-' }}{% if o.position %} <span class="text-gray-400">{{ o.position }}</span>{% endif %}</td>
         <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
+        <td class="px-4 py-3 text-gray-500">{{ o.deceased_name or '-' }}</td>
         <td class="px-4 py-3">{{ o.funeral_hall or '-' }}{% if o.room_number %} <span class="text-gray-400">{{ o.room_number }}</span>{% endif %}</td>
         <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>
-        <td class="px-4 py-3 text-gray-400">{{ o.published_at.strftime('%m/%d %H:%M') if o.published_at else '-' }}</td>
         <td class="px-4 py-3 text-right">
           <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>
         </td>
@@ -45,7 +119,6 @@
   </table>
 </div>
 
-<!-- 페이지네이션 -->
 {% if total_pages > 1 %}
 <div class="flex justify-center gap-2 mt-6">
   {% if page > 1 %}
@@ -61,7 +134,7 @@
 {% else %}
 <div class="text-center py-20 text-gray-400">
   <p class="text-lg">수집된 부고가 없습니다</p>
-  <p class="text-sm mt-2">첫 크롤링이 실행되면 여기에 표시됩니다</p>
+  <p class="text-sm mt-2 mb-4">위의 <strong>지금 크롤링</strong> 버튼을 눌러 즉시 수집을 시작하세요</p>
 </div>
 {% endif %}
 {% endblock %}

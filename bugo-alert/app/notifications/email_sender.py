@@ -17,27 +17,28 @@ logger = logging.getLogger(__name__)
 
 def _build_html(obit: Obituary) -> str:
     rows = [
-        ("고인", obit.deceased_name or "-"),
-        ("나이", obit.age or "-"),
+        ("핵심인물", obit.key_person or "-"),
         ("소속", obit.organization or "-"),
         ("직급/직위", obit.position or "-"),
         ("관계", obit.relationship or "-"),
-        ("상주(관련인)", obit.mourner_name or "-"),
+        ("고인", obit.deceased_name or "-"),
+        ("나이", obit.deceased_age or "-"),
         ("장례식장", obit.funeral_hall or "-"),
         ("호실", obit.room_number or "-"),
         ("발인일", obit.funeral_date or "-"),
         ("발인시간", obit.funeral_time or "-"),
         ("연락처", obit.contact or "-"),
-        ("비고", obit.remarks or "-"),
+        ("관계자", obit.related_persons or "-"),
     ]
     table_rows = "".join(
         f'<tr><td style="padding:6px 12px;font-weight:bold;background:#f3f4f6">{k}</td>'
         f'<td style="padding:6px 12px">{v}</td></tr>'
         for k, v in rows
     )
+    person_label = obit.key_person or "새 부고"
     return f"""
     <div style="font-family:sans-serif;max-width:600px;margin:auto">
-      <h2 style="color:#1f2937">부고 알림 — {obit.deceased_name or '새 부고'}</h2>
+      <h2 style="color:#1f2937">부고 알림 — {person_label}</h2>
       <p style="color:#6b7280">즐겨찾기 키워드 매칭으로 발송된 알림입니다.</p>
       <table style="border-collapse:collapse;width:100%;border:1px solid #e5e7eb">
         {table_rows}
@@ -56,8 +57,9 @@ class EmailNotifier(BaseNotifier):
             logger.warning("SMTP 설정 누락 — 이메일 발송 건너뜀")
             return False
 
+        person = obituary.key_person or "새 부고"
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = f"[부고알림] {obituary.deceased_name or '새 부고'} — 키워드: {favorite.keyword}"
+        msg["Subject"] = f"[부고알림] {person} ({obituary.organization or ''}) {obituary.relationship or ''} — 키워드: {favorite.keyword}"
         msg["From"] = settings.smtp_from or settings.smtp_user
         msg["To"] = favorite.email
 
