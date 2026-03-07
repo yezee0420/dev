@@ -1,0 +1,99 @@
+# UI Agent — 프론트엔드 전문
+
+## 역할
+
+BugoAlert 웹 대시보드의 화면 구성, 사용자 인터랙션, 라우팅을 관리한다.
+
+## 담당 파일
+
+- `app/templates/*.html` — Jinja2 페이지 템플릿
+- `app/templates/partials/*.html` — HTMX 파셜 컴포넌트
+- `app/static/` — 정적 파일 (CSS, JS, 이미지)
+- `app/routers/obituaries.py` — 부고 목록/검색/상세 라우터
+- `app/routers/favorites.py` — 즐겨찾기 CRUD 라우터
+- `app/routers/flower_order.py` — 화환 주문 라우터
+
+## 기술 스택
+
+- **Jinja2** — 서버 사이드 템플릿 엔진
+- **HTMX 2.0** — 부분 페이지 업데이트 (검색, 즐겨찾기 CRUD)
+- **Tailwind CSS (CDN)** — 유틸리티 퍼스트 스타일링
+- **FastAPI Router** — 라우팅 + 의존성 주입
+
+## 페이지 구조
+
+| URL | 템플릿 | 설명 |
+|-----|--------|------|
+| `/` | `index.html` | 대시보드 — 최신 부고 목록 + 크롤링 상태 패널 |
+| `/search?q=` | `search.html` | 실시간 검색 (HTMX) |
+| `/obituary/{id}` | `detail.html` | 부고 상세 — 핵심인물/고인/장례 정보 |
+| `/favorites` | `favorites.html` | 즐겨찾기 키워드 관리 (HTMX CRUD) |
+| `/flower/order/{id}` | `flower_order.html` | 화환 주문 안내 |
+
+## 템플릿 계층
+
+```
+base.html                  ← 공통 레이아웃 (nav, footer, CDN)
+├── index.html             ← 대시보드
+├── search.html            ← 검색 페이지
+├── detail.html            ← 상세 페이지
+├── favorites.html         ← 즐겨찾기
+├── flower_order.html      ← 화환 주문
+└── partials/
+    ├── obituary_table.html  ← 검색 결과 테이블 (HTMX 파셜)
+    └── favorites_list.html  ← 즐겨찾기 목록 (HTMX 파셜)
+```
+
+## Obituary 모델 필드 (템플릿에서 사용)
+
+| 필드 | 설명 | 표시 우선순위 |
+|------|------|-------------|
+| `key_person` | 핵심인물 (조문 대상) | **최우선** — 볼드 표시 |
+| `organization` | 소속 (회사/기관) | 높음 |
+| `position` | 직급/직위 | 높음 |
+| `relationship` | 관계 (모친상, 부친상 등) | 높음 |
+| `deceased_name` | 고인명 | 보통 |
+| `deceased_age` | 고인 나이 | 보통 |
+| `funeral_hall` | 장례식장 | 보통 |
+| `room_number` | 호실 | 보통 |
+| `funeral_date` | 발인일 | 보통 |
+| `funeral_time` | 발인시간 | 보통 |
+| `contact` | 연락처 | 낮음 |
+| `related_persons` | 관계자 목록 | 낮음 |
+| `source_url` | 기사 원문 링크 | 링크 |
+| `published_at` | 기사 발행일 | 메타 |
+
+## 디자인 규칙
+
+- **색상 팔레트**: gray-900(네비), amber-400/500(포인트), gray-50(배경)
+- **핵심인물**은 항상 테이블 첫 번째 열에 **볼드**로 표시
+- 대시보드 테이블 헤더: `핵심인물 | 소속/직급 | 관계 | 고인 | 장례식장 | 발인`
+- 모든 목록에 **페이징** 지원 (20건/페이지)
+- HTMX 파셜은 `partials/` 폴더에 두고, `HX-Request` 헤더로 판별
+
+## HTMX 패턴
+
+```html
+<!-- 실시간 검색 -->
+<input type="search" name="q"
+       hx-get="/search" hx-trigger="keyup changed delay:300ms"
+       hx-target="#results" hx-indicator=".htmx-indicator">
+
+<!-- 즐겨찾기 삭제 -->
+<button hx-delete="/favorites/{{ fav.id }}"
+        hx-target="#favorites-list" hx-swap="innerHTML">삭제</button>
+```
+
+## 라우터 규칙
+
+- `Request` + `Depends(get_db)` 조합으로 템플릿에 데이터 전달
+- `request.app.state.templates.TemplateResponse(...)` 패턴 사용
+- 검색은 `ilike` 패턴으로 key_person, organization, deceased_name, title, position, funeral_hall, related_persons 검색
+- 크롤링 상태는 `request.app.state.crawl_status`에서 읽음
+
+## 주의사항
+
+- Tailwind는 CDN 방식이므로 커스텀 클래스 사용 불가, 유틸리티 클래스만 사용
+- base.html의 CDN 링크 버전을 함부로 변경하지 않는다
+- `detail.html`의 `raw_text`는 `<details>` 접기로 숨김 처리
+- 장례식장 + 호실은 같은 셀에 표시 (호실은 text-gray-400)
