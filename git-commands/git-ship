@@ -327,33 +327,25 @@ generate_commit_msg() {
 
   info "⚡ Basic fallback"
 
-  # 최후 fallback
+  # 최후 fallback: 자연어, 쉼표 사용, 함수명/언더스코어 제외
   local added modified deleted
   added=$(git diff --cached --name-only --diff-filter=A  | wc -l | tr -d ' ')
   modified=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
   deleted=$(git diff --cached --name-only --diff-filter=D  | wc -l | tr -d ' ')
+
+  [[ $added -eq 0 && $modified -eq 0 && $deleted -eq 0 ]] && { echo "chore: minor changes"; return; }
 
   local parts=()
   (( added > 0 ))    && parts+=("add ${added} file$( (( added > 1 )) && echo s)")
   (( modified > 0 )) && parts+=("update ${modified} file$( (( modified > 1 )) && echo s)")
   (( deleted > 0 ))  && parts+=("remove ${deleted} file$( (( deleted > 1 )) && echo s)")
 
-  [[ ${#parts[@]} -eq 0 ]] && { echo "chore: minor changes"; return; }
+  # 경로에서 프로젝트/디렉터리만 (bugo-alert/app/main.py → bugo-alert)
+  local scope
+  scope=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}' | cut -d'/' -f1)
+  [[ -n "$scope" ]] && parts+=("$scope")
 
-  local defs
-  defs=$(git diff --cached --no-color | grep '^+[^+]' | grep -oE '(function |def |class |const |let |var |export (default )?(function |class |const ))\w+' | awk '{print $NF}' | sort -u | head -3 | tr '\n' ', ' | sed 's/,$//')
-  local top_file
-  top_file=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}')
-
-  if [[ -n "$defs" && -n "$top_file" ]]; then
-    echo "$(IFS=', '; echo "${parts[*]}") — ${defs} — ${top_file}"
-  elif [[ -n "$defs" ]]; then
-    echo "$(IFS=', '; echo "${parts[*]}") — ${defs}"
-  elif [[ -n "$top_file" ]]; then
-    echo "$(IFS=', '; echo "${parts[*]}") — ${top_file}"
-  else
-    IFS=', '; echo "${parts[*]}"
-  fi
+  IFS=', '; echo "${parts[*]}"
 }
 
 COMMIT_MSG=""
