@@ -305,7 +305,22 @@ API 주소 이름, GET/POST 사용법, 응답 모양을 규칙으로 정할 수 
 
 ---
 
-## 8️⃣ dev 프로젝트의 mdc 규칙 현황 (참고)
+## 8️⃣ 규칙 수정 시 문서 동기화 (필수)
+
+**규칙을 바꾸면** `core-language-and-style.mdc`의 문서 동기화 규칙에 따라 **관련 문서도 같이 수정**한다.
+
+| 규칙 변경 | 함께 수정할 문서 |
+|----------|-----------------|
+| `.cursor/rules/*.mdc` 추가·수정·삭제 | `docs/cursor-rules-guide.md` (8️⃣ 아래 표 등) |
+| 새 규칙 파일, globs 변경 | `docs/cursor-rules-guide.md` — mdc 현황 표 업데이트 |
+| 기타 규칙·설정 변경 | README, docs, 가이드 등 관련 문서 |
+
+**한 줄 요약:**  
+규칙(mdc)을 고치면 → `docs/cursor-rules-guide.md` 같은 관련 문서에 **바로 반영**한다.
+
+---
+
+## 9️⃣ dev 프로젝트의 mdc 규칙 현황 (참고)
 
 `dev` 워크스페이스에서 사용 중인 규칙 파일:
 
@@ -315,7 +330,6 @@ API 주소 이름, GET/POST 사용법, 응답 모양을 규칙으로 정할 수 
 | `task-completion-notify.mdc` | 작업 완료 시 텍스트/소리/팝업 알림 (모든 작업 종료 시 적용) | 항상 적용 |
 | `bugo-backend-agent.mdc` | BugoAlert 백엔드 인프라 (DB, 스케줄러, dedup) | `bugo-alert/app/models.py`, `app/scheduler/**` 등 |
 | `bugo-parser-agent.mdc` | BugoAlert 크롤링·파싱 (제목 패턴, make_dedup_key) | `bugo-alert/app/crawler/**` |
-| `bugo-dedup-agent.mdc` | BugoAlert 중복 제거 3단계 파이프라인 | `bugo-alert/app/crawler/parser.py`, `app/scheduler/jobs.py` 등 |
 | `bugo-notification-agent.mdc` | BugoAlert 알림 (즐겨찾기 매칭, 이메일) | `bugo-alert/app/notifications/**` 등 |
 | `bugo-ui-agent.mdc` | BugoAlert 프론트엔드 (템플릿, HTMX, Tailwind) | `bugo-alert/app/templates/**` 등 |
 
