@@ -99,10 +99,20 @@ async function runCrawl() {
 }
 </script>
 
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-6 flex-wrap gap-4">
   <div>
     <h1 class="text-2xl font-bold">최신 부고</h1>
     <p class="text-gray-500 text-sm mt-1">총 {{ total }}건 수집됨 (중복 제거 완료)</p>
+  </div>
+  <div class="flex items-center gap-2 text-sm">
+    <label for="per-page" class="text-gray-500">한 페이지에</label>
+    <select id="per-page" onchange="location.href='/?page=1&per_page='+this.value"
+            class="px-2 py-1 rounded border border-gray-300 text-gray-700 bg-white">
+      {% for n in per_page_options %}
+      <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}건</option>
+      {% endfor %}
+    </select>
+    <span class="text-gray-500">보기</span>
   </div>
 </div>
 
@@ -139,14 +149,16 @@ async function runCrawl() {
 </div>
 
 {% if total_pages > 1 %}
-<div class="flex justify-center gap-2 mt-6">
+<div class="flex justify-center items-center gap-2 mt-6 flex-wrap">
+  <a href="/?page=1&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == 1 %}opacity-50 pointer-events-none{% endif %}">맨 처음</a>
   {% if page > 1 %}
-  <a href="/?page={{ page - 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
+  <a href="/?page={{ page - 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
   {% endif %}
   <span class="px-3 py-1 text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
   {% if page < total_pages %}
-  <a href="/?page={{ page + 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
+  <a href="/?page={{ page + 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
   {% endif %}
+  <a href="/?page={{ total_pages }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == total_pages %}opacity-50 pointer-events-none{% endif %}">맨 끝</a>
 </div>
 {% endif %}
 

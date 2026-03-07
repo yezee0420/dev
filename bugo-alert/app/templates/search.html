@@ -4,17 +4,35 @@
 {% block content %}
 <h1 class="text-2xl font-bold mb-6">부고 검색</h1>
 
-<div class="mb-6">
-  <input type="text"
-         name="q"
-         value="{{ q or '' }}"
-         placeholder="이름, 소속, 장례식장 등으로 검색..."
-         hx-get="/search"
-         hx-trigger="keyup changed delay:300ms, search"
-         hx-target="#search-results"
-         hx-indicator="#search-spinner"
-         hx-include="this"
-         class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base shadow-sm">
+<div class="mb-6" id="search-form-wrapper">
+  <div class="flex gap-4 flex-wrap items-end">
+    <div class="flex-1 min-w-[200px]">
+      <input type="text"
+             name="q"
+             value="{{ q or '' }}"
+             placeholder="이름, 소속, 장례식장 등으로 검색..."
+             hx-get="/search"
+             hx-trigger="keyup changed delay:300ms, search"
+             hx-target="#search-results"
+             hx-indicator="#search-spinner"
+             hx-include="#search-form-wrapper"
+             class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none text-base shadow-sm">
+    </div>
+    <div class="flex items-center gap-2 text-sm">
+      <label for="per-page" class="text-gray-500">한 페이지에</label>
+      <select name="per_page" id="per-page"
+              hx-get="/search"
+              hx-trigger="change"
+              hx-target="#search-results"
+              hx-include="#search-form-wrapper"
+              class="px-2 py-2 rounded-xl border border-gray-300 text-gray-700 bg-white">
+        {% for n in per_page_options %}
+        <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}건</option>
+        {% endfor %}
+      </select>
+      <span class="text-gray-500">보기</span>
+    </div>
+  </div>
   <span id="search-spinner" class="htmx-indicator ml-2 text-gray-400 text-sm">검색 중...</span>
 </div>
 

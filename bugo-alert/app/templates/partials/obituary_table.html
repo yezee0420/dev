@@ -38,14 +38,16 @@
 </div>
 
 {% if total_pages > 1 %}
-<div class="flex justify-center gap-2 mt-6">
+<div class="flex justify-center items-center gap-2 mt-6 flex-wrap">
+  <a href="/search?q={{ q or '' }}&page=1&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == 1 %}opacity-50 pointer-events-none{% endif %}">맨 처음</a>
   {% if page > 1 %}
-  <a href="/search?q={{ q or '' }}&page={{ page - 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
+  <a href="/search?q={{ q or '' }}&page={{ page - 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
   {% endif %}
   <span class="px-3 py-1 text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
   {% if page < total_pages %}
-  <a href="/search?q={{ q or '' }}&page={{ page + 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
+  <a href="/search?q={{ q or '' }}&page={{ page + 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
   {% endif %}
+  <a href="/search?q={{ q or '' }}&page={{ total_pages }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == total_pages %}opacity-50 pointer-events-none{% endif %}">맨 끝</a>
 </div>
 {% endif %}
 

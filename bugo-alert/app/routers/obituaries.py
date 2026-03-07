@@ -11,6 +11,12 @@ from app.models import Obituary
 
 router = APIRouter()
 
+PER_PAGE_OPTIONS = (10, 20, 50, 100)
+
+
+def _valid_per_page(v: int) -> int:
+    return v if v in PER_PAGE_OPTIONS else 20
+
 
 def _search_query(db: Session, q: str | None = None):
     query = db.query(Obituary).order_by(Obituary.published_at.desc())
@@ -35,8 +41,9 @@ async def index(
     request: Request,
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=10, le=100),
 ):
-    per_page = 20
+    per_page = _valid_per_page(per_page)
     query = _search_query(db)
     total = query.count()
     obituaries = query.offset((page - 1) * per_page).limit(per_page).all()
@@ -52,6 +59,8 @@ async def index(
             "page": page,
             "total_pages": total_pages,
             "total": total,
+            "per_page": per_page,
+            "per_page_options": PER_PAGE_OPTIONS,
             "crawl_status": crawl_status,
         },
     )
@@ -63,8 +72,9 @@ async def search(
     q: str = Query(""),
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=10, le=100),
 ):
-    per_page = 20
+    per_page = _valid_per_page(per_page)
     q_result = _search_query(db, q)
     total = q_result.count()
     obituaries = q_result.offset((page - 1) * per_page).limit(per_page).all()
@@ -79,6 +89,8 @@ async def search(
             "page": page,
             "total_pages": total_pages,
             "total": total,
+            "per_page": per_page,
+            "per_page_options": PER_PAGE_OPTIONS,
             "q": q,
         },
     )
