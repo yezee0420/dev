@@ -11,6 +11,9 @@
 
 ```bash
 cd bugo-alert
+또는
+cd /Users/macbookair/Documents/GitHub/dev/bugo-alert
+
 
 # 가상환경 생성
 python -m venv venv
