@@ -13,7 +13,7 @@ from app.database import SessionLocal
 from app.models import Obituary, Favorite, NotificationLog
 from app.crawler.naver_api import search_obituary_news
 from app.crawler.scraper import fetch_article_text
-from app.crawler.parser import parse_obituary, make_dedup_key, ParsedObituary
+from app.crawler.parser import parse_obituary, parse_obituary_multi, make_dedup_key, ParsedObituary
 from app.notifications.email_sender import EmailNotifier
 
 logger = logging.getLogger(__name__)
@@ -247,29 +247,41 @@ async def crawl_and_notify() -> dict:
                 continue
 
             body = await fetch_article_text(item.naver_link or url)
-            parsed = parse_obituary(item.title, body or item.description)
-
-            _seen_urls.add(url)
-
-            if parsed is None:
+            body_or_desc = body or item.description or ""
+            # body·description 모두 없으면 제목만으로 파싱 — 고인 추출 어려움
+            if not body_or_desc.strip():
+                _seen_urls.add(url)
                 skip_count += 1
                 continue
 
-            obit, is_new = _merge_and_save(db, parsed, item.title, url, body, item.pub_date)
-            if obit is None:
+            parsed_list = parse_obituary_multi(item.title, body_or_desc)
+
+            _seen_urls.add(url)
+
+            if not parsed_list:
+                skip_count += 1
                 continue
 
-            if is_new:
-                new_count += 1
-                matched = _match_favorites(db, obit)
-                if matched:
-                    logger.info(
-                        "즐겨찾기 매칭 %d건 → 알림 발송 (핵심인물: %s)",
-                        len(matched), obit.key_person or obit.title,
-                    )
-                    await _send_notifications(db, obit, matched)
-            else:
-                merge_count += 1
+            valid = [p for p in parsed_list if p.deceased_name or p.key_person]
+            if not valid:
+                skip_count += 1
+                continue
+
+            for parsed in valid:
+                obit, is_new = _merge_and_save(db, parsed, item.title, url, body_or_desc, item.pub_date)
+                if obit is None:
+                    continue
+                if is_new:
+                    new_count += 1
+                    matched = _match_favorites(db, obit)
+                    if matched:
+                        logger.info(
+                            "즐겨찾기 매칭 %d건 → 알림 발송 (핵심인물: %s)",
+                            len(matched), obit.key_person or obit.title,
+                        )
+                        await _send_notifications(db, obit, matched)
+                else:
+                    merge_count += 1
 
         duration = time.perf_counter() - started
         logger.info(

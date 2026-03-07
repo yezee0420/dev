@@ -7,6 +7,10 @@ alwaysApply: true
 
 모든 알림에는 **에이전트 이름**과 **작업 요약**을 포함한다.
 
+- **에이전트 이름 규칙**
+  - 서브에이전트(mcp_task 등)를 사용했다면, **실제로 작업한 에이전트**를 표기한다.
+  - 예: `[Cursor]` (본 에이전트), `[Shell Agent]` (shell 서브에이전트), `[Explore Agent]` (explore 서브에이전트), `[GeneralPurpose Agent]` (generalPurpose 서브에이전트)
+
 - **1. 텍스트 알림**
   - 작업이 끝나면 답변 **맨 마지막**에 반드시 아래 형식으로 넣는다.
   - `**작업 완료 [에이전트명]: 작업 요약**`
