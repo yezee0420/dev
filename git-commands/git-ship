@@ -164,8 +164,6 @@ ai_summarize() {
 }
 
 fallback_summarize() {
-  local keywords=()
-
   local defs
   defs=$(git diff --cached --no-color \
     | grep '^+[^+]' \
@@ -173,23 +171,15 @@ fallback_summarize() {
     | awk '{print $NF}' \
     | sort -u | head -4 \
     | tr '\n' ', ' | sed 's/,$//')
-  [[ -n "$defs" ]] && keywords+=("$defs")
 
-  if [[ ${#keywords[@]} -eq 0 ]]; then
-    local basenames
-    basenames=$(git diff --cached --name-only \
-      | xargs -I{} basename {} \
-      | sed 's/\.[^.]*$//' \
-      | sort -u | head -4 \
-      | tr '\n' ', ' | sed 's/,$//')
-    [[ -n "$basenames" ]] && keywords+=("$basenames")
+  if [[ -z "$defs" ]]; then
+    return
   fi
 
-  local result="${keywords[*]}"
-  if (( ${#result} > 50 )); then
-    result="${result:0:47}..."
+  if (( ${#defs} > 50 )); then
+    defs="${defs:0:47}..."
   fi
-  echo "$result"
+  echo "$defs"
 }
 
 generate_commit_msg() {
