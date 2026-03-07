@@ -131,10 +131,34 @@ echo "" >&2
 echo -e "${BOLD}🚀 git-ship${NC}  ${DIM}on${NC} ${CYAN}${CURRENT_BRANCH}${NC}  ${DIM}→${NC}  ${GREEN}${DEFAULT_BRANCH}${NC}" >&2
 divider
 
-# ─── 1. Branch ──────────────────────────────────────────────────────
-step "1" "Branch"
+# ─── 1. Stage (먼저 확인) ────────────────────────────────────────────
+step "1" "Stage Changes"
 
-if [[ "$CURRENT_BRANCH" == "$DEFAULT_BRANCH" ]]; then
+dry git add -A
+
+STAGED=$(git diff --cached --stat 2>/dev/null || true)
+AHEAD=$(git rev-list --count origin/"$DEFAULT_BRANCH"..HEAD 2>/dev/null || echo 0)
+
+UNPUSHED_ONLY=false
+if [[ -z "$STAGED" ]]; then
+  if [[ "$AHEAD" -gt 0 ]]; then
+    info "No new changes — ${AHEAD} unpushed commit(s) will be pushed"
+    COMMIT_MSG=$(git log -1 --pretty=%s 2>/dev/null || echo "update")
+    UNPUSHED_ONLY=true
+  else
+    warn "No changes to commit — nothing to ship!"
+    abort_cleanup
+    exit 0
+  fi
+else
+  echo -e "${DIM}${STAGED}${NC}" >&2
+  success "All changes staged"
+fi
+
+# ─── 2. Branch (변경 있을 때만 ship/ 생성) ─────────────────────────────
+step "2" "Branch"
+
+if [[ -n "$STAGED" && "$CURRENT_BRANCH" == "$DEFAULT_BRANCH" ]]; then
   NEW_BRANCH="ship/$(date +%Y%m%d-%H%M%S)"
   warn "On ${DEFAULT_BRANCH} — creating feature branch: ${NEW_BRANCH}"
   dry git checkout -b "$NEW_BRANCH"
@@ -145,22 +169,8 @@ else
   success "Branch: ${CURRENT_BRANCH}"
 fi
 
-# ─── 2. Stage ───────────────────────────────────────────────────────
-step "2" "Stage Changes"
-
-dry git add -A
-
-STAGED=$(git diff --cached --stat 2>/dev/null || true)
-if [[ -z "$STAGED" ]]; then
-  warn "No changes to commit — nothing to ship!"
-  abort_cleanup
-  exit 0
-fi
-
-echo -e "${DIM}${STAGED}${NC}" >&2
-success "All changes staged"
-
 # ─── 3. Commit ──────────────────────────────────────────────────────
+if [[ -n "$STAGED" ]]; then
 step "3" "Commit"
 
 ai_summarize() {
@@ -310,6 +320,7 @@ fi
 
 dry git commit -m "$COMMIT_MSG"
 success "Committed: ${COMMIT_MSG}"
+fi
 
 # ─── 4. Pull & Push ────────────────────────────────────────────────
 step "4" "Sync Remote"
@@ -331,7 +342,7 @@ success "Pushed to origin/${CURRENT_BRANCH}"
 
 # ─── 5. Pull Request ───────────────────────────────────────────────
 PR_URL=""
-if [[ "$SKIP_PR" == false ]]; then
+if [[ "$SKIP_PR" == false ]] && [[ "$UNPUSHED_ONLY" != true || "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]]; then
   step "5" "Pull Request"
 
   PR_URL=$(gh pr view "$CURRENT_BRANCH" --json url -q .url 2>/dev/null || true)
@@ -353,7 +364,7 @@ if [[ "$SKIP_PR" == false ]]; then
 fi
 
 # ─── 6. Merge ──────────────────────────────────────────────────────
-if [[ "$SKIP_MERGE" == false ]]; then
+if [[ "$SKIP_MERGE" == false ]] && [[ "$UNPUSHED_ONLY" != true || "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]]; then
   step "6" "Merge → ${DEFAULT_BRANCH}"
 
   if [[ "$DRY_RUN" == true ]]; then
@@ -361,15 +372,26 @@ if [[ "$SKIP_MERGE" == false ]]; then
   else
     sleep 2
 
-    if gh pr merge --squash --delete-branch 2>/dev/null; then
+    checkout_default() {
+      local did_stash=false
+      if ! git diff --quiet 2>/dev/null || ! git diff --staged --quiet 2>/dev/null; then
+        info "Stashing local changes before checkout..."
+        git stash push -u -m "git-ship: temp stash" && did_stash=true
+      fi
       git checkout "$DEFAULT_BRANCH"
       git pull origin "$DEFAULT_BRANCH"
+      if [[ "$did_stash" == true ]]; then
+        git stash pop 2>/dev/null || warn "Stash pop failed — run 'git stash list' to recover"
+      fi
+    }
+
+    if gh pr merge --squash --delete-branch 2>/dev/null; then
+      checkout_default
       success "Merged & branch cleaned up"
     elif gh pr merge --squash --delete-branch --auto 2>/dev/null; then
       success "Auto-merge enabled — will merge when checks pass"
       info "PR: ${PR_URL}"
-      git checkout "$DEFAULT_BRANCH"
-      git pull origin "$DEFAULT_BRANCH"
+      checkout_default
     else
       warn "Could not set auto-merge. PR is open at: ${PR_URL}"
       warn "Merge manually when ready."
