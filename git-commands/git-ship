@@ -1,0 +1,260 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ─── Colors & Helpers ───────────────────────────────────────────────
+RED='\033[0;31m'  GREEN='\033[0;32m'  YELLOW='\033[1;33m'
+BLUE='\033[0;34m' CYAN='\033[0;36m'   BOLD='\033[1m'
+DIM='\033[2m'     NC='\033[0m'
+
+info()    { echo -e "  ${BLUE}▸${NC} $*"; }
+success() { echo -e "  ${GREEN}✔${NC} $*"; }
+warn()    { echo -e "  ${YELLOW}⚠${NC} $*"; }
+die()     { echo -e "  ${RED}✖${NC} $*" >&2; exit 1; }
+step()    { echo -e "\n${CYAN}${BOLD}[$1]${NC} ${BOLD}$2${NC}"; }
+divider() { echo -e "${DIM}──────────────────────────────────────────────${NC}"; }
+
+# ─── Help ───────────────────────────────────────────────────────────
+show_help() {
+  cat <<EOF
+${BOLD}git-ship${NC} — Stage → Commit → Pull → Push → PR → Merge in one command
+
+${BOLD}Usage:${NC}
+  git-ship                   Auto-generate commit message (interactive)
+  git-ship -y                Auto-generate commit message (no prompt)
+  git-ship -m "message"      Use custom commit message (skip prompt)
+  git-ship --no-pr           Stop after push (skip PR & merge)
+  git-ship --no-merge        Create PR but skip merge
+  git-ship --dry-run         Preview actions without executing
+
+${BOLD}Options:${NC}
+  -y, --yes             Auto-commit without asking (use generated message)
+  -m, --message <msg>   Custom commit message
+  --no-pr               Skip PR creation and merge
+  --no-merge            Create PR but don't merge
+  --dry-run             Show what would happen
+  -h, --help            Show this help
+EOF
+}
+
+# ─── Parse Arguments ────────────────────────────────────────────────
+CUSTOM_MSG=""
+AUTO_YES=false
+SKIP_PR=false
+SKIP_MERGE=false
+DRY_RUN=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -y|--yes)    AUTO_YES=true; shift ;;
+    -m|--message)
+      [[ -z "${2:-}" ]] && die "Option $1 requires a message argument"
+      CUSTOM_MSG="$2"; shift 2 ;;
+    --no-pr)     SKIP_PR=true; SKIP_MERGE=true; shift ;;
+    --no-merge)  SKIP_MERGE=true; shift ;;
+    --dry-run)   DRY_RUN=true; shift ;;
+    -h|--help)   show_help; exit 0 ;;
+    *) die "Unknown option: $1  (use -h for help)" ;;
+  esac
+done
+
+dry() {
+  if [[ "$DRY_RUN" == true ]]; then
+    info "${DIM}(dry-run)${NC} $*"
+    return 0
+  fi
+  "$@"
+}
+
+# ─── Preflight Checks ──────────────────────────────────────────────
+git rev-parse --is-inside-work-tree &>/dev/null \
+  || die "Not inside a git repository"
+
+command -v gh &>/dev/null \
+  || die "GitHub CLI (gh) required — brew install gh"
+
+if [[ "$SKIP_PR" == false ]]; then
+  gh auth status &>/dev/null \
+    || die "GitHub CLI not authenticated — run: gh auth login"
+fi
+
+CURRENT_BRANCH=$(git branch --show-current)
+ORIGINAL_BRANCH="$CURRENT_BRANCH"
+CREATED_BRANCH=""
+DEFAULT_BRANCH=$(git remote show origin 2>/dev/null \
+  | awk '/HEAD branch/{print $NF}' || echo "main")
+
+abort_cleanup() {
+  if [[ -n "$CREATED_BRANCH" ]]; then
+    git checkout "$ORIGINAL_BRANCH" 2>/dev/null
+    git branch -D "$CREATED_BRANCH" 2>/dev/null
+    info "Returned to ${ORIGINAL_BRANCH}, deleted ${CREATED_BRANCH}"
+  elif [[ "$CURRENT_BRANCH" == ship/* && "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]]; then
+    git checkout "$DEFAULT_BRANCH" 2>/dev/null
+    git branch -D "$CURRENT_BRANCH" 2>/dev/null
+    info "Returned to ${DEFAULT_BRANCH}, deleted leftover ${CURRENT_BRANCH}"
+  fi
+}
+
+echo ""
+echo -e "${BOLD}🚀 git-ship${NC}  ${DIM}on${NC} ${CYAN}${CURRENT_BRANCH}${NC}  ${DIM}→${NC}  ${GREEN}${DEFAULT_BRANCH}${NC}"
+divider
+
+# ─── 1. Branch ──────────────────────────────────────────────────────
+step "1" "Branch"
+
+if [[ "$CURRENT_BRANCH" == "$DEFAULT_BRANCH" ]]; then
+  NEW_BRANCH="ship/$(date +%Y%m%d-%H%M%S)"
+  warn "On ${DEFAULT_BRANCH} — creating feature branch: ${NEW_BRANCH}"
+  dry git checkout -b "$NEW_BRANCH"
+  CREATED_BRANCH="$NEW_BRANCH"
+  CURRENT_BRANCH="$NEW_BRANCH"
+  success "Switched to ${CURRENT_BRANCH}"
+else
+  success "Branch: ${CURRENT_BRANCH}"
+fi
+
+# ─── 2. Stage ───────────────────────────────────────────────────────
+step "2" "Stage Changes"
+
+dry git add -A
+
+STAGED=$(git diff --cached --stat 2>/dev/null || true)
+if [[ -z "$STAGED" ]]; then
+  warn "No changes to commit — nothing to ship!"
+  abort_cleanup
+  exit 0
+fi
+
+echo -e "${DIM}${STAGED}${NC}"
+success "All changes staged"
+
+# ─── 3. Commit ──────────────────────────────────────────────────────
+step "3" "Commit"
+
+generate_commit_msg() {
+  local added modified deleted
+  added=$(git diff --cached --name-only --diff-filter=A  | wc -l | tr -d ' ')
+  modified=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
+  deleted=$(git diff --cached --name-only --diff-filter=D  | wc -l | tr -d ' ')
+
+  local parts=()
+  (( added > 0 ))    && parts+=("add ${added} file$( (( added > 1 )) && echo s)")
+  (( modified > 0 )) && parts+=("update ${modified} file$( (( modified > 1 )) && echo s)")
+  (( deleted > 0 ))  && parts+=("remove ${deleted} file$( (( deleted > 1 )) && echo s)")
+
+  [[ ${#parts[@]} -eq 0 ]] && { echo "chore: minor changes"; return; }
+
+  local summary
+  summary=$(IFS=', '; echo "${parts[*]}")
+
+  local top_file
+  top_file=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}')
+
+  if [[ -n "$top_file" ]]; then
+    echo "${summary} — ${top_file}"
+  else
+    echo "${summary}"
+  fi
+}
+
+COMMIT_MSG=""
+
+if [[ -n "$CUSTOM_MSG" ]]; then
+  COMMIT_MSG="$CUSTOM_MSG"
+  info "Message: ${YELLOW}${COMMIT_MSG}${NC}"
+elif [[ "$AUTO_YES" == true ]]; then
+  COMMIT_MSG=$(generate_commit_msg)
+  info "Auto: ${YELLOW}${COMMIT_MSG}${NC}"
+else
+  AUTO_MSG=$(generate_commit_msg)
+  echo -e "  Auto: ${YELLOW}${AUTO_MSG}${NC}"
+  echo ""
+  echo -e "  ${DIM}[Enter]${NC} Use auto message"
+  echo -e "  ${DIM}[type]${NC}  Enter custom message"
+  echo ""
+  read -r -p "  > " USER_INPUT
+
+  if [[ -z "$USER_INPUT" ]]; then
+    COMMIT_MSG="$AUTO_MSG"
+  else
+    COMMIT_MSG="$USER_INPUT"
+  fi
+fi
+
+dry git commit -m "$COMMIT_MSG"
+success "Committed: ${COMMIT_MSG}"
+
+# ─── 4. Pull & Push ────────────────────────────────────────────────
+step "4" "Sync Remote"
+
+info "Pulling latest ${DEFAULT_BRANCH}..."
+dry git pull origin "$DEFAULT_BRANCH" --rebase --autostash 2>/dev/null || true
+
+info "Pushing ${CURRENT_BRANCH}..."
+dry git push -u origin "$CURRENT_BRANCH"
+success "Pushed to origin/${CURRENT_BRANCH}"
+
+# ─── 5. Pull Request ───────────────────────────────────────────────
+PR_URL=""
+if [[ "$SKIP_PR" == false ]]; then
+  step "5" "Pull Request"
+
+  PR_URL=$(gh pr view "$CURRENT_BRANCH" --json url -q .url 2>/dev/null || true)
+
+  if [[ -n "$PR_URL" ]]; then
+    success "PR already exists: ${PR_URL}"
+  else
+    if [[ "$DRY_RUN" == true ]]; then
+      info "${DIM}(dry-run)${NC} gh pr create --title \"${COMMIT_MSG}\" --base ${DEFAULT_BRANCH}"
+    else
+      PR_URL=$(gh pr create \
+        --title "$COMMIT_MSG" \
+        --body "Shipped by **git-ship** 🚀" \
+        --base "$DEFAULT_BRANCH" \
+        --head "$CURRENT_BRANCH" 2>&1) || true
+      success "PR created: ${PR_URL}"
+    fi
+  fi
+fi
+
+# ─── 6. Merge ──────────────────────────────────────────────────────
+if [[ "$SKIP_MERGE" == false ]]; then
+  step "6" "Merge → ${DEFAULT_BRANCH}"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    info "${DIM}(dry-run)${NC} gh pr merge --squash --delete-branch"
+  else
+    sleep 2
+
+    MAX_RETRIES=5
+    RETRY_COUNT=0
+    MERGE_SUCCESS=false
+
+    while (( RETRY_COUNT < MAX_RETRIES )); do
+      if gh pr merge --squash --delete-branch 2>/dev/null; then
+        MERGE_SUCCESS=true
+        break
+      fi
+      RETRY_COUNT=$((RETRY_COUNT + 1))
+      if (( RETRY_COUNT < MAX_RETRIES )); then
+        info "Waiting for PR checks... (retry ${RETRY_COUNT}/${MAX_RETRIES})"
+        sleep 5
+      fi
+    done
+
+    if [[ "$MERGE_SUCCESS" == true ]]; then
+      git checkout "$DEFAULT_BRANCH"
+      git pull origin "$DEFAULT_BRANCH"
+      success "Merged & branch cleaned up"
+    else
+      warn "Could not auto-merge. PR is open at: ${PR_URL}"
+      warn "Merge manually or wait for checks to pass."
+    fi
+  fi
+fi
+
+# ─── Done ───────────────────────────────────────────────────────────
+echo ""
+divider
+echo -e "${GREEN}${BOLD}✅ Ship complete!${NC}"
+echo ""
