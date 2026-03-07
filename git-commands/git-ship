@@ -379,7 +379,7 @@ if [[ "$SKIP_MERGE" == false ]] && [[ "$UNPUSHED_ONLY" != true || "$CURRENT_BRAN
         git stash push -u -m "git-ship: temp stash" && did_stash=true
       fi
       git checkout "$DEFAULT_BRANCH"
-      git pull origin "$DEFAULT_BRANCH"
+      git pull origin "$DEFAULT_BRANCH" --rebase --autostash
       if [[ "$did_stash" == true ]]; then
         git stash pop 2>/dev/null || warn "Stash pop failed — run 'git stash list' to recover"
       fi
