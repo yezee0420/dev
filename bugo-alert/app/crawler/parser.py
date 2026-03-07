@@ -316,8 +316,12 @@ def parse_title(title: str) -> ParsedObituary:
 # 본문 파싱 — 고인/장례식장/발인/연락처/관계자 추출 (모든 ▲를 하나로 통합)
 # ---------------------------------------------------------------------------
 
+# 고인: "이름(향년 N세) 씨 별세" 또는 "이름씨 별세" (향년 없음)
 _RE_DECEASED = re.compile(
     r"(?P<name>[가-힣]{2,5})\s*\(\s*향년\s*(?:만\s*)?(?P<age>\d+세?)\s*\)\s*씨?\s*별세"
+)
+_RE_DECEASED_SIMPLE = re.compile(
+    r"(?P<name>[가-힣]{2,5})\s*씨?\s*별세"
 )
 
 _RE_FUNERAL_HALL = re.compile(
@@ -326,8 +330,9 @@ _RE_FUNERAL_HALL = re.compile(
     r"(?P<room>(?:특?\d+호실|[가-힣]+\d*호실|VIP\s*\d*호?))?"
 )
 
+# 발인: "발인 3월 9일 오전 11시 30분" 또는 "발인 9일 오전 11시"
 _RE_FUNERAL_DATE = re.compile(
-    r"발인\s*(?P<date>\d{1,2}일)?\s*(?P<time>오[전후]\s*\d{1,2}시(?:\s*\d+분)?)?",
+    r"발인\s*(?:(?P<month>\d{1,2})월\s*)?(?P<date>\d{1,2}일)?\s*(?P<time>오[전후]\s*\d{1,2}시(?:\s*\d+분)?)?",
 )
 
 _RE_PHONE = re.compile(r"\d{2,3}-\d{3,4}-\d{4}")
@@ -377,6 +382,10 @@ def parse_body(body: str) -> dict:
     if dm:
         result["deceased_name"] = _strip_suffix(dm.group("name"))
         result["deceased_age"] = dm.group("age")
+    else:
+        dm_simple = _RE_DECEASED_SIMPLE.search(body)
+        if dm_simple:
+            result["deceased_name"] = _strip_suffix(dm_simple.group("name"))
 
     # 장례식장 + 호실
     hm = _RE_FUNERAL_HALL.search(body)
@@ -391,10 +400,11 @@ def parse_body(body: str) -> dict:
     # 발인
     fm = _RE_FUNERAL_DATE.search(body)
     if fm:
+        month = (fm.group("month") or "").strip()
         d = (fm.group("date") or "").strip()
         t = (fm.group("time") or "").strip()
         if d:
-            result["funeral_date"] = d
+            result["funeral_date"] = f"{month}월 {d}" if month else d
         if t:
             result["funeral_time"] = t
 

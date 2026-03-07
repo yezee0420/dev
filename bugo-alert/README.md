@@ -8,8 +8,8 @@
 
 ## 주요 기능
 
-- **자동 크롤링** — 매시간 네이버 뉴스 검색 API로 100건 수집, 비부고 기사 자동 필터링
-- **스마트 파싱** — 12개 이상의 제목 패턴 + 본문 파싱으로 핵심인물/소속/직급/관계/고인/장례식장/호실/발인/연락처 추출
+- **자동 크롤링** — 매시간 네이버 뉴스 검색 API로 최대 1,000건 수집 (10페이지×100건), 비부고 기사 자동 필터링
+- **스마트 파싱** — 12개 이상의 제목 패턴 + 본문 파싱 (고인: `이름(향년 N세) 씨 별세`, `이름씨 별세` 지원) → 핵심인물/소속/직급/관계/고인/장례식장/호실/발인/연락처 추출
 - **중복 제거** — `key_person|relationship` 기반 dedup (deceased_name 제외) + 소프트 매칭, 동일 부고는 빈 필드 보충만
 - **실시간 검색** — HTMX 기반 키워드 검색 (핵심인물, 소속, 고인, 장례식장 등)
 - **즐겨찾기 알림** — 키워드 등록 시 매칭되는 부고 발생하면 이메일 자동 발송
@@ -21,9 +21,11 @@
 
 | 항목 | 수치 |
 |------|------|
-| 네이버 뉴스 100건 중 부고 기사 식별 | ~83건 (비부고 17건 필터링) |
-| 핵심인물(key_person) 추출 성공률 | **100%** (미파싱 0건) |
-| 중복 제거 후 고유 부고 | ~39건 (나머지는 보충 merge) |
+| 1회 크롤링 수집량 | 최대 1,000건 (10페이지×100건, 네이버 API start 1~1000 제한) |
+| 네이버 뉴스 중 부고 기사 식별 | 비부고 자동 필터링 |
+| 핵심인물(key_person) 추출 | 제목 패턴 12개 이상 |
+| 고인(deceased_name) 파싱 | `이름(향년 N세) 씨 별세`, `이름씨 별세` 패턴 지원 |
+| 발인일 표시 | `9일` → `3월 9일` (월 자동 보완) |
 | 비부고 쓰레기 기사 유입 | **0건** |
 
 ### 지원하는 제목 패턴 예시
@@ -81,7 +83,7 @@ uvicorn app.main:app --reload --port 8000
 
 | 페이지 | 경로 | 설명 |
 |--------|------|------|
-| 대시보드 | `/` | 최신 부고 목록 + 크롤링 상태 패널 + 수동 크롤링 버튼 |
+| 대시보드 | `/` | 최신 부고 목록 + 크롤링 상태(시작시간/소요시간/API호출/실패사유) + 수동 크롤링 버튼 |
 | 검색 | `/search` | 실시간 키워드 검색 (HTMX) |
 | 상세 | `/obituary/{id}` | 핵심인물/고인/장례 정보 + 기사 원문 |
 | 즐겨찾기 | `/favorites` | 알림 키워드 등록/관리 (HTMX CRUD) |
@@ -92,7 +94,7 @@ uvicorn app.main:app --reload --port 8000
 | 엔드포인트 | 설명 |
 |-----------|------|
 | `GET /api/crawl-now` | 수동 크롤링 즉시 실행 |
-| `GET /api/crawl-status` | 크롤링 상태 JSON 반환 |
+| `GET /api/crawl-status` | 크롤링 상태 JSON (is_running, last_run, last_count, last_error, started_at, duration_seconds, api_calls_this_run) |
 
 ---
 
@@ -125,9 +127,7 @@ bugo-alert/
 ├── .env.example              환경변수 템플릿
 ├── requirements.txt          Python 의존성
 ├── README.md
-├── (mdc 규칙은 dev/.cursor/rules/ 에 있음 — 워크스페이스 루트만 적용됨)
-│   bugo-backend-agent.mdc, bugo-parser-agent.mdc, bugo-dedup-agent.mdc,
-│   bugo-notification-agent.mdc, bugo-ui-agent.mdc
+├── migrate_dedup.py          기존 DB 중복 정리 일회성 스크립트
 └── app/
     ├── main.py               FastAPI 앱 엔트리포인트
     ├── config.py              Pydantic 설정 (.env)
@@ -157,6 +157,10 @@ bugo-alert/
             ├── obituary_table.html   검색 결과 파셜
             └── favorites_list.html   즐겨찾기 목록 파셜
 ```
+
+**Cursor mdc 규칙:** 워크스페이스 루트(`dev/.cursor/rules/`)에 `bugo-backend-agent`, `bugo-parser-agent`, `bugo-dedup-agent`, `bugo-notification-agent`, `bugo-ui-agent`가 있음. 하위 프로젝트 `.cursor/rules/`는 적용되지 않음.
+
+**네이버 API:** 일 25,000회 제한. 1회 크롤링≈10호출 → 약 2,500회 크롤링/일 가능.
 
 ---
 
