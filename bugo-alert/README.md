@@ -10,7 +10,7 @@
 
 - **자동 크롤링** — 매시간 네이버 뉴스 검색 API로 100건 수집, 비부고 기사 자동 필터링
 - **스마트 파싱** — 12개 이상의 제목 패턴 + 본문 파싱으로 핵심인물/소속/직급/관계/고인/장례식장/호실/발인/연락처 추출
-- **중복 제거** — `key_person + relationship + deceased_name` 기반 dedup, 동일 부고는 빈 필드 보충만
+- **중복 제거** — `key_person|relationship` 기반 dedup (deceased_name 제외) + 소프트 매칭, 동일 부고는 빈 필드 보충만
 - **실시간 검색** — HTMX 기반 키워드 검색 (핵심인물, 소속, 고인, 장례식장 등)
 - **즐겨찾기 알림** — 키워드 등록 시 매칭되는 부고 발생하면 이메일 자동 발송
 - **화환 주문** — 조문 화환 협력업체 연동 (stub)
@@ -125,11 +125,9 @@ bugo-alert/
 ├── .env.example              환경변수 템플릿
 ├── requirements.txt          Python 의존성
 ├── README.md
-├── .cursor/rules/            서브 에이전트 규칙
-│   ├── parser-agent.mdc      크롤링 & 파싱 전문
-│   ├── ui-agent.mdc          프론트엔드 전문
-│   ├── backend-agent.mdc     백엔드 인프라 전문
-│   └── notification-agent.mdc 알림 전문
+├── (mdc 규칙은 dev/.cursor/rules/ 에 있음 — 워크스페이스 루트만 적용됨)
+│   bugo-backend-agent.mdc, bugo-parser-agent.mdc, bugo-dedup-agent.mdc,
+│   bugo-notification-agent.mdc, bugo-ui-agent.mdc
 └── app/
     ├── main.py               FastAPI 앱 엔트리포인트
     ├── config.py              Pydantic 설정 (.env)

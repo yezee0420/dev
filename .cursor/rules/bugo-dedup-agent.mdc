@@ -1,14 +1,9 @@
 ---
-description: 부고 크롤링의 중복 제거(dedup) 아키텍처와 규칙
-globs:
-  - app/crawler/parser.py
-  - app/scheduler/jobs.py
-  - app/models.py
-  - migrate_dedup.py
-alwaysApply: false
+description: BugoAlert 중복 제거(dedup) 아키텍처 — 3단계 파이프라인, dedup_key 규칙
+globs: bugo-alert/app/crawler/parser.py, bugo-alert/app/scheduler/jobs.py, bugo-alert/app/models.py, bugo-alert/migrate_dedup.py
 ---
 
-# 부고 중복 제거(Dedup) 아키텍처
+# Dedup Agent — 부고 중복 제거 전문
 
 ## 개요
 
