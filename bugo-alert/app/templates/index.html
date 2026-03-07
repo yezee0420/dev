@@ -6,7 +6,7 @@
 <!-- 크롤링 상태 패널 -->
 <div class="bg-white rounded-xl shadow p-4 mb-6" id="crawl-panel">
   <div class="flex items-center justify-between">
-    <div class="flex items-center gap-4 text-sm">
+    <div class="flex items-center gap-4 text-sm flex-wrap">
       <div>
         <span class="text-gray-500">크롤링 상태</span>
         <span id="crawl-indicator" class="ml-2 inline-block w-2 h-2 rounded-full
@@ -21,6 +21,12 @@
           {% else %}대기 중{% endif %}
         </span>
       </div>
+      {% if crawl_status.get('started_at') and crawl_status.get('is_running') %}
+      <div class="border-l pl-4">
+        <span class="text-gray-500">시작</span>
+        <span class="text-gray-700 ml-1 font-medium">{{ crawl_status.get('started_at').strftime('%H:%M:%S') }}</span>
+      </div>
+      {% endif %}
       <div class="border-l pl-4">
         <span class="text-gray-500">마지막 수집</span>
         <span class="text-gray-700 ml-1 font-medium">
@@ -31,6 +37,19 @@
         <span class="text-gray-500">최근 신규</span>
         <span class="text-gray-700 ml-1 font-medium">{{ crawl_status.get('last_count', 0) }}건</span>
       </div>
+      {% if crawl_status.get('duration_seconds') is not none %}
+      <div class="border-l pl-4">
+        <span class="text-gray-500">소요시간</span>
+        <span class="text-gray-700 ml-1 font-medium">{{ crawl_status.get('duration_seconds') }}초</span>
+      </div>
+      {% endif %}
+      {% if crawl_status.get('api_calls_this_run') %}
+      <div class="border-l pl-4">
+        <span class="text-gray-500">API 호출</span>
+        <span class="text-gray-700 ml-1 font-medium">{{ crawl_status.get('api_calls_this_run') }}회</span>
+        <span class="text-gray-400 text-xs ml-1">(일 25,000회 제한, 약 2,500회 크롤링 가능)</span>
+      </div>
+      {% endif %}
     </div>
     <div class="flex items-center gap-2">
       <button onclick="runCrawl()"
@@ -109,7 +128,7 @@ async function runCrawl() {
         <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
         <td class="px-4 py-3 text-gray-500">{{ o.deceased_name or '-' }}</td>
         <td class="px-4 py-3">{{ o.funeral_hall or '-' }}{% if o.room_number %} <span class="text-gray-400">{{ o.room_number }}</span>{% endif %}</td>
-        <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>
+        <td class="px-4 py-3">{{ (o.funeral_date or '-')|format_funeral_date }} {{ o.funeral_time or '' }}</td>
         <td class="px-4 py-3 text-right">
           <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>
         </td>

@@ -50,6 +50,9 @@ async def lifespan(app: FastAPI):
         "last_count": 0,
         "is_running": False,
         "last_error": None,
+        "started_at": None,
+        "duration_seconds": None,
+        "api_calls_this_run": 0,
     }
 
     settings = get_settings()
@@ -59,13 +62,14 @@ async def lifespan(app: FastAPI):
         minutes=settings.crawl_interval_minutes,
         id="crawl_obituaries",
         replace_existing=True,
+        args=[app],
     )
     scheduler.start()
     logger.info("스케줄러 시작 (주기=%d분)", settings.crawl_interval_minutes)
 
     # 서버 시작 시 즉시 첫 크롤링 실행
     if settings.naver_client_id and settings.naver_client_id != "your_naver_client_id":
-        scheduler.add_job(run_crawl_job, id="initial_crawl", replace_existing=True)
+        scheduler.add_job(run_crawl_job, id="initial_crawl", replace_existing=True, args=[app])
         logger.info("첫 크롤링 즉시 실행 예약됨")
     else:
         logger.warning("⚠ NAVER API 키 미설정 — .env 파일에 NAVER_CLIENT_ID/SECRET을 입력하세요")
@@ -83,6 +87,22 @@ app = FastAPI(title="BugoAlert", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 app.state.templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+
+
+def _format_funeral_date(val: str | None) -> str:
+    """'9일' → '3월 9일', 이미 '3월 9일'이면 그대로."""
+    if not val or not val.strip():
+        return val or ""
+    val = val.strip()
+    if "월" in val:
+        return val
+    import re
+    if re.match(r"^\d{1,2}일$", val):
+        return f"{datetime.now().month}월 {val}"
+    return val
+
+
+app.state.templates.env.filters["format_funeral_date"] = _format_funeral_date
 
 app.include_router(obituaries.router)
 app.include_router(favorites.router)
@@ -104,12 +124,19 @@ async def trigger_crawl():
 
     async with _crawl_lock:
         status["is_running"] = True
+        status["started_at"] = datetime.now()
+        status["duration_seconds"] = None
+        status["api_calls_this_run"] = 0
         try:
-            count = await crawl_and_notify()
+            result = await crawl_and_notify()
+            count = result.get("new_count", 0)
             status["last_run"] = datetime.now()
-            status["last_count"] = count or 0
+            status["last_count"] = count
             status["last_error"] = None
-            return {"status": "ok", "message": f"크롤링 완료 — 신규 {count or 0}건"}
+            if isinstance(result, dict):
+                status["duration_seconds"] = result.get("duration_seconds")
+                status["api_calls_this_run"] = result.get("api_calls", 0)
+            return {"status": "ok", "message": f"크롤링 완료 — 신규 {count}건"}
         except Exception as e:
             status["last_error"] = str(e)
             return {"status": "error", "message": str(e)}
@@ -126,6 +153,9 @@ async def crawl_status():
         "last_run": s["last_run"].strftime("%Y-%m-%d %H:%M:%S") if s["last_run"] else None,
         "last_count": s["last_count"],
         "last_error": s["last_error"],
+        "started_at": s["started_at"].strftime("%Y-%m-%d %H:%M:%S") if s.get("started_at") else None,
+        "duration_seconds": s.get("duration_seconds"),
+        "api_calls_this_run": s.get("api_calls_this_run", 0),
     }
 
 

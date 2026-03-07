@@ -222,19 +222,22 @@ async def _send_notifications(db: Session, obit: Obituary, favorites: list[Favor
 # 메인 파이프라인
 # ---------------------------------------------------------------------------
 
-async def crawl_and_notify() -> int:
-    """크롤링 → 파싱 → 저장 → 알림 파이프라인. 신규 건수를 반환."""
+async def crawl_and_notify() -> dict:
+    """크롤링 → 파싱 → 저장 → 알림 파이프라인. 결과 dict 반환."""
+    import time
+    started = time.perf_counter()
     logger.info("=== 부고 크롤링 시작 ===")
     db = SessionLocal()
     new_count = 0
     skip_count = 0
     merge_count = 0
     url_skip_count = 0
+    api_calls = 0
 
     try:
         _seen_urls.load_from_db(db)
 
-        news_items = await search_obituary_news()
+        news_items, api_calls = await search_obituary_news()
 
         for item in news_items:
             url = item.original_link or item.naver_link
@@ -268,19 +271,48 @@ async def crawl_and_notify() -> int:
             else:
                 merge_count += 1
 
+        duration = time.perf_counter() - started
         logger.info(
-            "=== 크롤링 완료: 신규 %d건 / 보충 %d건 / 필터링 %d건 / URL스킵 %d건 ===",
-            new_count, merge_count, skip_count, url_skip_count,
+            "=== 크롤링 완료: 신규 %d건 / 보충 %d건 / 필터링 %d건 / URL스킵 %d건 (%.1f초, API %d회) ===",
+            new_count, merge_count, skip_count, url_skip_count, duration, api_calls,
         )
-    except Exception:
-        logger.exception("크롤링 작업 중 오류 발생")
+    except Exception as e:
+        duration = time.perf_counter() - started
+        logger.exception("크롤링 작업 중 오류 발생: %s", e)
         raise
     finally:
         db.close()
 
-    return new_count
+    duration = time.perf_counter() - started
+    return {
+        "new_count": new_count,
+        "merge_count": merge_count,
+        "skip_count": skip_count,
+        "url_skip_count": url_skip_count,
+        "duration_seconds": round(duration, 1),
+        "api_calls": api_calls,
+    }
 
 
-def run_crawl_job():
-    """APScheduler에서 호출하는 동기 래퍼."""
-    asyncio.run(crawl_and_notify())
+def run_crawl_job(app=None):
+    """APScheduler에서 호출하는 동기 래퍼. app이 있으면 crawl_status 갱신."""
+    from datetime import datetime
+    if app and hasattr(app.state, "crawl_status"):
+        app.state.crawl_status["is_running"] = True
+        app.state.crawl_status["started_at"] = datetime.now()
+    try:
+        result = asyncio.run(crawl_and_notify())
+        if app and hasattr(app.state, "crawl_status"):
+            s = app.state.crawl_status
+            s["last_run"] = datetime.now()
+            s["last_count"] = result["new_count"]
+            s["last_error"] = None
+            s["duration_seconds"] = result["duration_seconds"]
+            s["api_calls_this_run"] = result["api_calls"]
+    except Exception as e:
+        if app and hasattr(app.state, "crawl_status"):
+            app.state.crawl_status["last_error"] = str(e)
+        raise
+    finally:
+        if app and hasattr(app.state, "crawl_status"):
+            app.state.crawl_status["is_running"] = False

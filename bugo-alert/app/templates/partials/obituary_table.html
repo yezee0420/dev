@@ -25,7 +25,7 @@
         <td class="px-4 py-3 text-gray-500">{{ o.deceased_name or '-' }}</td>
         <td class="px-4 py-3">{{ o.funeral_hall or '-' }}</td>
         <td class="px-4 py-3">{{ o.room_number or '-' }}</td>
-        <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>
+        <td class="px-4 py-3">{{ (o.funeral_date or '-')|format_funeral_date }} {{ o.funeral_time or '' }}</td>
         <td class="px-4 py-3">{{ o.contact or '-' }}</td>
         <td class="px-4 py-3 text-right space-x-2">
           <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>

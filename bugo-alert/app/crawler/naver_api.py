@@ -75,16 +75,19 @@ async def _fetch_page(
 async def search_obituary_news(
     query: str = "부고",
     max_pages: int = MAX_PAGES,
-) -> list[NewsItem]:
+) -> tuple[list[NewsItem], int]:
     """네이버 뉴스를 페이지네이션하여 최대 max_pages * 100건을 수집한다.
 
     네이버 API 제한: start는 1~1000, display는 최대 100.
-    따라서 최대 1000건까지 수집 가능 (10페이지).
+    일일 25,000회 제한 → 1회 크롤링≈10호출 → 약 2,500회/일 가능.
+
+    Returns:
+        (items, api_calls): 수집된 뉴스 목록, API 호출 횟수
     """
     settings = get_settings()
     if not settings.naver_client_id or settings.naver_client_id == "your_naver_client_id":
         logger.warning("네이버 API 키 미설정 — 크롤링을 건너뜁니다")
-        return []
+        return [], 0
 
     headers = {
         "X-Naver-Client-Id": settings.naver_client_id,
@@ -93,6 +96,7 @@ async def search_obituary_news(
 
     all_items: list[NewsItem] = []
     seen_links: set[str] = set()
+    api_calls = 0
 
     async with httpx.AsyncClient(timeout=30) as client:
         for page in range(max_pages):
@@ -102,6 +106,7 @@ async def search_obituary_news(
 
             try:
                 items = await _fetch_page(client, headers, query, start)
+                api_calls += 1
             except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError) as e:
                 logger.warning("네이버 API 페이지 %d 요청 실패: %s", page + 1, e)
                 break
@@ -123,5 +128,5 @@ async def search_obituary_news(
             if len(items) < PER_PAGE:
                 break
 
-    logger.info("네이버 뉴스 검색 총 %d건 수신 (query=%s)", len(all_items), query)
-    return all_items
+    logger.info("네이버 뉴스 검색 총 %d건 수신, API %d회 (query=%s)", len(all_items), api_calls, query)
+    return all_items, api_calls
