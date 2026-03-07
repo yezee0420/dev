@@ -413,9 +413,10 @@ def _extract_related_persons(text: str) -> list[str]:
 
 
 def _clean_funeral_hall(hall: str) -> str:
-    """장례식장 이름 앞뒤 쓰레기 문자 제거."""
+    """장례식장 이름 앞뒤 쓰레기 문자 제거. '장레식장' 오타 정정."""
     hall = re.sub(r"^[\s=,]*(?:일|분|시|오전|오후|빈소)+\s*", "", hall)
     hall = re.sub(r"^[\s=,]+", "", hall)
+    hall = hall.replace("장레식장", "장례식장")
     return hall.strip()
 
 

@@ -90,7 +90,7 @@ app.state.templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 def _format_funeral_date(val: str | None) -> str:
-    """'9일' → '3월 9일', 이미 '3월 9일'이면 그대로."""
+    """대시보드용: '9일' → '3월 9일', 이미 '3월 9일'이면 그대로."""
     if not val or not val.strip():
         return val or ""
     val = val.strip()
@@ -102,7 +102,28 @@ def _format_funeral_date(val: str | None) -> str:
     return val
 
 
+def _format_funeral_date_full(val: str | None) -> str:
+    """세부 페이지용: 항상 '2026년 3월 9일' 형식으로 연·월·일 전체 표시."""
+    if not val or not val.strip():
+        return val or ""
+    val = val.strip()
+    now = datetime.now()
+    import re
+    # 이미 "2026년 3월 1일" 형식이면 그대로
+    if re.search(r"\d{4}\s*년", val):
+        return val
+    # "3월 9일" → "2026년 3월 9일"
+    m = re.match(r"(\d{1,2})\s*월\s*(\d{1,2})\s*일", val)
+    if m:
+        return f"{now.year}년 {m.group(1)}월 {m.group(2)}일"
+    # "9일" → "2026년 3월 9일"
+    if re.match(r"^\d{1,2}\s*일$", val):
+        return f"{now.year}년 {now.month}월 {val}"
+    return val
+
+
 app.state.templates.env.filters["format_funeral_date"] = _format_funeral_date
+app.state.templates.env.filters["format_funeral_date_full"] = _format_funeral_date_full
 
 app.include_router(obituaries.router)
 app.include_router(favorites.router)
