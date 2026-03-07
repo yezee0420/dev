@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}대시보드{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold">최신 부고</h1>
+    <p class="text-gray-500 text-sm mt-1">총 {{ total }}건 수집됨</p>
+  </div>
+  <a href="/search"
+     class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+    상세 검색
+  </a>
+</div>
+
+{% if obituaries %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+      <tr>
+        <th class="px-4 py-3 text-left">고인</th>
+        <th class="px-4 py-3 text-left">소속</th>
+        <th class="px-4 py-3 text-left">관계</th>
+        <th class="px-4 py-3 text-left">장례식장</th>
+        <th class="px-4 py-3 text-left">발인</th>
+        <th class="px-4 py-3 text-left">등록일</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for o in obituaries %}
+      <tr class="hover:bg-amber-50 transition">
+        <td class="px-4 py-3 font-medium">{{ o.deceased_name or o.mourner_name or '-' }}</td>
+        <td class="px-4 py-3">{{ o.organization or '-' }}</td>
+        <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
+        <td class="px-4 py-3">{{ o.funeral_hall or '-' }}{% if o.room_number %} <span class="text-gray-400">{{ o.room_number }}</span>{% endif %}</td>
+        <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>
+        <td class="px-4 py-3 text-gray-400">{{ o.published_at.strftime('%m/%d %H:%M') if o.published_at else '-' }}</td>
+        <td class="px-4 py-3 text-right">
+          <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- 페이지네이션 -->
+{% if total_pages > 1 %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if page > 1 %}
+  <a href="/?page={{ page - 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
+  {% endif %}
+  <span class="px-3 py-1 text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
+  {% if page < total_pages %}
+  <a href="/?page={{ page + 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-20 text-gray-400">
+  <p class="text-lg">수집된 부고가 없습니다</p>
+  <p class="text-sm mt-2">첫 크롤링이 실행되면 여기에 표시됩니다</p>
+</div>
+{% endif %}
+{% endblock %}
