@@ -230,27 +230,61 @@ PYEOF
   return 1
 }
 
-fallback_summarize() {
-  local defs
-  defs=$(git diff --cached --no-color \
-    | grep '^+[^+]' \
-    | grep -oE '(function |def |class |const |let |var |export (default )?(function |class |const ))\w+' \
-    | awk '{print $NF}' \
-    | sort -u | head -4 \
-    | tr '\n' ', ' | sed 's/,$//')
+smart_fallback() {
+  git diff --cached --no-color | python3 -c '
+import sys, re, subprocess
+diff = sys.stdin.read()
+files = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.strip().split("\n") or []
 
-  if [[ -z "$defs" ]]; then
-    return
-  fi
+candidates = []
 
-  if (( ${#defs} > 50 )); then
-    defs="${defs:0:47}..."
-  fi
-  echo "$defs"
+# 1) 마크다운 ## 헤더 (새 섹션) — 이모지(8️⃣ 등) 제거
+for m in re.findall(r"^\+#{2,6}\s+(.+?)(?:\s*$|\s+#)", diff, re.M):
+  h = re.sub(r"\d*️⃣\s*", "", m).strip()[:40]
+  if len(h) > 4: candidates.append(("header", h))
+
+# 2) - **섹션명** 패턴
+for m in re.findall(r"^\+[-*]\s+\*\*([^*]+)\*\*", diff, re.M):
+  h = m.strip()[:35]
+  if len(h) > 3: candidates.append(("header", h))
+
+# 3) 파일 경로 → 도메인 (docs, rules, readme, todo)
+path_hints = []
+for f in files:
+  if "docs/" in f: path_hints.append("docs")
+  elif ".mdc" in f or "rules" in f: path_hints.append("cursor rules")
+  elif "README" in f: path_hints.append("readme")
+  elif "TODO" in f: path_hints.append("todo")
+  elif "git-commands" in f: path_hints.append("git commands")
+for p in list(dict.fromkeys(path_hints))[:2]:
+  candidates.append(("path", p))
+
+# 4) diff 본문 키워드 (규칙, 문서, 동기화, sync 등)
+kw_map = {"규칙":"rules", "문서":"docs", "동기화":"sync", "mdc":"mdc rules", "가이드":"guide", "readme":"readme", "todo":"todo"}
+for kr, en in kw_map.items():
+  if kr in diff or en in diff.lower():
+    candidates.append(("kw", en))
+
+# 메시지 조합 (header 우선, path/kw는 보조)
+seen = set()
+parts = []
+for _, v in candidates:
+  v = v.strip().lower()
+  if v and v not in seen and len(v) > 2:
+    seen.add(v)
+    parts.append(v)
+    if len(", ".join(parts)) > 50: break
+
+summary = ", ".join(parts[:3])[:60] if parts else ""
+if summary:
+  verb = "add" if "docs" in summary or "rules" in summary or "규칙" in diff else "update"
+  msg = f"{verb} {summary}"
+  if len(msg) <= 72: print(msg)
+' 2>/dev/null
 }
 
 generate_commit_msg() {
-  # AI 요약 시도 (ANTHROPIC_API_KEY 있을 때)
+  # AI 요약 시도 (ANTHROPIC_API_KEY + 크레딧 있을 때)
   local ai_msg
   if ai_msg=$(ai_summarize 2>/dev/null) && [[ -n "$ai_msg" ]]; then
     info "🤖 AI generated"
@@ -258,9 +292,18 @@ generate_commit_msg() {
     return
   fi
 
-  info "⚡ Fallback (no API key or AI failed)"
+  # Smart fallback: diff 내용 분석 (헤더, 경로, 키워드)
+  local smart_msg
+  smart_msg=$(smart_fallback 2>/dev/null)
+  if [[ -n "$smart_msg" && ${#smart_msg} -le 72 ]]; then
+    info "⚡ Smart fallback (API 크레딧 부족 시 이 방식 사용)"
+    echo "$smart_msg"
+    return
+  fi
 
-  # Fallback: 기존 방식
+  info "⚡ Basic fallback"
+
+  # 최후 fallback
   local added modified deleted
   added=$(git diff --cached --name-only --diff-filter=A  | wc -l | tr -d ' ')
   modified=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
@@ -273,23 +316,19 @@ generate_commit_msg() {
 
   [[ ${#parts[@]} -eq 0 ]] && { echo "chore: minor changes"; return; }
 
-  local count_part
-  count_part=$(IFS=', '; echo "${parts[*]}")
-
-  local content_summary
-  content_summary=$(fallback_summarize)
-
+  local defs
+  defs=$(git diff --cached --no-color | grep '^+[^+]' | grep -oE '(function |def |class |const |let |var |export (default )?(function |class |const ))\w+' | awk '{print $NF}' | sort -u | head -3 | tr '\n' ', ' | sed 's/,$//')
   local top_file
   top_file=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}')
 
-  if [[ -n "$content_summary" && -n "$top_file" ]]; then
-    echo "${count_part} — ${content_summary} — ${top_file}"
-  elif [[ -n "$content_summary" ]]; then
-    echo "${count_part} — ${content_summary}"
+  if [[ -n "$defs" && -n "$top_file" ]]; then
+    echo "$(IFS=', '; echo "${parts[*]}") — ${defs} — ${top_file}"
+  elif [[ -n "$defs" ]]; then
+    echo "$(IFS=', '; echo "${parts[*]}") — ${defs}"
   elif [[ -n "$top_file" ]]; then
-    echo "${count_part} — ${top_file}"
+    echo "$(IFS=', '; echo "${parts[*]}") — ${top_file}"
   else
-    echo "${count_part}"
+    IFS=', '; echo "${parts[*]}"
   fi
 }
 
