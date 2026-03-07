@@ -96,6 +96,10 @@ base.html                  ← 공통 레이아웃 (nav, footer, CDN)
 - 검색은 `ilike` 패턴으로 key_person, organization, deceased_name, title, position, funeral_hall, related_persons 검색
 - 크롤링 상태는 `request.app.state.crawl_status`에서 읽음
 
+## 미처리 항목 (TODO.md 참고)
+
+- **CSRF 미적용**: POST/DELETE 폼에 CSRF 토큰 없음. `starlette-csrf` 또는 SameSite+Origin 검증 권장.
+
 ## 주의사항
 
 - Tailwind는 CDN 방식이므로 커스텀 클래스 사용 불가, 유틸리티 클래스만 사용

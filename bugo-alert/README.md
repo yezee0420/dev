@@ -93,8 +93,9 @@ uvicorn app.main:app --reload --port 8000
 
 | 엔드포인트 | 설명 |
 |-----------|------|
-| `GET /api/crawl-now` | 수동 크롤링 즉시 실행 |
-| `GET /api/crawl-status` | 크롤링 상태 JSON (is_running, last_run, last_count, last_error, started_at, duration_seconds, api_calls_this_run) |
+| `GET /api/crawl-now` | 수동 크롤링 즉시 실행 (asyncio.Lock 보호) |
+| `GET /api/crawl-status` | 크롤링 상태 JSON |
+| `GET /health` | 헬스체크 (DB 연결 확인) |
 
 ---
 
@@ -127,6 +128,7 @@ bugo-alert/
 ├── .env.example              환경변수 템플릿
 ├── requirements.txt          Python 의존성
 ├── README.md
+├── TODO.md                   수정 이력 및 미처리 항목 상세
 ├── migrate_dedup.py          기존 DB 중복 정리 일회성 스크립트
 └── app/
     ├── main.py               FastAPI 앱 엔트리포인트
@@ -190,6 +192,40 @@ bugo-alert/
 | `SMTP_FROM` | 발신자 이메일 | 선택 |
 | `CRAWL_INTERVAL_MINUTES` | 크롤링 주기 (기본 60) | 선택 |
 | `DATABASE_URL` | DB 경로 (기본 sqlite:///bugo.db) | 선택 |
+
+---
+
+## 수정 이력 및 미처리 항목
+
+### ✅ 완료된 수정
+
+| 항목 | 설명 |
+|------|------|
+| source_url 스킵 | 이미 본 URL은 스크래핑 건너뜀 (`_URLCache` LRU, 최대 50,000건) |
+| 페이지네이션 | start 파라미터로 최대 1,000건 수집 (10페이지×100건) |
+| race condition | `/api/crawl-now`에 `asyncio.Lock()` 적용 |
+| 메모리 누수 | URL 캐시 LRU로 오래된 항목 자동 제거 |
+| 404 처리 | 상세/화환/즐겨찾기 존재하지 않을 때 `HTTPException(404)` |
+| 입력 검증 | 즐겨찾기 키워드 1~200자, 이메일 형식 검증 |
+| API 키 검증 | 미설정/플레이스홀더 시 크롤링 조기 반환 |
+| N+1 쿼리 | `_match_favorites` 단일 IN 쿼리로 변경 |
+| 검색 쿼리 | `_search_query` 한 번만 호출 후 재사용 |
+| `.gitignore` | `.env`, `*.db`, `__pycache__/` 등 추가 |
+| `/health` | DB 연결 확인 헬스체크 엔드포인트 |
+
+### ⏳ 미처리 항목
+
+| 심각도 | 항목 | 설명 |
+|--------|------|------|
+| **Critical** | CSRF 미적용 | POST/DELETE 폼에 CSRF 토큰 없음 |
+| **Medium** | 스크래퍼 예외 처리 | `except Exception`이 너무 broad → 디버깅 어려움 |
+| **Medium** | 이메일 발송 실패 재시도 | `status="failed"`만 기록, 재발송 로직 없음 |
+| **Low** | `datetime.utcnow` deprecated | `datetime.now(timezone.utc)`로 변경 권장 |
+| **Low** | `crawl_interval_minutes` 검증 | 0 이하/과도한 값 입력 시 검증 없음 |
+| **Low** | LOG_LEVEL 환경변수 | 로그 레벨을 환경변수로 제어 불가 |
+| **Missing** | Rate limiting | `/api/crawl-now`, `/favorites/add` 등에 rate limit 없음 |
+
+자세한 내용: `TODO.md` 참고.
 
 ---
 

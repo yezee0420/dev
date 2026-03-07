@@ -86,6 +86,10 @@ for title, expected in tests:
 - `_clean_funeral_hall()` — 장례식장 이름 앞 쓰레기 문자 제거
 - `make_dedup_key()` — key_person + relationship 만 사용 (deceased_name 제외 — 기사마다 파싱 여부가 달라 중복 유발)
 
+## 미처리 항목 (TODO.md 참고)
+
+- **스크래퍼 예외 처리**: `scraper.py`의 `except Exception`이 너무 broad → 디버깅 어려움. `httpx.HTTPError`, `TimeoutException` 등 구체적 예외만 처리 권장.
+
 ## 주의사항
 
 - 정규식 수정 시 다른 패턴의 매칭에 영향을 줄 수 있으므로, 전체 테스트를 반드시 실행한다.

@@ -104,6 +104,10 @@ class KakaoNotifier(BaseNotifier):
 3. 주문 상태 추적 (`Order` 모델)
 4. 결제 연동 (PG사 API)
 
+## 미처리 항목 (TODO.md 참고)
+
+- **이메일 발송 실패 재시도**: `status="failed"`만 기록. 재시도 큐 또는 재발송 API 미구현.
+
 ## 주의사항
 
 - SMTP 설정이 없으면 이메일 발송을 **조용히 건너뜀** (에러 아님, warning 로그만)
