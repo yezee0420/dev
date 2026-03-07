@@ -18,12 +18,13 @@ def _search_query(db: Session, q: str | None = None):
         pattern = f"%{q}%"
         query = query.filter(
             or_(
-                Obituary.deceased_name.ilike(pattern),
+                Obituary.key_person.ilike(pattern),
                 Obituary.organization.ilike(pattern),
-                Obituary.mourner_name.ilike(pattern),
+                Obituary.deceased_name.ilike(pattern),
                 Obituary.funeral_hall.ilike(pattern),
                 Obituary.title.ilike(pattern),
                 Obituary.position.ilike(pattern),
+                Obituary.related_persons.ilike(pattern),
             )
         )
     return query
@@ -40,6 +41,8 @@ async def index(
     obituaries = _search_query(db).offset((page - 1) * per_page).limit(per_page).all()
     total_pages = max(1, (total + per_page - 1) // per_page)
 
+    crawl_status = getattr(request.app.state, "crawl_status", {})
+
     return request.app.state.templates.TemplateResponse(
         "index.html",
         {
@@ -48,6 +51,7 @@ async def index(
             "page": page,
             "total_pages": total_pages,
             "total": total,
+            "crawl_status": crawl_status,
         },
     )
 

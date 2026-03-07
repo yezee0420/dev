@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
-from functools import lru_cache
+
+_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -16,9 +19,14 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./bugo.db"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": str(_ENV_PATH), "env_file_encoding": "utf-8"}
 
 
-@lru_cache
+_settings: Settings | None = None
+
+
 def get_settings() -> Settings:
-    return Settings()
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
