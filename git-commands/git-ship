@@ -131,10 +131,41 @@ success "All changes staged"
 # ─── 3. Commit ──────────────────────────────────────────────────────
 step "3" "Commit"
 
-summarize_changes() {
+ai_summarize() {
+  [[ -z "${ANTHROPIC_API_KEY:-}" ]] && return 1
+
+  local diff_text
+  diff_text=$(git diff --cached --no-color | head -2000)
+  [[ -z "$diff_text" ]] && return 1
+
+  local escaped_diff
+  escaped_diff=$(printf '%s' "$diff_text" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')
+
+  local response
+  response=$(curl -s --max-time 10 \
+    -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+    -H "anthropic-version: 2023-06-01" \
+    -H "content-type: application/json" \
+    "https://api.anthropic.com/v1/messages" \
+    -d "{
+      \"model\": \"claude-haiku-4-20250414\",
+      \"max_tokens\": 100,
+      \"messages\": [{
+        \"role\": \"user\",
+        \"content\": \"You are a commit message generator. Given the following git diff, write a concise commit message in English. Rules: 1) Max 60 chars 2) Start with a verb (add, update, fix, remove, refactor...) 3) Describe WHAT changed and WHY 4) No period at the end 5) Return ONLY the message, nothing else.\n\nDiff:\n${escaped_diff}\"
+      }]
+    }" 2>/dev/null)
+
+  local msg
+  msg=$(printf '%s' "$response" | python3 -c 'import sys,json; data=json.load(sys.stdin); print(data["content"][0]["text"].strip())' 2>/dev/null)
+
+  [[ -n "$msg" && ${#msg} -le 80 ]] && echo "$msg" && return 0
+  return 1
+}
+
+fallback_summarize() {
   local keywords=()
 
-  # 1) diff에서 새로 추가된 함수/클래스/export 이름 추출
   local defs
   defs=$(git diff --cached --no-color \
     | grep '^+[^+]' \
@@ -144,7 +175,6 @@ summarize_changes() {
     | tr '\n' ', ' | sed 's/,$//')
   [[ -n "$defs" ]] && keywords+=("$defs")
 
-  # 2) 함수명 못 찾으면 → 파일 basename (확장자 제거) 사용
   if [[ ${#keywords[@]} -eq 0 ]]; then
     local basenames
     basenames=$(git diff --cached --name-only \
@@ -155,7 +185,6 @@ summarize_changes() {
     [[ -n "$basenames" ]] && keywords+=("$basenames")
   fi
 
-  # 50자 제한
   local result="${keywords[*]}"
   if (( ${#result} > 50 )); then
     result="${result:0:47}..."
@@ -164,6 +193,15 @@ summarize_changes() {
 }
 
 generate_commit_msg() {
+  # AI 요약 시도 (ANTHROPIC_API_KEY 있을 때)
+  local ai_msg
+  ai_msg=$(ai_summarize 2>/dev/null) && [[ -n "$ai_msg" ]] && {
+    info "🤖 AI generated"
+    echo "$ai_msg"
+    return
+  }
+
+  # Fallback: 기존 방식
   local added modified deleted
   added=$(git diff --cached --name-only --diff-filter=A  | wc -l | tr -d ' ')
   modified=$(git diff --cached --name-only --diff-filter=M | wc -l | tr -d ' ')
@@ -180,12 +218,11 @@ generate_commit_msg() {
   count_part=$(IFS=', '; echo "${parts[*]}")
 
   local content_summary
-  content_summary=$(summarize_changes)
+  content_summary=$(fallback_summarize)
 
   local top_file
   top_file=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}')
 
-  # 조합: count — summary — top_file
   if [[ -n "$content_summary" && -n "$top_file" ]]; then
     echo "${count_part} — ${content_summary} — ${top_file}"
   elif [[ -n "$content_summary" ]]; then
