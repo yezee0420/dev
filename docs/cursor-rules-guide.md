@@ -314,6 +314,9 @@ API 주소 이름, GET/POST 사용법, 응답 모양을 규칙으로 정할 수 
 | `.cursor/rules/*.mdc` 추가·수정·삭제 | `docs/cursor-rules-guide.md` (8️⃣ 아래 표 등) |
 | 새 규칙 파일, globs 변경 | `docs/cursor-rules-guide.md` — mdc 현황 표 업데이트 |
 | 기타 규칙·설정 변경 | README, docs, 가이드 등 관련 문서 |
+| BugoAlert 코드/기능 수정 | `bugo-alert/README.md`, `bugo-alert/TODO.md` |
+
+**BugoAlert 수정 이력:** `bugo-alert/README.md`의 "수정 이력 및 미처리 항목", `bugo-alert/TODO.md` 참고.
 
 **한 줄 요약:**  
 규칙(mdc)을 고치면 → `docs/cursor-rules-guide.md` 같은 관련 문서에 **바로 반영**한다.

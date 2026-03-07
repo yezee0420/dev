@@ -54,7 +54,7 @@ globs: bugo-alert/app/models.py, bugo-alert/app/database.py, bugo-alert/app/conf
 | `created_at` | DateTime | 레코드 생성일 |
 | `dedup_key` | String(200) UNIQUE | 중복 제거 키 |
 
-**인덱스**: key_person, organization, published_at, dedup_key
+**인덱스**: key_person, organization, published_at, dedup_key, source_url
 
 ### Favorite (즐겨찾기)
 
@@ -78,17 +78,31 @@ globs: bugo-alert/app/models.py, bugo-alert/app/database.py, bugo-alert/app/conf
 
 ```
 crawl_and_notify()
-  1. search_obituary_news()          → 네이버 API 100건
-  2. for item in news_items:
-     a. fetch_article_text()          → 본문 스크래핑
-     b. parse_obituary(title, body)   → ParsedObituary | None
-     c. is None → skip_count++
-     d. _merge_and_save()             → dedup_key 기반 통합
+  1. _seen_urls.load_from_db(db)      → 기존 URL 캐시 로드 (최초 1회)
+  2. search_obituary_news()           → 네이버 API 페이지네이션 (최대 1,000건)
+  3. for item in news_items:
+     a. url in _seen_urls?            → YES → url_skip_count++ (스크래핑 건너뜀)
+     b. fetch_article_text()          → 본문 스크래핑
+     c. _seen_urls.add(url)           → URL 캐시에 추가
+     d. parse_obituary(title, body)   → ParsedObituary | None
+     e. is None → skip_count++
+     f. _merge_and_save()             → dedup_key 기반 통합
         ├─ 기존 있음 → 빈 필드 보충 (merge_count++)
         └─ 신규 → 저장 (new_count++)
-     e. 신규 → _match_favorites()     → 키워드 매칭
-     f. 매칭 → _send_notifications()  → 이메일 발송
+     g. 신규 → _match_favorites()     → 키워드 매칭 (단일 IN 쿼리)
+     h. 매칭 → _send_notifications()  → 이메일 발송
 ```
+
+## URL 스킵 캐시
+
+- `_URLCache` (OrderedDict 기반 LRU) — 최대 50,000건, 초과 시 오래된 항목 자동 제거
+- 서버 시작 후 첫 크롤링 시 DB의 기존 `source_url`을 캐시에 로드
+- 캐시에 존재하는 URL은 스크래핑(네트워크 요청) 자체를 건너뜀
+
+## 페이지네이션
+
+- `search_obituary_news()`가 `start` 파라미터를 100씩 증가시키며 최대 10페이지 수집
+- 네이버 API 제한: `start` ≤ 1000, `display` ≤ 100 → 최대 1,000건
 
 ## 중복 제거 (dedup)
 
@@ -96,6 +110,10 @@ crawl_and_notify()
 - 1차: dedup_key 정확 매칭 → 빈 필드 보충 (merge)
 - 2차: 소프트 매칭 (key_person+relationship 7일 이내, funeral_hall+key_person)
 - IntegrityError 발생 시 rollback + skip
+
+## 동시 실행 방지
+
+- `/api/crawl-now`에 `asyncio.Lock()` 적용. 동시 요청 시 `{"status": "busy"}` 반환
 
 ## 스케줄러
 
@@ -108,8 +126,19 @@ crawl_and_notify()
 
 | 엔드포인트 | 메서드 | 설명 |
 |-----------|--------|------|
-| `/api/crawl-now` | GET | 수동 크롤링 트리거 |
+| `/api/crawl-now` | GET | 수동 크롤링 트리거 (asyncio.Lock 보호) |
 | `/api/crawl-status` | GET | 크롤링 상태 JSON |
+| `/health` | GET | 헬스체크 (DB 연결 확인) |
+
+## 미처리 항목 (TODO.md 참고)
+
+- CSRF 미적용
+- 스크래퍼 예외 처리 (except Exception broad)
+- 이메일 발송 실패 재시도
+- datetime.utcnow → timezone.utc
+- crawl_interval_minutes 검증
+- LOG_LEVEL 환경변수
+- Rate limiting
 
 ## DB 스키마 변경 시 규칙
 
