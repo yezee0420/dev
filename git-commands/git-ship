@@ -131,6 +131,38 @@ success "All changes staged"
 # ─── 3. Commit ──────────────────────────────────────────────────────
 step "3" "Commit"
 
+summarize_changes() {
+  local keywords=()
+
+  # 1) diff에서 새로 추가된 함수/클래스/export 이름 추출
+  local defs
+  defs=$(git diff --cached --no-color \
+    | grep '^+[^+]' \
+    | grep -oE '(function |def |class |const |let |var |export (default )?(function |class |const ))\w+' \
+    | awk '{print $NF}' \
+    | sort -u | head -4 \
+    | tr '\n' ', ' | sed 's/,$//')
+  [[ -n "$defs" ]] && keywords+=("$defs")
+
+  # 2) 함수명 못 찾으면 → 파일 basename (확장자 제거) 사용
+  if [[ ${#keywords[@]} -eq 0 ]]; then
+    local basenames
+    basenames=$(git diff --cached --name-only \
+      | xargs -I{} basename {} \
+      | sed 's/\.[^.]*$//' \
+      | sort -u | head -4 \
+      | tr '\n' ', ' | sed 's/,$//')
+    [[ -n "$basenames" ]] && keywords+=("$basenames")
+  fi
+
+  # 50자 제한
+  local result="${keywords[*]}"
+  if (( ${#result} > 50 )); then
+    result="${result:0:47}..."
+  fi
+  echo "$result"
+}
+
 generate_commit_msg() {
   local added modified deleted
   added=$(git diff --cached --name-only --diff-filter=A  | wc -l | tr -d ' ')
@@ -144,16 +176,24 @@ generate_commit_msg() {
 
   [[ ${#parts[@]} -eq 0 ]] && { echo "chore: minor changes"; return; }
 
-  local summary
-  summary=$(IFS=', '; echo "${parts[*]}")
+  local count_part
+  count_part=$(IFS=', '; echo "${parts[*]}")
+
+  local content_summary
+  content_summary=$(summarize_changes)
 
   local top_file
   top_file=$(git diff --cached --numstat | sort -k1 -rn | head -1 | awk '{print $3}')
 
-  if [[ -n "$top_file" ]]; then
-    echo "${summary} — ${top_file}"
+  # 조합: count — summary — top_file
+  if [[ -n "$content_summary" && -n "$top_file" ]]; then
+    echo "${count_part} — ${content_summary} — ${top_file}"
+  elif [[ -n "$content_summary" ]]; then
+    echo "${count_part} — ${content_summary}"
+  elif [[ -n "$top_file" ]]; then
+    echo "${count_part} — ${top_file}"
   else
-    echo "${summary}"
+    echo "${count_part}"
   fi
 }
 
