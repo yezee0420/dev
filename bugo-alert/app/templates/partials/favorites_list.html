@@ -1,0 +1,57 @@
+{% if favorites %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+      <tr>
+        <th class="px-4 py-3 text-left">키워드</th>
+        <th class="px-4 py-3 text-left">유형</th>
+        <th class="px-4 py-3 text-left">이메일</th>
+        <th class="px-4 py-3 text-left">상태</th>
+        <th class="px-4 py-3 text-left">등록일</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for f in favorites %}
+      <tr class="hover:bg-amber-50 transition">
+        <td class="px-4 py-3 font-medium">{{ f.keyword }}</td>
+        <td class="px-4 py-3">
+          {% if f.keyword_type == 'person' %}인물
+          {% elif f.keyword_type == 'org' %}소속
+          {% else %}일반{% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-500">{{ f.email }}</td>
+        <td class="px-4 py-3">
+          {% if f.is_active %}
+          <span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">활성</span>
+          {% else %}
+          <span class="inline-block px-2 py-0.5 bg-gray-200 text-gray-500 rounded-full text-xs">비활성</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-400">{{ f.created_at.strftime('%Y-%m-%d') if f.created_at else '-' }}</td>
+        <td class="px-4 py-3 text-right space-x-2">
+          <button hx-post="/favorites/toggle/{{ f.id }}"
+                  hx-target="#favorites-list"
+                  hx-swap="innerHTML"
+                  class="text-xs text-blue-600 hover:underline">
+            {% if f.is_active %}비활성화{% else %}활성화{% endif %}
+          </button>
+          <button hx-delete="/favorites/delete/{{ f.id }}"
+                  hx-target="#favorites-list"
+                  hx-swap="innerHTML"
+                  hx-confirm="정말 삭제하시겠습니까?"
+                  class="text-xs text-red-500 hover:underline">
+            삭제
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-12 text-gray-400">
+  <p>등록된 즐겨찾기가 없습니다</p>
+  <p class="text-sm mt-1">위 폼에서 키워드를 등록해보세요</p>
+</div>
+{% endif %}

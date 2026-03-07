@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}부고알림{% endblock %} — BugoAlert</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>
+    [hx-indicator] .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: inline-block; }
+    .htmx-request.htmx-indicator { display: inline-block; }
+  </style>
+</head>
+<body class="h-full bg-gray-50 text-gray-900">
+
+  <!-- 내비게이션 -->
+  <nav class="bg-gray-900 text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="text-xl font-bold tracking-tight">
+        <span class="text-amber-400">부고</span>Alert
+      </a>
+      <div class="flex gap-6 text-sm font-medium">
+        <a href="/" class="hover:text-amber-300 transition">대시보드</a>
+        <a href="/search" class="hover:text-amber-300 transition">검색</a>
+        <a href="/favorites" class="hover:text-amber-300 transition">즐겨찾기</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 콘텐츠 -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- 푸터 -->
+  <footer class="text-center text-xs text-gray-400 py-6 border-t mt-12">
+    BugoAlert &copy; 2026 &middot; 네이버 뉴스 기반 부고 알림 서비스
+  </footer>
+
+</body>
+</html>

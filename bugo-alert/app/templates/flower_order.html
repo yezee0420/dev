@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}화환 보내기{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  {% if obit %}
+  <a href="/obituary/{{ obit.id }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; 부고 상세로</a>
+  {% else %}
+  <a href="/" class="text-sm text-gray-500 hover:text-gray-700">&larr; 목록으로</a>
+  {% endif %}
+</div>
+
+<h1 class="text-2xl font-bold mb-2">조문 화환 보내기</h1>
+
+{% if obit %}
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-sm">
+  <p><strong>{{ obit.deceased_name or '고인' }}</strong>
+    {% if obit.funeral_hall %} &middot; {{ obit.funeral_hall }}{% endif %}
+    {% if obit.room_number %} {{ obit.room_number }}{% endif %}
+  </p>
+  {% if obit.funeral_date %}
+  <p class="text-gray-600 mt-1">발인: {{ obit.funeral_date }} {{ obit.funeral_time or '' }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<p class="text-gray-500 text-sm mb-6">아래 협력업체를 통해 근조화환을 주문할 수 있습니다.</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {% for v in vendors %}
+  <div class="bg-white rounded-xl shadow p-5 hover:shadow-md transition">
+    <h3 class="font-bold text-base mb-2">{{ v.name }}</h3>
+    <p class="text-sm text-gray-500 mb-3">{{ v.note }}</p>
+    <div class="flex items-center gap-4 text-sm">
+      <a href="tel:{{ v.phone }}" class="text-blue-600 hover:underline">{{ v.phone }}</a>
+      <a href="{{ v.url }}" target="_blank"
+         class="px-3 py-1.5 bg-pink-600 text-white rounded-lg text-xs font-medium hover:bg-pink-700 transition">
+        주문하기
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

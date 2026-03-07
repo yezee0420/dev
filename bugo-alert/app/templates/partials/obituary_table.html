@@ -1,0 +1,54 @@
+<p class="text-sm text-gray-500 mb-3">검색 결과 {{ total }}건</p>
+
+{% if obituaries %}
+<div class="bg-white rounded-xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+      <tr>
+        <th class="px-4 py-3 text-left">고인</th>
+        <th class="px-4 py-3 text-left">소속/직급</th>
+        <th class="px-4 py-3 text-left">관계</th>
+        <th class="px-4 py-3 text-left">장례식장</th>
+        <th class="px-4 py-3 text-left">호실</th>
+        <th class="px-4 py-3 text-left">발인</th>
+        <th class="px-4 py-3 text-left">연락처</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for o in obituaries %}
+      <tr class="hover:bg-amber-50 transition">
+        <td class="px-4 py-3 font-medium">{{ o.deceased_name or o.mourner_name or '-' }}</td>
+        <td class="px-4 py-3">{{ o.organization or '-' }}{% if o.position %} <span class="text-gray-400">{{ o.position }}</span>{% endif %}</td>
+        <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
+        <td class="px-4 py-3">{{ o.funeral_hall or '-' }}</td>
+        <td class="px-4 py-3">{{ o.room_number or '-' }}</td>
+        <td class="px-4 py-3">{{ o.funeral_date or '-' }} {{ o.funeral_time or '' }}</td>
+        <td class="px-4 py-3">{{ o.contact or '-' }}</td>
+        <td class="px-4 py-3 text-right space-x-2">
+          <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>
+          <a href="/flower/order/{{ o.id }}" class="text-pink-600 hover:underline">화환</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if total_pages > 1 %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if page > 1 %}
+  <a href="/search?q={{ q or '' }}&page={{ page - 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
+  {% endif %}
+  <span class="px-3 py-1 text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
+  {% if page < total_pages %}
+  <a href="/search?q={{ q or '' }}&page={{ page + 1 }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-12 text-gray-400">
+  <p>검색 결과가 없습니다</p>
+</div>
+{% endif %}

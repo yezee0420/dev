@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}즐겨찾기{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-2">즐겨찾기 알림</h1>
+<p class="text-gray-500 text-sm mb-6">키워드를 등록하면 관련 부고가 수집될 때 이메일로 알림을 보내드립니다.</p>
+
+<!-- 등록 폼 -->
+<div class="bg-white rounded-xl shadow p-5 mb-8">
+  <form hx-post="/favorites/add"
+        hx-target="#favorites-list"
+        hx-swap="innerHTML"
+        class="flex flex-wrap gap-3 items-end">
+    <div class="flex-1 min-w-[180px]">
+      <label class="block text-xs font-medium text-gray-500 mb-1">키워드</label>
+      <input type="text" name="keyword" required placeholder="예: 삼성전자, 홍길동"
+             class="w-full px-3 py-2 border rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-200 outline-none">
+    </div>
+    <div class="w-36">
+      <label class="block text-xs font-medium text-gray-500 mb-1">유형</label>
+      <select name="keyword_type" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+        <option value="general">일반</option>
+        <option value="person">인물</option>
+        <option value="org">소속/회사</option>
+      </select>
+    </div>
+    <div class="flex-1 min-w-[200px]">
+      <label class="block text-xs font-medium text-gray-500 mb-1">알림 이메일</label>
+      <input type="email" name="email" required placeholder="user@example.com"
+             class="w-full px-3 py-2 border rounded-lg text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-200 outline-none">
+    </div>
+    <button type="submit"
+            class="px-5 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition">
+      등록
+    </button>
+  </form>
+</div>
+
+<!-- 목록 -->
+<div id="favorites-list">
+  {% include "partials/favorites_list.html" %}
+</div>
+{% endblock %}
