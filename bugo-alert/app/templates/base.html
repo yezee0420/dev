@@ -7,6 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <style>
+    /* 반응형 폰트: 뷰포트에 비례해 14px~16px 스케일 (rem 기반 Tailwind 전체 적용) */
+    html { font-size: clamp(14px, 2vw, 16px); }
+    body { font-size: 1rem; }
+
     [hx-indicator] .htmx-indicator { display: none; }
     .htmx-request .htmx-indicator { display: inline-block; }
     .htmx-request.htmx-indicator { display: inline-block; }
