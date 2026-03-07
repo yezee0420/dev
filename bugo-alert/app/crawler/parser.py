@@ -50,6 +50,13 @@ def _strip_suffix(name: str) -> str:
     return re.sub(r"[\s]*씨$", "", name).strip()
 
 
+def _take_first_name(name: str) -> str:
+    """'이창연,이승연' → '이창연' (쉼표로 구분된 복수 이름 시 첫 번째만)."""
+    if not name or "," not in name:
+        return name
+    return name.split(",")[0].strip()
+
+
 # ---------------------------------------------------------------------------
 # 부고 기사 여부 판별
 # ---------------------------------------------------------------------------
@@ -140,8 +147,12 @@ _RE_TITLE_P5b = re.compile(
 def _split_org_position(affiliation: str) -> tuple[str, str]:
     """'삼성전자 부사장' → ('삼성전자', '부사장')
        '전 헌법재판소장' → ('헌법재판소', '전 소장')  # 전 prefix 처리
+       '오늘경제 대표, 前 시민의소리 대표' → 첫 번째 소속만 사용
     """
     affiliation = affiliation.strip()
+    # 쉼표·전/前로 구분된 복수 소속 — 첫 번째만 사용
+    if re.search(r"[,，]\s*(?:전|前)\s+", affiliation):
+        affiliation = re.split(r"\s*[,，]\s*(?:전|前)\s+", affiliation)[0].strip()
 
     # "전 OOO" 패턴
     m_former = re.match(r"^전\s+(.+)$", affiliation)
@@ -197,7 +208,7 @@ def parse_title(title: str) -> ParsedObituary:
     for pattern in [_RE_TITLE_P1, _RE_TITLE_P2, _RE_TITLE_P4]:
         m = pattern.search(title)
         if m:
-            result.key_person = _strip_suffix(m.group("name"))
+            result.key_person = _take_first_name(_strip_suffix(m.group("name")))
             affil = m.group("affil").strip().lstrip("(")
             org, pos = _split_org_position(affil)
             result.organization = org or None
@@ -208,7 +219,7 @@ def parse_title(title: str) -> ParsedObituary:
     for pattern in [_RE_TITLE_P3, _RE_TITLE_P5]:
         m = pattern.search(title)
         if m:
-            result.key_person = _strip_suffix(m.group("name"))
+            result.key_person = _take_first_name(_strip_suffix(m.group("name")))
             result.organization = m.group("affil").strip() or None
             result.position = m.group("position").strip() or None
             result.relationship = m.group("rel")
@@ -217,7 +228,7 @@ def parse_title(title: str) -> ParsedObituary:
     for pattern in [_RE_TITLE_P5b]:
         m = pattern.search(title)
         if m:
-            result.key_person = _strip_suffix(m.group("name"))
+            result.key_person = _take_first_name(_strip_suffix(m.group("name")))
             affil = m.group("affil").strip()
             org, pos = _split_org_position(affil)
             result.organization = org or None
@@ -236,7 +247,7 @@ def parse_title(title: str) -> ParsedObituary:
     if m_fb:
         rest = m_fb.group("rest").strip()
         org, pos = _split_rest_to_org_pos(rest)
-        result.key_person = _strip_suffix(m_fb.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m_fb.group("name")))
         result.organization = org or None
         result.position = pos or None
         result.relationship = m_fb.group("rel")
@@ -247,7 +258,7 @@ def parse_title(title: str) -> ParsedObituary:
     if m_3b:
         rest = m_3b.group("rest").strip()
         _, pos = _split_rest_to_org_pos(rest)
-        result.key_person = _strip_suffix(m_3b.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m_3b.group("name")))
         result.organization = m_3b.group("affil").strip() or None
         result.position = pos or rest or None
         result.relationship = m_3b.group("rel")
@@ -259,7 +270,7 @@ def parse_title(title: str) -> ParsedObituary:
         title,
     )
     if m:
-        result.key_person = _strip_suffix(m.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
         affil = m.group("affil").strip()
         org, pos = _split_org_position(affil)
         result.organization = org or None
@@ -270,7 +281,7 @@ def parse_title(title: str) -> ParsedObituary:
     # 패턴6b: [부고] 이름 씨 별세 (소속 없음)
     m = re.search(r"[\[<\(]\s*부고\s*[\]>\)]\s*(?P<name>[가-힣]{2,5})\s*씨?\s*별세", title)
     if m:
-        result.key_person = _strip_suffix(m.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
         result.relationship = "별세"
         return result
 
@@ -282,7 +293,19 @@ def parse_title(title: str) -> ParsedObituary:
         title,
     )
     if m:
-        result.key_person = _strip_suffix(m.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
+        result.relationship = m.group("rel")
+        return result
+
+    # 패턴7b: [부고] 이름,이름 씨 관계상 (복수 이름, 소속 없음)
+    m = re.search(
+        r"[\[<\(]\s*부고\s*[\]>\)]\s*"
+        r"(?P<name>[가-힣]{2,5}(?:,[가-힣]{2,5})+)\s*씨?\s+"
+        r"(?P<rel>[가-힣]+상)",
+        title,
+    )
+    if m:
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
         result.relationship = m.group("rel")
         return result
 
@@ -292,7 +315,7 @@ def parse_title(title: str) -> ParsedObituary:
         title,
     )
     if m:
-        result.key_person = _strip_suffix(m.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
         affil = m.group("affil").strip()
         org, pos = _split_org_position(affil)
         result.organization = org or None
@@ -306,7 +329,7 @@ def parse_title(title: str) -> ParsedObituary:
         title.strip(),
     )
     if m:
-        result.key_person = _strip_suffix(m.group("name"))
+        result.key_person = _take_first_name(_strip_suffix(m.group("name")))
         return result
 
     return result
@@ -323,16 +346,39 @@ _RE_DECEASED = re.compile(
 _RE_DECEASED_SIMPLE = re.compile(
     r"(?P<name>[가-힣]{2,5})\s*씨?\s*별세"
 )
+# 관계(고인씨·나이)상 — 모친(김용연씨·97)상, 부친(홍길동씨·80)상
+_RE_DECEASED_REL = re.compile(
+    r"(?:모친|부친|장인|장모|시부|시모|조부|조모|외조부|외조모|남편|부인|빙모|빙부)\s*"
+    r"\(\s*(?P<name>[가-힣]{2,5})\s*씨\s*[··]\s*(?P<age>\d+)\s*\)\s*상"
+)
+# 이름씨(나이) N일 별세 — 윤태호씨(84) 27일 별세
+_RE_DECEASED_DAY = re.compile(
+    r"(?P<name>[가-힣]{2,5})\s*씨\s*\(\s*(?P<age>\d+)\s*\)\s*\d{1,2}\s*일\s*별세"
+)
+# ▲ 고인 : 이영재 또는 고인 : 이영재
+_RE_DECEASED_LABEL = re.compile(
+    r"[▲△]\s*고인\s*[=:]\s*(?P<name>[가-힣]{2,5})"
+)
 
 _RE_FUNERAL_HALL = re.compile(
     r"(?P<hall>[가-힣A-Za-z\s]{2,}(?:병원|의료원|대학교?|센터|시민|농협|공원|빛고을|메모리얼|종합)\s*장례식장|"
     r"[가-힣A-Za-z]+장례식장)\s*"
-    r"(?P<room>(?:특?\d+호실|[가-힣]+\d*호실|VIP\s*\d*호?))?"
+    r"(?P<room>(?:특?\d+호실|[가-힣]+\d*호실|VIP\s*\d*호?|특실|\d+호))?"
+)
+# 빈소: / △빈소= 뒤의 장례식장 (본문에서 별도 검색용)
+_RE_BINSO_PREFIX = re.compile(
+    r"(?:빈소|△빈소)\s*[=:]\s*([^▲△]+?)(?=[▲△]|$)"
 )
 
-# 발인: "발인 3월 9일 오전 11시 30분" 또는 "발인 9일 오전 11시"
+# 발인: "발인 3월 9일", "△발인=3월2일", "발인: 3월 1일", "▲ 발인 : 2026년 3월 1일"
+# (월) 등 중간 괄호 허용, 2026년 등 연도 허용
 _RE_FUNERAL_DATE = re.compile(
-    r"발인\s*(?:(?P<month>\d{1,2})월\s*)?(?P<date>\d{1,2}일)?\s*(?P<time>오[전후]\s*\d{1,2}시(?:\s*\d+분)?)?",
+    r"발인\s*[=:]?\s*"
+    r"(?:(?P<year>\d{4})\s*년\s*)?"
+    r"(?:(?P<month>\d{1,2})월\s*)?"
+    r"(?P<date>\d{1,2}일)?"
+    r"\s*(?:\([^)]*\))?\s*"
+    r"(?P<time>오[전후]\s*\d{1,2}시(?:\s*\d+분)?)?",
 )
 
 _RE_PHONE = re.compile(r"\d{2,3}-\d{3,4}-\d{4}")
@@ -377,7 +423,7 @@ def parse_body(body: str) -> dict:
     body = _clean_text(body)
     result = {}
 
-    # 고인
+    # 고인 (여러 패턴 순차 시도)
     dm = _RE_DECEASED.search(body)
     if dm:
         result["deceased_name"] = _strip_suffix(dm.group("name"))
@@ -386,6 +432,20 @@ def parse_body(body: str) -> dict:
         dm_simple = _RE_DECEASED_SIMPLE.search(body)
         if dm_simple:
             result["deceased_name"] = _strip_suffix(dm_simple.group("name"))
+        else:
+            dm_rel = _RE_DECEASED_REL.search(body)
+            if dm_rel:
+                result["deceased_name"] = _strip_suffix(dm_rel.group("name"))
+                result["deceased_age"] = dm_rel.group("age") + "세"
+            else:
+                dm_day = _RE_DECEASED_DAY.search(body)
+                if dm_day:
+                    result["deceased_name"] = _strip_suffix(dm_day.group("name"))
+                    result["deceased_age"] = dm_day.group("age") + "세"
+                else:
+                    dm_label = _RE_DECEASED_LABEL.search(body)
+                    if dm_label:
+                        result["deceased_name"] = _strip_suffix(dm_label.group("name"))
 
     # 장례식장 + 호실
     hm = _RE_FUNERAL_HALL.search(body)
@@ -396,15 +456,35 @@ def parse_body(body: str) -> dict:
         room = (hm.group("room") or "").strip()
         if room:
             result["room_number"] = room
+    else:
+        # 빈소: / △빈소= 블록에서 재검색
+        for m in _RE_BINSO_PREFIX.finditer(body):
+            block = m.group(1)
+            hm2 = _RE_FUNERAL_HALL.search(block)
+            if hm2:
+                hall = _clean_funeral_hall(hm2.group("hall"))
+                if hall:
+                    result["funeral_hall"] = hall
+                room = (hm2.group("room") or "").strip()
+                if room:
+                    result["room_number"] = room
+                break
 
     # 발인
     fm = _RE_FUNERAL_DATE.search(body)
     if fm:
+        year = (fm.group("year") or "").strip()
         month = (fm.group("month") or "").strip()
         d = (fm.group("date") or "").strip()
         t = (fm.group("time") or "").strip()
         if d:
-            result["funeral_date"] = f"{month}월 {d}" if month else d
+            parts = []
+            if year:
+                parts.append(f"{year}년")
+            if month:
+                parts.append(f"{month}월")
+            parts.append(d)
+            result["funeral_date"] = " ".join(parts)
         if t:
             result["funeral_time"] = t
 
