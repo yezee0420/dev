@@ -1,0 +1,135 @@
+# Backend Agent — 백엔드 인프라 전문
+
+## 역할
+
+데이터 모델, 데이터베이스, 스케줄러 파이프라인, 앱 설정 등 서버 측 인프라를 관리한다.
+
+## 담당 파일
+
+- `app/models.py` — SQLAlchemy ORM 모델 (Obituary, Favorite, NotificationLog)
+- `app/database.py` — 엔진, 세션, init_db()
+- `app/config.py` — Pydantic 설정 (.env 기반)
+- `app/main.py` — FastAPI 앱, lifespan, 스케줄러 등록, API 엔드포인트
+- `app/scheduler/jobs.py` — 크롤링 파이프라인, 중복 제거, 즐겨찾기 매칭
+- `requirements.txt` — Python 의존성
+- `.env` / `.env.example` — 환경변수
+
+## 기술 스택
+
+- **FastAPI** — ASGI 웹 프레임워크
+- **SQLAlchemy 2.x** — ORM (SQLite 백엔드)
+- **APScheduler** — 주기적 백그라운드 작업
+- **Pydantic-settings** — 환경변수 관리
+- **SQLite + WAL 모드** — 단일 파일 DB
+
+## 데이터 모델
+
+### Obituary (부고)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `id` | Integer PK | 자동증가 |
+| `source_url` | String(512) | 기사 원문 URL |
+| `title` | String(512) | 기사 제목 |
+| `key_person` | String(100) | **핵심인물** (조문 대상) |
+| `organization` | String(200) | 소속 |
+| `position` | String(200) | 직급/직위 |
+| `deceased_name` | String(100) | 고인명 |
+| `deceased_age` | String(50) | 고인 나이 |
+| `relationship` | String(100) | 관계 (모친상 등) |
+| `related_persons` | Text | 관계자 목록 (/ 구분) |
+| `funeral_hall` | String(200) | 장례식장 |
+| `room_number` | String(50) | 호실 |
+| `funeral_date` | String(100) | 발인일 |
+| `funeral_time` | String(50) | 발인시간 |
+| `contact` | String(100) | 연락처 |
+| `remarks` | Text | 비고 |
+| `raw_text` | Text | 기사 원문 (5000자 제한) |
+| `published_at` | DateTime | 기사 발행일 |
+| `created_at` | DateTime | 레코드 생성일 |
+| `dedup_key` | String(200) UNIQUE | 중복 제거 키 |
+
+**인덱스**: key_person, organization, published_at, dedup_key
+
+### Favorite (즐겨찾기)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `id` | Integer PK | 자동증가 |
+| `keyword` | String(200) | 검색 키워드 |
+| `keyword_type` | String(20) | 키워드 유형 (general) |
+| `email` | String(200) | 알림 이메일 |
+| `is_active` | Boolean | 활성 여부 |
+
+### NotificationLog (알림 로그)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `obituary_id` | FK → obituaries | 부고 참조 |
+| `favorite_id` | FK → favorites | 즐겨찾기 참조 |
+| `status` | String(20) | sent / failed |
+
+## 크롤링 파이프라인
+
+```
+crawl_and_notify()
+  1. search_obituary_news()          → 네이버 API 100건
+  2. for item in news_items:
+     a. fetch_article_text()          → 본문 스크래핑
+     b. parse_obituary(title, body)   → ParsedObituary | None
+     c. is None → skip_count++
+     d. _merge_and_save()             → dedup_key 기반 통합
+        ├─ 기존 있음 → 빈 필드 보충 (merge_count++)
+        └─ 신규 → 저장 (new_count++)
+     e. 신규 → _match_favorites()     → 키워드 매칭
+     f. 매칭 → _send_notifications()  → 이메일 발송
+```
+
+## 중복 제거 (dedup)
+
+- `dedup_key` = `key_person|relationship|deceased_name`
+- 같은 dedup_key가 있으면 빈 필드만 보충 업데이트 (merge)
+- IntegrityError 발생 시 rollback + skip
+
+## 스케줄러
+
+- `BackgroundScheduler` (APScheduler)
+- 주기: `CRAWL_INTERVAL_MINUTES` (기본 60분)
+- 서버 시작 시 즉시 첫 크롤링 예약 (`initial_crawl`)
+- `app.state.crawl_status`로 상태 추적: `last_run`, `last_count`, `is_running`, `last_error`
+
+## API 엔드포인트
+
+| 엔드포인트 | 메서드 | 설명 |
+|-----------|--------|------|
+| `/api/crawl-now` | GET | 수동 크롤링 트리거 |
+| `/api/crawl-status` | GET | 크롤링 상태 JSON |
+
+## DB 스키마 변경 시 규칙
+
+1. `models.py`에서 컬럼 추가/변경
+2. SQLite는 ALTER TABLE 제약이 있으므로, 큰 변경 시 DB 삭제 후 재생성이 가장 간편
+3. `rm -f bugo.db*` → 서버 재시작으로 `init_db()`가 자동 생성
+4. Parser Agent의 `ParsedObituary` 데이터클래스와 필드명을 동기화
+5. UI Agent의 템플릿 필드 참조도 함께 업데이트
+
+## 환경변수 (.env)
+
+```
+NAVER_CLIENT_ID=...
+NAVER_CLIENT_SECRET=...
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASSWORD=...
+SMTP_FROM=...
+CRAWL_INTERVAL_MINUTES=60
+DATABASE_URL=sqlite:///bugo.db
+```
+
+## 주의사항
+
+- `get_settings()`는 글로벌 싱글턴 (`_settings`)이므로, `.env` 변경 시 서버 재시작 필요
+- SQLite WAL 모드: 읽기/쓰기 동시 가능하지만, 동시 쓰기는 1개만
+- `raw_text`는 5000자로 자르고 저장 (DB 크기 관리)
+- `crawl_and_notify()`는 async이지만 APScheduler에서는 `asyncio.run()` 래퍼(`run_crawl_job`)로 호출
