@@ -19,7 +19,7 @@
     {% if obit.room_number %} {{ obit.room_number }}{% endif %}
   </p>
   {% if obit.funeral_date %}
-  <p class="text-gray-600 mt-1">발인: {{ obit.funeral_date }} {{ obit.funeral_time or '' }}</p>
+  <p class="text-gray-600 mt-1">발인: {{ obit.funeral_date|format_funeral_date_full }} {{ obit.funeral_time or '' }}</p>
   {% endif %}
 </div>
 {% endif %}
