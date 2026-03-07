@@ -1,93 +1,41 @@
-# Parser Agent — 크롤링 & 파싱 전문
+---
+description: 부고 기사 파싱 로직 규칙 (parser.py)
+globs:
+  - app/crawler/parser.py
+alwaysApply: false
+---
 
-## 역할
+# 부고 파서 규칙
 
-부고 기사를 네이버 뉴스에서 수집하고, 제목/본문에서 구조화된 정보를 추출하는 파서를 관리한다.
+## 파싱 원칙
 
-## 담당 파일
+1. **제목이 가장 신뢰할 수 있는 정보원** — `key_person`은 제목에서 추출
+2. **본문의 ▲ 항목들은 한 건의 부고에 대한 관계자 나열** — 하나로 통합
+3. **제목에 [부고] 패턴이 없는 기사는 필터링**
 
-- `app/crawler/parser.py` — 제목·본문 정규식 파싱 (핵심 파일)
-- `app/crawler/naver_api.py` — 네이버 검색 API 호출
-- `app/crawler/scraper.py` — 기사 URL 본문 스크래핑
+## 제목 파싱 패턴 우선순위
 
-## 핵심 원칙
+1. `[부고] 이름(소속 직급)씨 관계상`
+2. `[부고] 이름 씨(소속 직급) 관계상`
+3. `[부고] 소속 이름 직급 관계상` (괄호 없음)
+4. `[부고] 이름(소속 직급) 관계상` (씨 없음)
+5. `[부고종합] 이름 소속 직급 관계상`
+6. 별세 패턴 / 이름만 있는 패턴 등 fallback
 
-1. **key_person(핵심인물) 우선**: 부고에서 가장 중요한 정보는 "어느 회사의 누가 관련됐는가"다. 고인보다 핵심인물이 더 중요하다.
-2. **제목이 가장 신뢰**: 제목에서 key_person, organization, position, relationship을 추출하고, 본문은 보충 정보(고인명, 장례식장, 발인, 연락처)로만 쓴다.
-3. **한 기사 = 한 건**: 본문의 ▲ 항목들은 여러 관계자를 나열한 것이지 별개 부고가 아니다. 하나로 통합한다.
-4. **비부고 필터링**: `is_obituary_article()`을 통과하지 못하면 `parse_obituary()`는 `None`을 반환한다.
+## `ParsedObituary` 필드
 
-## 제목 패턴 매칭 순서
+- `key_person`: 핵심인물 (조문 대상) — **dedup_key의 핵심**
+- `organization`, `position`: 소속, 직급
+- `deceased_name`, `deceased_age`: 고인 정보 — **dedup_key에 사용하지 않음**
+- `relationship`: 관계 (모친상, 부친상 등) — **dedup_key에 사용**
+- `funeral_hall`, `room_number`: 장례식장 정보
+- `funeral_date`, `funeral_time`: 발인 정보
+- `contact`: 연락처
+- `related_persons`: 관계자 목록
 
-우선순위 높은 것부터:
-1. **P1**: `[부고] 이름(소속 직급)씨 관계상`
-2. **P2**: `[부고] 이름 씨(소속 직급) 관계상`
-3. **P4**: `[부고] 이름(소속 직급) 관계상` (씨 없음)
-4. **P3**: `[부고] 소속 이름 직급 관계상` (괄호 없음)
-5. **P5**: `[부고종합·날짜] 이름 소속 직급 관계상 등`
-6. **P5b**: `[부고종합] 이름(소속 직급) 관계상`
-7. **FALLBACK**: `[부고*] 이름 ...rest... 관계상` → rest에서 소속/직급 분리
-8. **P3b**: `[부고]소속 이름 rest 관계상` (소속이 먼저)
-9. **P6/6b**: `[부고] 이름(소속)씨 별세` / `이름 씨 별세`
-10. **P7**: `[부고] 이름씨 관계상` (소속 없음)
-11. **P8**: `이름(소속)·이름(소속) 씨 관계상` (복수 인물)
-12. **P9**: `[부고] 이름씨` (이름만)
+## dedup_key 생성 규칙
 
-## 새 패턴 추가 시
-
-1. 기존 패턴에 매칭되지 않는 제목을 수집한다.
-2. 가장 구체적인 패턴 위치에 삽입한다 (구체적 → 범용 순서).
-3. `_KNOWN_POSITIONS` 정규식에 새 직급을 추가한다.
-4. 반드시 기존 13개 테스트 케이스 + 새 케이스를 모두 통과시킨다:
-
-```python
-from app.crawler.parser import parse_title
-tests = [
-    ('[부고]핀포인트뉴스 신홍범 대표 부친상', '신홍범'),
-    ('[부고종합·6일] 서승권 한화오션 안전총괄 전무 장모상 등', '서승권'),
-    ('[부고]계명대학교 양근우 교육·연구부총장 부친상', '양근우'),
-    ('[부고] 이한울 씨(시사IN PD) 조부상', '이한울'),
-    ('[부고] 김상육 씨(울산 중구 부구청장) 부친상', '김상육'),
-    ('[부고]김성령(배우)·김성경(방송인)씨 모친상', '김성령'),
-    ('[부고] 이명구(전 태경그룹 부회장)씨 별세', '이명구'),
-    ('[부고] 주종석씨', '주종석'),
-    ('[부고] 최종일 씨(매경AX 금융증권팀 기자) 조모상', '최종일'),
-    ('[부고]신홍범 씨(핀포인트뉴스 대표) 부친상', '신홍범'),
-    ('[부고] LG전자 중국 칭다오칠러 남상철 법인장 장인상', '남상철'),
-    ('[부고] 설명환(포스코DX 그룹장)씨 모친상', '설명환'),
-    ('[부고] 백옥문 씨 별세 外', '백옥문'),
-]
-for title, expected in tests:
-    r = parse_title(title)
-    assert r.key_person == expected, f'FAIL: {title} → {r.key_person}'
-```
-
-## 데이터 흐름
-
-```
-네이버 API 페이지네이션 (최대 1,000건)
-  → URL 캐시 체크 (이미 본 URL은 스킵)
-  → fetch_article_text()
-  → parse_obituary(title, body)
-    ├─ is_obituary_article() → False → skip
-    ├─ parse_title()  → key_person, org, position, relationship
-    └─ parse_body()   → deceased_name, age, funeral_hall, room, date, time, contact
-        → ParsedObituary → scheduler/jobs.py로 전달
-```
-
-## 주요 헬퍼 함수
-
-- `_clean_text()` — HTML 엔티티 디코딩 + 태그 제거
-- `_strip_suffix()` — 이름 뒤 '씨' 제거
-- `_split_org_position()` — '삼성전자 부사장' → ('삼성전자', '부사장'), '전' prefix 처리
-- `_split_rest_to_org_pos()` — rest 문자열에서 `_KNOWN_POSITIONS` 기반 소속/직급 분리
-- `_clean_funeral_hall()` — 장례식장 이름 앞 쓰레기 문자 제거
-- `make_dedup_key()` — key_person + relationship + deceased_name 중복 키
-
-## 주의사항
-
-- 정규식 수정 시 다른 패턴의 매칭에 영향을 줄 수 있으므로, 전체 테스트를 반드시 실행한다.
-- `_KNOWN_POSITIONS`에 새 직급을 추가할 때 P3, P3b, P5의 position 목록에도 동일하게 추가한다.
-- 네이버 API 응답의 `title`에는 `<b>` 태그와 `&quot;` 등 HTML 엔티티가 섞여 있으므로 `_clean_text()` 전처리가 필수다.
-- `naver_api.py`에서 API 키가 비어있거나 플레이스홀더면 빈 리스트를 반환한다.
-- 네트워크 오류(`TimeoutException`, `ConnectError`) 시 해당 페이지에서 중단하고 이미 수집된 결과만 반환한다.
+- **구성**: `key_person|relationship` (정규화 적용)
+- **정규화**: 공백 제거, "씨" 접미사 제거 (`_normalize_dedup`)
+- **deceased_name은 절대 포함하지 않는다** (기사마다 파싱 여부가 달라 중복 유발)
+- `key_person`이 없으면 `None` 반환 → 소프트 매칭으로 위임

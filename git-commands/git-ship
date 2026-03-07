@@ -6,12 +6,12 @@ RED='\033[0;31m'  GREEN='\033[0;32m'  YELLOW='\033[1;33m'
 BLUE='\033[0;34m' CYAN='\033[0;36m'   BOLD='\033[1m'
 DIM='\033[2m'     NC='\033[0m'
 
-info()    { echo -e "  ${BLUE}▸${NC} $*"; }
-success() { echo -e "  ${GREEN}✔${NC} $*"; }
-warn()    { echo -e "  ${YELLOW}⚠${NC} $*"; }
+info()    { echo -e "  ${BLUE}▸${NC} $*" >&2; }
+success() { echo -e "  ${GREEN}✔${NC} $*" >&2; }
+warn()    { echo -e "  ${YELLOW}⚠${NC} $*" >&2; }
 die()     { echo -e "  ${RED}✖${NC} $*" >&2; exit 1; }
-step()    { echo -e "\n${CYAN}${BOLD}[$1]${NC} ${BOLD}$2${NC}"; }
-divider() { echo -e "${DIM}──────────────────────────────────────────────${NC}"; }
+step()    { echo -e "\n${CYAN}${BOLD}[$1]${NC} ${BOLD}$2${NC}" >&2; }
+divider() { echo -e "${DIM}──────────────────────────────────────────────${NC}" >&2; }
 
 # ─── Help ───────────────────────────────────────────────────────────
 show_help() {
@@ -77,26 +77,58 @@ if [[ "$SKIP_PR" == false ]]; then
     || die "GitHub CLI not authenticated — run: gh auth login"
 fi
 
-CURRENT_BRANCH=$(git branch --show-current)
+# 브랜치 감지 (detached HEAD 시 현재 커밋에서 새 브랜치 생성)
+get_current_branch() {
+  local branch
+  branch=$(git branch --show-current 2>/dev/null)
+  if [[ -z "$branch" ]]; then
+    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  fi
+  if [[ -z "$branch" || "$branch" == "HEAD" ]]; then
+    local new_branch
+    new_branch="ship/$(date +%Y%m%d-%H%M%S)"
+    warn "Detached HEAD — creating branch ${new_branch} from current commit"
+    git checkout -b "$new_branch" 2>/dev/null || die "Cannot create branch. Try: git checkout -b temp-branch"
+    branch="$new_branch"
+  fi
+  echo "$branch"
+}
+
+# default branch 감지 (빈 값 방어)
+get_default_branch() {
+  local branch
+  branch=$(git remote show origin 2>/dev/null | awk '/HEAD branch/{print $NF}')
+  if [[ -z "$branch" ]]; then
+    if git show-ref --verify --quiet refs/remotes/origin/main 2>/dev/null; then
+      branch="main"
+    elif git show-ref --verify --quiet refs/remotes/origin/master 2>/dev/null; then
+      branch="master"
+    else
+      branch="main"
+    fi
+  fi
+  echo "$branch"
+}
+
+CURRENT_BRANCH=$(get_current_branch)
 ORIGINAL_BRANCH="$CURRENT_BRANCH"
 CREATED_BRANCH=""
-DEFAULT_BRANCH=$(git remote show origin 2>/dev/null \
-  | awk '/HEAD branch/{print $NF}' || echo "main")
+DEFAULT_BRANCH=$(get_default_branch)
 
 abort_cleanup() {
   if [[ -n "$CREATED_BRANCH" ]]; then
-    git checkout "$ORIGINAL_BRANCH" 2>/dev/null
-    git branch -D "$CREATED_BRANCH" 2>/dev/null
+    git checkout "$ORIGINAL_BRANCH" 2>/dev/null || true
+    git branch -D "$CREATED_BRANCH" 2>/dev/null || true
     info "Returned to ${ORIGINAL_BRANCH}, deleted ${CREATED_BRANCH}"
   elif [[ "$CURRENT_BRANCH" == ship/* && "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]]; then
-    git checkout "$DEFAULT_BRANCH" 2>/dev/null
-    git branch -D "$CURRENT_BRANCH" 2>/dev/null
+    git checkout "$DEFAULT_BRANCH" 2>/dev/null || true
+    git branch -D "$CURRENT_BRANCH" 2>/dev/null || true
     info "Returned to ${DEFAULT_BRANCH}, deleted leftover ${CURRENT_BRANCH}"
   fi
 }
 
-echo ""
-echo -e "${BOLD}🚀 git-ship${NC}  ${DIM}on${NC} ${CYAN}${CURRENT_BRANCH}${NC}  ${DIM}→${NC}  ${GREEN}${DEFAULT_BRANCH}${NC}"
+echo "" >&2
+echo -e "${BOLD}🚀 git-ship${NC}  ${DIM}on${NC} ${CYAN}${CURRENT_BRANCH}${NC}  ${DIM}→${NC}  ${GREEN}${DEFAULT_BRANCH}${NC}" >&2
 divider
 
 # ─── 1. Branch ──────────────────────────────────────────────────────
@@ -125,7 +157,7 @@ if [[ -z "$STAGED" ]]; then
   exit 0
 fi
 
-echo -e "${DIM}${STAGED}${NC}"
+echo -e "${DIM}${STAGED}${NC}" >&2
 success "All changes staged"
 
 # ─── 3. Commit ──────────────────────────────────────────────────────
@@ -134,15 +166,41 @@ step "3" "Commit"
 ai_summarize() {
   [[ -z "${ANTHROPIC_API_KEY:-}" ]] && return 1
 
-  local diff_text
-  diff_text=$(git diff --cached --no-color | head -2000)
+  local diff_text file_list
+  diff_text=$(git diff --cached --no-color | head -3000)
+  file_list=$(git diff --cached --name-only)
   [[ -z "$diff_text" ]] && return 1
 
   local escaped_diff
-  escaped_diff=$(printf '%s' "$diff_text" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')
+  escaped_diff=$(printf '%s' "Files changed:
+${file_list}
+
+Diff:
+${diff_text}" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')
+
+  local prompt
+  prompt="Summarize this git diff as a commit message. Focus on the PURPOSE and WHAT WAS ACCOMPLISHED — not file names.
+
+Examples of GOOD messages:
+- add AI-powered commit message generation with Claude API
+- fix branch cleanup when no changes are staged
+- improve merge flow with auto-merge fallback for CI checks
+- refactor auth middleware to support JWT refresh tokens
+
+Examples of BAD messages (too vague or file-focused):
+- update git-ship
+- modify 3 files
+- change config and add scripts
+
+Rules:
+1) Max 72 chars
+2) Start with a lowercase verb (add, fix, update, improve, refactor, remove...)
+3) Describe the WORK done, not the files touched
+4) No period at end
+5) Return ONLY the commit message, nothing else"
 
   local response
-  response=$(curl -s --max-time 10 \
+  response=$(curl -s --max-time 15 \
     -H "x-api-key: ${ANTHROPIC_API_KEY}" \
     -H "anthropic-version: 2023-06-01" \
     -H "content-type: application/json" \
@@ -152,7 +210,7 @@ ai_summarize() {
       \"max_tokens\": 100,
       \"messages\": [{
         \"role\": \"user\",
-        \"content\": \"You are a commit message generator. Given the following git diff, write a concise commit message in English. Rules: 1) Max 60 chars 2) Start with a verb (add, update, fix, remove, refactor...) 3) Describe WHAT changed and WHY 4) No period at the end 5) Return ONLY the message, nothing else.\n\nDiff:\n${escaped_diff}\"
+        \"content\": \"${prompt}\n\n${escaped_diff}\"
       }]
     }" 2>/dev/null)
 
@@ -185,11 +243,13 @@ fallback_summarize() {
 generate_commit_msg() {
   # AI 요약 시도 (ANTHROPIC_API_KEY 있을 때)
   local ai_msg
-  ai_msg=$(ai_summarize 2>/dev/null) && [[ -n "$ai_msg" ]] && {
+  if ai_msg=$(ai_summarize 2>/dev/null) && [[ -n "$ai_msg" ]]; then
     info "🤖 AI generated"
     echo "$ai_msg"
     return
-  }
+  fi
+
+  info "⚡ Fallback (no API key or AI failed)"
 
   # Fallback: 기존 방식
   local added modified deleted
@@ -234,11 +294,11 @@ elif [[ "$AUTO_YES" == true ]]; then
   info "Auto: ${YELLOW}${COMMIT_MSG}${NC}"
 else
   AUTO_MSG=$(generate_commit_msg)
-  echo -e "  Auto: ${YELLOW}${AUTO_MSG}${NC}"
-  echo ""
-  echo -e "  ${DIM}[Enter]${NC} Use auto message"
-  echo -e "  ${DIM}[type]${NC}  Enter custom message"
-  echo ""
+  echo -e "  Auto: ${YELLOW}${AUTO_MSG}${NC}" >&2
+  echo "" >&2
+  echo -e "  ${DIM}[Enter]${NC} Use auto message" >&2
+  echo -e "  ${DIM}[type]${NC}  Enter custom message" >&2
+  echo "" >&2
   read -r -p "  > " USER_INPUT
 
   if [[ -z "$USER_INPUT" ]]; then
@@ -293,35 +353,24 @@ if [[ "$SKIP_MERGE" == false ]]; then
   else
     sleep 2
 
-    MAX_RETRIES=5
-    RETRY_COUNT=0
-    MERGE_SUCCESS=false
-
-    while (( RETRY_COUNT < MAX_RETRIES )); do
-      if gh pr merge --squash --delete-branch 2>/dev/null; then
-        MERGE_SUCCESS=true
-        break
-      fi
-      RETRY_COUNT=$((RETRY_COUNT + 1))
-      if (( RETRY_COUNT < MAX_RETRIES )); then
-        info "Waiting for PR checks... (retry ${RETRY_COUNT}/${MAX_RETRIES})"
-        sleep 5
-      fi
-    done
-
-    if [[ "$MERGE_SUCCESS" == true ]]; then
+    if gh pr merge --squash --delete-branch 2>/dev/null; then
       git checkout "$DEFAULT_BRANCH"
       git pull origin "$DEFAULT_BRANCH"
       success "Merged & branch cleaned up"
+    elif gh pr merge --squash --delete-branch --auto 2>/dev/null; then
+      success "Auto-merge enabled — will merge when checks pass"
+      info "PR: ${PR_URL}"
+      git checkout "$DEFAULT_BRANCH"
+      git pull origin "$DEFAULT_BRANCH"
     else
-      warn "Could not auto-merge. PR is open at: ${PR_URL}"
-      warn "Merge manually or wait for checks to pass."
+      warn "Could not set auto-merge. PR is open at: ${PR_URL}"
+      warn "Merge manually when ready."
     fi
   fi
 fi
 
 # ─── Done ───────────────────────────────────────────────────────────
-echo ""
+echo "" >&2
 divider
-echo -e "${GREEN}${BOLD}✅ Ship complete!${NC}"
-echo ""
+echo -e "${GREEN}${BOLD}✅ Ship complete!${NC}" >&2
+echo "" >&2
