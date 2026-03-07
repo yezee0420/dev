@@ -176,58 +176,57 @@ step "3" "Commit"
 ai_summarize() {
   [[ -z "${ANTHROPIC_API_KEY:-}" ]] && return 1
 
-  local diff_text file_list
-  diff_text=$(git diff --cached --no-color | head -3000)
-  file_list=$(git diff --cached --name-only)
-  [[ -z "$diff_text" ]] && return 1
-
-  local escaped_diff
-  escaped_diff=$(printf '%s' "Files changed:
-${file_list}
-
-Diff:
-${diff_text}" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')
-
-  local prompt
-  prompt="Summarize this git diff as a commit message. Focus on the PURPOSE and WHAT WAS ACCOMPLISHED — not file names.
-
-Examples of GOOD messages:
-- add AI-powered commit message generation with Claude API
-- fix branch cleanup when no changes are staged
-- improve merge flow with auto-merge fallback for CI checks
-- refactor auth middleware to support JWT refresh tokens
-
-Examples of BAD messages (too vague or file-focused):
-- update git-ship
-- modify 3 files
-- change config and add scripts
-
-Rules:
-1) Max 72 chars
-2) Start with a lowercase verb (add, fix, update, improve, refactor, remove...)
-3) Describe the WORK done, not the files touched
-4) No period at end
-5) Return ONLY the commit message, nothing else"
-
-  local response
-  response=$(curl -s --max-time 15 \
-    -H "x-api-key: ${ANTHROPIC_API_KEY}" \
-    -H "anthropic-version: 2023-06-01" \
-    -H "content-type: application/json" \
-    "https://api.anthropic.com/v1/messages" \
-    -d "{
-      \"model\": \"claude-sonnet-4-20250514\",
-      \"max_tokens\": 100,
-      \"messages\": [{
-        \"role\": \"user\",
-        \"content\": \"${prompt}\n\n${escaped_diff}\"
-      }]
-    }" 2>/dev/null)
+  local tmp
+  tmp=$(mktemp)
+  git diff --cached --no-color | head -4000 > "$tmp"
+  [[ -s "$tmp" ]] || { rm -f "$tmp"; return 1; }
 
   local msg
-  msg=$(printf '%s' "$response" | python3 -c 'import sys,json; data=json.load(sys.stdin); print(data["content"][0]["text"].strip())' 2>/dev/null)
+  msg=$(ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" python3 - "$tmp" << 'PYEOF'
+import json, subprocess, os, sys
 
-  [[ -n "$msg" && ${#msg} -le 80 ]] && echo "$msg" && return 0
+with open(sys.argv[1]) as f:
+  diff = f.read()
+files = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.strip()
+api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+
+prompt = """Summarize this git diff as a commit message. Describe WHAT WAS DONE and WHY — never list file names.
+
+GOOD (work-focused, specific):
+- add mdc file management rule: prefer adding to existing rules over creating new ones
+- add document sync section: update docs when cursor rules change
+- fix branch cleanup when no changes are staged
+- improve merge flow with auto-merge fallback for CI checks
+
+BAD (file-focused, vague):
+- update 1 file — docs/cursor-rules-guide.md
+- update git-ship
+- modify 3 files
+
+Rules: max 72 chars, lowercase verb first (add/fix/improve/refactor), no period. Return ONLY the message."""
+
+body = {
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 120,
+  "messages": [{"role": "user", "content": prompt + "\n\nFiles:\n" + files + "\n\nDiff:\n" + diff}]
+}
+
+r = subprocess.run(
+  ["curl", "-s", "--max-time", "20", "-H", "x-api-key: " + api_key,
+   "-H", "anthropic-version: 2023-06-01", "-H", "content-type: application/json",
+   "https://api.anthropic.com/v1/messages", "-d", json.dumps(body)],
+  capture_output=True, text=True
+)
+try:
+  data = json.loads(r.stdout)
+  msg = data["content"][0]["text"].strip()
+  print(msg[:80] if len(msg) > 80 else msg)
+except: pass
+PYEOF
+)
+  rm -f "$tmp"
+
+  [[ -n "$msg" && ${#msg} -le 85 ]] && echo "$msg" && return 0
   return 1
 }
 
