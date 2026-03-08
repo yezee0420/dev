@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.models import Obituary, NotificationLog
 from app.crawler.parser import (
     parse_obituary,
+    parse_body,
     _clean_funeral_hall,
     _get_block_containing_deceased,
 )
@@ -150,6 +151,47 @@ def step2_fill_blank_fields(db: Session) -> list[str]:
                 updated.append(fld)
         if updated:
             changes.append(f"빈칸 보정 id={r.id}: {', '.join(updated)}")
+    db.flush()
+    return changes
+
+
+def step2a_fill_deceased_from_body(db: Session) -> list[str]:
+    """deceased 없음 → 본문(parse_body) + 제목 직접 파싱으로 보충."""
+    changes = []
+    _re_title_starse = re.compile(r"(?P<name>[가-힣]{2,5})\s*씨\s*별세")
+    for r in db.query(Obituary).filter(
+        Obituary.deceased_name.is_(None) | (Obituary.deceased_name == ""),
+    ).all():
+        dn = None
+        source = None
+        body_info = {}
+        raw = (r.raw_text or "").strip()
+        if raw:
+            body_info = parse_body(raw)
+            dn = body_info.get("deceased_name")
+            if dn:
+                source = "본문"
+        if not dn and r.title:
+            m = _re_title_starse.search(r.title)
+            if m:
+                dn = m.group("name").strip()
+                source = "제목"
+        if not dn and raw and r.title:
+            parsed = parse_obituary(r.title, raw)
+            if parsed and parsed.deceased_name:
+                dn = parsed.deceased_name
+                source = "parse_obituary"
+        if not dn or (dn or "").strip() in DECEASED_BLACKLIST:
+            continue
+        r.deceased_name = (dn or "").strip()
+        if body_info.get("deceased_age"):
+            r.deceased_age = body_info["deceased_age"]
+        if not r.key_person and body_info.get("key_person"):
+            r.key_person = body_info["key_person"]
+            r.organization = body_info.get("organization")
+            r.position = body_info.get("position")
+            r.relationship = _normalize_relationship(body_info.get("relationship"))
+        changes.append(f"고인 보정 id={r.id}: ({source}) → '{r.deceased_name}'")
     db.flush()
     return changes
 
@@ -355,23 +397,36 @@ def step7_remove_mismatched_multi(db: Session) -> list[str]:
 
 
 def step8_remove_low_quality(db: Session) -> list[str]:
-    """품질 최저 삭제 — deceased·key 둘 다 없고 복구 불가."""
+    """품질 최저 삭제 — deceased·key 둘 다 없고 복구 불가. deceased 없고 본문에 부고 내용 없으면 삭제."""
     changes = []
-    for r in list(db.query(Obituary).filter(
-        Obituary.deceased_name.is_(None),
-        Obituary.key_person.is_(None),
-    ).all()):
-        if r.funeral_hall or r.contact:
-            continue
-        raw = r.raw_text or ""
-        if raw.strip():
-            parsed = parse_obituary(r.title or "", raw)
-            if parsed and (parsed.deceased_name or parsed.key_person):
+    _obit_keywords = ("별세", "부친상", "모친상", "장인상", "장모상", "시부상", "시모상", "조부상", "조모상")
+    for r in list(db.query(Obituary).filter(Obituary.deceased_name.is_(None)).all()):
+        # deceased·key 둘 다 없음
+        if not (r.key_person or "").strip():
+            if r.funeral_hall or r.contact:
                 continue
+            raw = (r.raw_text or "").strip()
+            if raw:
+                parsed = parse_obituary(r.title or "", raw)
+                if parsed and (parsed.deceased_name or parsed.key_person):
+                    continue
+            db.query(NotificationLog).filter(NotificationLog.obituary_id == r.id).delete(
+                synchronize_session="fetch"
+            )
+            changes.append(f"품질 최저 삭제 id={r.id} (deceased·key 없음)")
+            db.delete(r)
+            continue
+        # key 있지만 deceased 없음 + 본문에 부고 키워드 없음 → 복구 불가
+        raw = (r.raw_text or "").strip()
+        if not raw or len(raw) < 100:
+            continue
+        if any(kw in raw for kw in _obit_keywords):
+            continue
+        # 본문이 기자명/메뉴 등만 있음
         db.query(NotificationLog).filter(NotificationLog.obituary_id == r.id).delete(
             synchronize_session="fetch"
         )
-        changes.append(f"품질 최저 삭제 id={r.id}")
+        changes.append(f"품질 최저 삭제 id={r.id} (deceased 없음, 본문 미수집)")
         db.delete(r)
     db.flush()
     return changes

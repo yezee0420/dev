@@ -264,6 +264,24 @@ def parse_title(title: str) -> ParsedObituary:
             result.relationship = m.group("rel")
             return result
 
+    # 패턴: [부고] '닉네임' 이름 소속 직급 관계상 — 따옴표 안 닉네임 스킵
+    m_nick = re.search(
+        r"[\[<\(【〔]\s*부고\s*[\]>\)】〕]\s*"
+        r"(?:'[^']*'|\"[^\"]*\")\s+"
+        r"(?P<name>[가-힣]{2,5})\s+"
+        r"(?P<rest>.+?)\s+"
+        r"(?P<rel>[가-힣]+상)\s*(?:등)?$",
+        title.strip(),
+    )
+    if m_nick:
+        rest = m_nick.group("rest").strip()
+        org, pos = _split_rest_to_org_pos(rest)
+        result.key_person = _take_first_name(_strip_suffix(m_nick.group("name")))
+        result.organization = org or None
+        result.position = pos or None
+        result.relationship = m_nick.group("rel")
+        return result
+
     # 패턴 FALLBACK: [부고*] 이름 ...rest... 관계상 등? — rest에서 소속/직급 분리
     m_fb = re.search(
         r"[\[<\(【〔]\s*부고(?:종합)?[·\s]*[^】〕\]>\)]*[\]>\)】〕]\s*"
@@ -383,6 +401,23 @@ def parse_title(title: str) -> ParsedObituary:
 _RE_DECEASED = re.compile(
     r"(?P<name>[가-힣]{2,5})\s*\(\s*(?:[^)]*[·\s]+)?향년\s*(?:만\s*)?(?P<age>\d+세?)\s*\)\s*씨?\s*별세"
 )
+# "이름 씨 별세" → 고인 (씨 필수, 직급 오매칭 방지)
+_RE_DECEASED_SSI_STARSE = re.compile(
+    r"(?P<name>[가-힣]{2,5})\s*씨\s*별세"
+)
+# "이름씨(나이) N월 N일 별세" — 유승률씨(91) 3월 1일 별세
+_RE_DECEASED_SSI_DATE_STARSE = re.compile(
+    r"(?P<name>[가-힣]{2,5})\s*씨\s*\(\s*(?P<age>\d+)\s*\)\s*[^별]*별세"
+)
+# "이름 소속 직급 별세" — 블록 시작 직후 첫 이름이 고인 (박효민 정치컨설팅민 이사 별세)
+_RE_DECEASED_BLOCK_NAME = re.compile(
+    r"[▲△■▶◇]\s*(?P<name>[가-힣]{2,5})\s+[^별]+별세"
+)
+# "이름+소속+직급 별세" (띄어쓰기 없음) — 정우섭전네티션닷컴전무 별세
+# "이름 전 소속 직급 별세" (띄어쓰기 있음) — 권유형 전 포항시의회 3대, 4대 의원 별세
+_RE_DECEASED_NO_SPACE = re.compile(
+    r"[▲△■▶◇]?\s*(?P<name>[가-힣]{2,5})\s*(?:전|이사|전무|의원|대표|회장|부장)[가-힣A-Za-z0-9·\s,대]*별세"
+)
 _RE_DECEASED_SIMPLE = re.compile(
     r"(?P<name>[가-힣]{2,5})\s*씨?\s*별세"
 )
@@ -486,6 +521,10 @@ _RE_BINSO_HOSPITAL = re.compile(
 _RE_HALL_BACKET = re.compile(
     r"([가-힣A-Za-z\s]+(?:병원|의료원))\s+([가-힣]+원)\s*(\d+호)?"
 )
+# 주소형 빈소: "=인천 계양구 계양문화로 20 7호실" (장례식장명 없이 주소만)
+_RE_ADDRESS_VENUE = re.compile(
+    r"=\s*(?P<hall>[가-힣]{2,10}\s+[가-힣]{2,5}\s+[가-힣A-Za-z0-9\s]+(?:로|길)\s+[\d\s]+호실?)"
+)
 
 # 발인: "발인 3월 9일", "△발인=3월2일", "발인: 3월 1일", "발인은 7일 오전 5시"
 # (월) 등 중간 괄호 허용, 2026년 등 연도 허용
@@ -522,6 +561,14 @@ _RE_BODY_KEY_DOT_SEP = re.compile(
     r"[가-힣]{2,5}\s*씨\s*별세[.\s,·]*?"
     r"(?P<name>[가-힣]{2,5})\s*\((?P<affil>[^)]+)\)"
     r"[^=]*?(?P<rel>[가-힣]+상)"
+)
+# 고인씨 별세, ['닉네임']? 이름 소속 직급 관계상 — 괄호 없는 형식 (이창석 T1 e스포츠 아카데미 감독 부친상)
+_RE_BODY_KEY_NO_PAREN = re.compile(
+    r"[가-힣]{2,5}\s*씨\s*별세[.\s,·]*?"
+    r"(?:['\"][^'\"]*['\"]\s+)?"
+    r"(?P<name>[가-힣]{2,5})\s+"
+    r"(?P<affil>[^=]+?)\s+"
+    r"(?P<rel>[가-힣]+상)(?:[=\s]|$)"
 )
 
 
@@ -615,81 +662,99 @@ def parse_body(body: str) -> dict:
                 age = dm_hyang.group("age")
                 result["deceased_age"] = age if "세" in age else age + "세"
             else:
-                dm_simple = _RE_DECEASED_SIMPLE.search(body)
-                if dm_simple:
-                    result["deceased_name"] = _strip_suffix(dm_simple.group("name"))
+                dm_ssi = _RE_DECEASED_SSI_STARSE.search(body)
+                if dm_ssi:
+                    result["deceased_name"] = _strip_suffix(dm_ssi.group("name"))
                 else:
-                    dm_rel = _RE_DECEASED_REL.search(body)
-                    if dm_rel:
-                        result["deceased_name"] = _strip_suffix(dm_rel.group("name"))
-                        age = dm_rel.group("age")
-                        result["deceased_age"] = age if "세" in age else age + "세"
+                    dm_ssi_date = _RE_DECEASED_SSI_DATE_STARSE.search(body)
+                    if dm_ssi_date:
+                        result["deceased_name"] = _strip_suffix(dm_ssi_date.group("name"))
+                        age = dm_ssi_date.group("age")
+                        result["deceased_age"] = age + "세" if age else None
                     else:
-                        dm_day = _RE_DECEASED_DAY.search(body)
-                        if dm_day:
-                            result["deceased_name"] = _strip_suffix(dm_day.group("name"))
-                            result["deceased_age"] = dm_day.group("age") + "세"
+                        dm_block = _RE_DECEASED_BLOCK_NAME.search(body)
+                        if dm_block:
+                            result["deceased_name"] = _strip_suffix(dm_block.group("name"))
                         else:
-                            dm_label = _RE_DECEASED_LABEL.search(body)
-                            if dm_label:
-                                result["deceased_name"] = _strip_suffix(dm_label.group("name"))
+                            dm_nospace = _RE_DECEASED_NO_SPACE.search(body)
+                            if dm_nospace:
+                                result["deceased_name"] = _strip_suffix(dm_nospace.group("name"))
                             else:
-                                dm_nim_star = _RE_DECEASED_NIM_STAR.search(body)
-                                if dm_nim_star:
-                                    result["deceased_name"] = _strip_suffix(dm_nim_star.group("name"))
+                                dm_simple = _RE_DECEASED_SIMPLE.search(body)
+                                if dm_simple:
+                                    result["deceased_name"] = _strip_suffix(dm_simple.group("name"))
                                 else:
-                                    dm_sq = _RE_DECEASED_SQUARE.search(body)
-                                    if dm_sq:
-                                        result["deceased_name"] = _strip_suffix(dm_sq.group("name"))
+                                    dm_rel = _RE_DECEASED_REL.search(body)
+                                    if dm_rel:
+                                        result["deceased_name"] = _strip_suffix(dm_rel.group("name"))
+                                        age = dm_rel.group("age")
+                                        result["deceased_age"] = age if "세" in age else age + "세"
                                     else:
-                                        dm_nim = _RE_DECEASED_NIM_COMMA.search(body)
-                                        if dm_nim:
-                                            result["deceased_name"] = _strip_suffix(dm_nim.group("name"))
-                                            result["deceased_age"] = dm_nim.group("age")
+                                        dm_day = _RE_DECEASED_DAY.search(body)
+                                        if dm_day:
+                                            result["deceased_name"] = _strip_suffix(dm_day.group("name"))
+                                            result["deceased_age"] = dm_day.group("age") + "세"
                                         else:
-                                            dm_hada = _RE_DECEASED_NIM_HADA.search(body)
-                                            if dm_hada:
-                                                result["deceased_name"] = _strip_suffix(dm_hada.group("name"))
-                                                result["deceased_age"] = dm_hada.group("age")
+                                            dm_label = _RE_DECEASED_LABEL.search(body)
+                                        if dm_label:
+                                            result["deceased_name"] = _strip_suffix(dm_label.group("name"))
+                                        else:
+                                            dm_nim_star = _RE_DECEASED_NIM_STAR.search(body)
+                                            if dm_nim_star:
+                                                result["deceased_name"] = _strip_suffix(dm_nim_star.group("name"))
                                             else:
-                                                dm_role = _RE_DECEASED_ROLE.search(body)
-                                                if dm_role:
-                                                    result["deceased_name"] = _strip_suffix(dm_role.group("name"))
-                                                    result["deceased_age"] = dm_role.group("age")
+                                                dm_sq = _RE_DECEASED_SQUARE.search(body)
+                                                if dm_sq:
+                                                    result["deceased_name"] = _strip_suffix(dm_sq.group("name"))
                                                 else:
-                                                    dm_rel_no_ssi = _RE_DECEASED_REL_NO_SSI.search(body)
-                                                    if dm_rel_no_ssi:
-                                                        result["deceased_name"] = _strip_suffix(dm_rel_no_ssi.group("name"))
-                                                        age = dm_rel_no_ssi.group("age")
-                                                        result["deceased_age"] = age if "세" in age else age + "세"
+                                                    dm_nim = _RE_DECEASED_NIM_COMMA.search(body)
+                                                    if dm_nim:
+                                                        result["deceased_name"] = _strip_suffix(dm_nim.group("name"))
+                                                        result["deceased_age"] = dm_nim.group("age")
                                                     else:
-                                                        dm_rel_ssi_only = _RE_DECEASED_REL_SSI_ONLY.search(body)
-                                                        if dm_rel_ssi_only:
-                                                            result["deceased_name"] = _strip_suffix(dm_rel_ssi_only.group("name"))
+                                                        dm_hada = _RE_DECEASED_NIM_HADA.search(body)
+                                                        if dm_hada:
+                                                            result["deceased_name"] = _strip_suffix(dm_hada.group("name"))
+                                                            result["deceased_age"] = dm_hada.group("age")
                                                         else:
-                                                            dm_gohin = _RE_DECEASED_GOHIN_LABEL.search(body)
-                                                            if dm_gohin:
-                                                                result["deceased_name"] = _strip_suffix(dm_gohin.group("name"))
+                                                            dm_role = _RE_DECEASED_ROLE.search(body)
+                                                            if dm_role:
+                                                                result["deceased_name"] = _strip_suffix(dm_role.group("name"))
+                                                                result["deceased_age"] = dm_role.group("age")
                                                             else:
-                                                                dm_ssi_day = _RE_DECEASED_SSI_DAY.search(body)
-                                                                if dm_ssi_day:
-                                                                    result["deceased_name"] = _strip_suffix(dm_ssi_day.group("name"))
+                                                                dm_rel_no_ssi = _RE_DECEASED_REL_NO_SSI.search(body)
+                                                                if dm_rel_no_ssi:
+                                                                    result["deceased_name"] = _strip_suffix(dm_rel_no_ssi.group("name"))
+                                                                    age = dm_rel_no_ssi.group("age")
+                                                                    result["deceased_age"] = age if "세" in age else age + "세"
                                                                 else:
-                                                                    dm_ssiga = _RE_DECEASED_REL_SSIGA.search(body)
-                                                                    if dm_ssiga:
-                                                                        result["deceased_name"] = _strip_suffix(dm_ssiga.group("name"))
+                                                                    dm_rel_ssi_only = _RE_DECEASED_REL_SSI_ONLY.search(body)
+                                                                    if dm_rel_ssi_only:
+                                                                        result["deceased_name"] = _strip_suffix(dm_rel_ssi_only.group("name"))
                                                                     else:
-                                                                        dm_org_star = _RE_DECEASED_SSI_ORG_STAR.search(body)
-                                                                        if dm_org_star:
-                                                                            result["deceased_name"] = _strip_suffix(dm_org_star.group("name"))
+                                                                        dm_gohin = _RE_DECEASED_GOHIN_LABEL.search(body)
+                                                                        if dm_gohin:
+                                                                            result["deceased_name"] = _strip_suffix(dm_gohin.group("name"))
                                                                         else:
-                                                                            dm_bullet = _RE_DECEASED_BULLET_NIM.search(body)
-                                                                            if dm_bullet:
-                                                                                result["deceased_name"] = _strip_suffix(dm_bullet.group("name"))
+                                                                            dm_ssi_day = _RE_DECEASED_SSI_DAY.search(body)
+                                                                            if dm_ssi_day:
+                                                                                result["deceased_name"] = _strip_suffix(dm_ssi_day.group("name"))
                                                                             else:
-                                                                                dm_go_nim = _RE_DECEASED_GO_NIM.search(body)
-                                                                                if dm_go_nim:
-                                                                                    result["deceased_name"] = _strip_suffix(dm_go_nim.group("name"))
+                                                                                dm_ssiga = _RE_DECEASED_REL_SSIGA.search(body)
+                                                                                if dm_ssiga:
+                                                                                    result["deceased_name"] = _strip_suffix(dm_ssiga.group("name"))
+                                                                                else:
+                                                                                    dm_org_star = _RE_DECEASED_SSI_ORG_STAR.search(body)
+                                                                                    if dm_org_star:
+                                                                                        result["deceased_name"] = _strip_suffix(dm_org_star.group("name"))
+                                                                                    else:
+                                                                                        dm_bullet = _RE_DECEASED_BULLET_NIM.search(body)
+                                                                                        if dm_bullet:
+                                                                                            result["deceased_name"] = _strip_suffix(dm_bullet.group("name"))
+                                                                                        else:
+                                                                                            dm_go_nim = _RE_DECEASED_GO_NIM.search(body)
+                                                                                            if dm_go_nim:
+                                                                                                result["deceased_name"] = _strip_suffix(dm_go_nim.group("name"))
 
     # 장례식장 + 호실
     hm = _RE_FUNERAL_HALL.search(body)
@@ -731,6 +796,12 @@ def parse_body(body: str) -> dict:
                 result["funeral_hall"] = f"{bm2.group(1).strip()} {bm2.group(2)}"
                 if bm2.group(3):
                     result["room_number"] = bm2.group(3)
+        if not result.get("funeral_hall"):
+            am = _RE_ADDRESS_VENUE.search(body)
+            if am:
+                hall = am.group("hall").strip()
+                if hall:
+                    result["funeral_hall"] = hall
 
     # 발인
     fm = _RE_FUNERAL_DATE.search(body)
@@ -765,6 +836,9 @@ def parse_body(body: str) -> dict:
     if not bm:
         # "별세, 이름1(소속1)·이름2(소속2)·...·이름N씨 관계상" 형식 (첫 이름(소속)이 핵심인물)
         bm = _RE_BODY_KEY_DOT_SEP.search(body)
+    if not bm:
+        # "별세, ['닉네임']? 이름 소속 직급 관계상" 형식 (괄호 없음)
+        bm = _RE_BODY_KEY_NO_PAREN.search(body)
     if bm:
         result["key_person"] = _strip_suffix(bm.group("name"))
         affil = bm.group("affil").strip()
