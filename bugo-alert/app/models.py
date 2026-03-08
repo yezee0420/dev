@@ -11,6 +11,7 @@ class Obituary(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_url = Column(String(512), nullable=False)
+    source_urls = Column(Text, nullable=True)  # JSON 배열: 병합된 모든 기사 URL
     title = Column(String(512), nullable=False)
 
     # 핵심인물 (조문 대상) — 제목의 주인공

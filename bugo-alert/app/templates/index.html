@@ -99,6 +99,9 @@ async function runCrawl() {
 }
 </script>
 
+<div class="flex gap-6 flex-col lg:flex-row">
+  <!-- 왼쪽: 목록 -->
+  <div class="flex-1 min-w-0">
 <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
   <div>
     <h1 class="text-2xl font-bold">최신 부고</h1>
@@ -106,7 +109,7 @@ async function runCrawl() {
   </div>
   <div class="flex items-center gap-2 text-sm">
     <label for="per-page" class="text-gray-500">한 페이지에</label>
-    <select id="per-page" onchange="location.href='/?page=1&per_page='+this.value"
+    <select id="per-page" onchange="location.href='/?page=1&per_page='+this.value+'{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}'"
             class="px-2 py-1 rounded border border-gray-300 text-gray-700 bg-white">
       {% for n in per_page_options %}
       <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}건</option>
@@ -121,18 +124,42 @@ async function runCrawl() {
   <table class="w-full text-sm">
     <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
       <tr>
-        <th class="px-4 py-3 text-left">핵심인물</th>
-        <th class="px-4 py-3 text-left">소속/직급</th>
-        <th class="px-4 py-3 text-left">관계</th>
-        <th class="px-4 py-3 text-left">고인</th>
-        <th class="px-4 py-3 text-left">장례식장</th>
-        <th class="px-4 py-3 text-left">발인</th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=key_person&order={% if sort == 'key_person' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            핵심인물 {% if sort == 'key_person' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=organization&order={% if sort == 'organization' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            소속/직급 {% if sort == 'organization' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=relationship&order={% if sort == 'relationship' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            관계 {% if sort == 'relationship' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=deceased_name&order={% if sort == 'deceased_name' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            고인 {% if sort == 'deceased_name' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=funeral_hall&order={% if sort == 'funeral_hall' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            장례식장 {% if sort == 'funeral_hall' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
+        <th class="px-4 py-3 text-left">
+          <a href="{{ base_url }}&sort=funeral_date&order={% if sort == 'funeral_date' and order == 'desc' %}asc{% else %}desc{% endif %}" class="hover:text-amber-600 flex items-center gap-0.5">
+            발인 {% if sort == 'funeral_date' %}<span>{% if order == 'desc' %}▼{% else %}▲{% endif %}</span>{% endif %}
+          </a>
+        </th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-100">
       {% for o in obituaries %}
-      <tr class="hover:bg-amber-50 transition">
+      <tr class="hover:bg-amber-50 transition" id="row-{{ o.id }}">
         <td class="px-4 py-3 font-bold text-gray-900">{{ o.key_person or '-' }}</td>
         <td class="px-4 py-3">{{ o.organization or '-' }}{% if o.position %} <span class="text-gray-400">{{ o.position }}</span>{% endif %}</td>
         <td class="px-4 py-3">{{ o.relationship or '-' }}</td>
@@ -140,7 +167,12 @@ async function runCrawl() {
         <td class="px-4 py-3">{{ o.funeral_hall or '-' }}{% if o.room_number %} <span class="text-gray-400">{{ o.room_number }}</span>{% endif %}</td>
         <td class="px-4 py-3">{{ (o.funeral_date or '-')|format_funeral_date }} {{ o.funeral_time or '' }}</td>
         <td class="px-4 py-3 text-right">
-          <a href="/obituary/{{ o.id }}" class="text-blue-600 hover:underline">상세</a>
+          <a href="/obituary/{{ o.id }}"
+             hx-get="/obituary/{{ o.id }}"
+             hx-target="#detail-panel"
+             hx-swap="innerHTML"
+             hx-on::after-request="document.querySelectorAll('tbody tr.bg-amber-100').forEach(r=>r.classList.remove('bg-amber-100')); this.closest('tr').classList.add('bg-amber-100')"
+             class="text-blue-600 hover:underline cursor-pointer">상세</a>
         </td>
       </tr>
       {% endfor %}
@@ -150,15 +182,15 @@ async function runCrawl() {
 
 {% if total_pages > 1 %}
 <div class="flex justify-center items-center gap-2 mt-6 flex-wrap">
-  <a href="/?page=1&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == 1 %}opacity-50 pointer-events-none{% endif %}">맨 처음</a>
+  <a href="/?page=1&per_page={{ per_page }}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == 1 %}opacity-50 pointer-events-none{% endif %}">맨 처음</a>
   {% if page > 1 %}
-  <a href="/?page={{ page - 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
+  <a href="/?page={{ page - 1 }}&per_page={{ per_page }}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">이전</a>
   {% endif %}
   <span class="px-3 py-1 text-sm text-gray-500">{{ page }} / {{ total_pages }}</span>
   {% if page < total_pages %}
-  <a href="/?page={{ page + 1 }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
+  <a href="/?page={{ page + 1 }}&per_page={{ per_page }}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100">다음</a>
   {% endif %}
-  <a href="/?page={{ total_pages }}&per_page={{ per_page }}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == total_pages %}opacity-50 pointer-events-none{% endif %}">맨 끝</a>
+  <a href="/?page={{ total_pages }}&per_page={{ per_page }}{% if sort %}&sort={{ sort }}&order={{ order }}{% endif %}" class="px-3 py-1 rounded border text-sm hover:bg-gray-100 {% if page == total_pages %}opacity-50 pointer-events-none{% endif %}">맨 끝</a>
 </div>
 {% endif %}
 
@@ -168,4 +200,13 @@ async function runCrawl() {
   <p class="text-sm mt-2 mb-4">위의 <strong>지금 크롤링</strong> 버튼을 눌러 즉시 수집을 시작하세요</p>
 </div>
 {% endif %}
+
+  </div>
+  <!-- 오른쪽: 상세 패널 -->
+  <div id="detail-panel" class="lg:w-96 shrink-0 lg:sticky lg:top-8 lg:self-start min-h-[200px] lg:min-h-[400px]">
+    <div class="bg-gray-100 rounded-xl p-6 h-full flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200">
+      <p>목록에서 <strong>상세</strong>를 클릭하면 여기에 내용이 표시됩니다</p>
+    </div>
+  </div>
+</div>
 {% endblock %}

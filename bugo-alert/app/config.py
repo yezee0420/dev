@@ -19,6 +19,9 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./bugo.db"
 
+    # 서버 포트 (브라우저 자동 열기용, uvicorn --port와 맞출 것)
+    port: int = 8001
+
     model_config = {"env_file": str(_ENV_PATH), "env_file_encoding": "utf-8"}
 
 

@@ -10,7 +10,7 @@
 
 - **자동 크롤링** — 매시간 네이버 뉴스 검색 API로 최대 1,000건 수집 (10페이지×100건), 비부고 기사 자동 필터링
 - **스마트 파싱** — 12개 이상의 제목 패턴 + 본문 파싱 (고인: `이름(향년 N세) 씨 별세`, `이름씨 별세` 지원) → 핵심인물/소속/직급/관계/고인/장례식장/호실/발인/연락처 추출
-- **중복 제거** — `key_person|relationship` 기반 dedup (deceased_name 제외) + 소프트 매칭, 동일 부고는 빈 필드 보충만
+- **중복 제거·병합** — `(고인, 핵심인물)`당 1개 레코드, 동일 부고 여러 기사는 raw_text 합쳐 병합, 품질 보정(본인상 제거·장례식장 통일 등). 상세: [docs/DEDUP_MERGE_LOGIC.md](docs/DEDUP_MERGE_LOGIC.md)
 - **실시간 검색** — HTMX 기반 키워드 검색 (핵심인물, 소속, 고인, 장례식장 등)
 - **즐겨찾기 알림** — 키워드 등록 시 매칭되는 부고 발생하면 이메일 자동 발송
 - **화환 주문** — 조문 화환 협력업체 연동 (stub)
@@ -69,13 +69,19 @@ cp .env.example .env
 # .env 파일에 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET 입력
 
 # 서버 실행 (자동으로 브라우저 열림)
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8001
 ```
 
 서버 시작 시 자동으로:
 - DB 테이블 생성
 - 첫 크롤링 즉시 실행
 - 브라우저 자동 열기 (이미 열려 있으면 기존 탭 포커스)
+
+**데이터 정리 수동 실행** (크롤링 직후 자동 실행되며, 필요 시 수동 호출):
+```bash
+cd bugo-alert && PYTHONPATH=. python scripts/run_cleanup.py
+# --dry-run: DB 변경 없이 변경 예정만 출력
+```
 
 ---
 
@@ -95,6 +101,7 @@ uvicorn app.main:app --reload --port 8000
 |-----------|------|
 | `GET /api/crawl-now` | 수동 크롤링 즉시 실행 (asyncio.Lock 보호) |
 | `GET /api/crawl-status` | 크롤링 상태 JSON |
+| `GET /api/cleanup-now` | 데이터 정리 수동 실행 (중복 제거·병합·품질 보정) |
 | `GET /health` | 헬스체크 (DB 연결 확인) |
 
 ---
@@ -139,6 +146,10 @@ bugo-alert/
     │   ├── naver_api.py       네이버 검색 API 호출
     │   ├── scraper.py         기사 본문 스크래핑
     │   └── parser.py          제목/본문 정규식 파싱 (핵심 파일)
+    ├── deduplication/        데이터 정리 (중복 제거, 병합, 품질 보정)
+    │   ├── merge.py           동일 부고 병합 (raw_text 합침)
+    │   ├── quality.py         품질 보정
+    │   └── run.py             run_cleanup() 파이프라인
     ├── scheduler/
     │   └── jobs.py            크롤링 파이프라인 + 즐겨찾기 매칭
     ├── notifications/
