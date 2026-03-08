@@ -507,10 +507,32 @@ _RE_PERSON_SIMPLE = re.compile(
     r"(?P<name>[가-힣]{2,5})씨\s*(?P<rel>[가-힣]+상)"
 )
 # 고인 씨 별세. key_person(소속) 씨 관계상 — 본문에 명시된 핵심인물 (제목과 다를 수 있음)
+# 별세 뒤 마침표/줄바꿈/공백 유연화 (실제 기사에서 "별세\n설명환(소속)씨 모친상" 형식 존재)
 _RE_BODY_KEY_AFTER_DECEASED = re.compile(
-    r"[가-힣]{2,5}\s*씨\s*별세\.\s*"
+    r"[가-힣]{2,5}\s*씨\s*별세[.\s]+"
     r"(?P<name>[가-힣]{2,5})\s*\((?P<affil>[^)]+)\)\s*씨?\s*(?P<rel>[가-힣]+상)"
 )
+
+
+def _parse_first_related_person(related_persons: str) -> dict | None:
+    """related_persons 문자열에서 첫 인물의 name, org, pos, rel을 추출한다.
+    형식: '이름(소속 직급) 관계상' 또는 '이름 관계상', 복수는 ' / '로 구분."""
+    if not related_persons or not related_persons.strip():
+        return None
+    first = related_persons.split(" / ")[0].strip()
+    # 이름(소속) 관계상
+    m = re.match(r"^([가-힣]{2,5})\s*\(([^)]+)\)\s+([가-힣]+상)\s*$", first)
+    if m:
+        name = m.group(1).strip()
+        affil = m.group(2).strip()
+        rel = m.group(3)
+        org, pos = _split_org_position(affil)
+        return {"name": name, "org": org or None, "pos": pos or None, "rel": rel}
+    # 이름 관계상 (소속 없음)
+    m = re.match(r"^([가-힣]{2,5})\s+([가-힣]+상)\s*$", first)
+    if m:
+        return {"name": m.group(1).strip(), "org": None, "pos": None, "rel": m.group(2)}
+    return None
 
 
 def _extract_related_persons(text: str) -> list[str]:
@@ -766,6 +788,24 @@ def parse_obituary(title: str, body: str) -> ParsedObituary | None:
         and _normalize_dedup(result.key_person) == _normalize_dedup(result.deceased_name)
     ):
         result.relationship = "본인상"
+
+    # key_person == deceased_name 이고 related_persons에 다른 인물이 있으면 → related_persons의 첫 인물을 key_person으로 승격
+    # 예: [부고] 박옥선씨 → key_person=박옥선(고인), 본문에 "설명환(포스코DX 그룹장) 모친상" → key_person=설명환으로 보정
+    if (
+        result.key_person
+        and result.deceased_name
+        and _normalize_dedup(result.key_person) == _normalize_dedup(result.deceased_name)
+        and result.related_persons
+    ):
+        first_related = _parse_first_related_person(result.related_persons)
+        if first_related and _normalize_dedup(first_related["name"]) != _normalize_dedup(result.deceased_name):
+            result.key_person = first_related["name"]
+            if first_related.get("org"):
+                result.organization = first_related["org"]
+            if first_related.get("pos"):
+                result.position = first_related["pos"]
+            if first_related.get("rel"):
+                result.relationship = first_related["rel"]
 
     # funeral_date에 연도 없으면 현재 연도 추가 (표시 일관성)
     if result.funeral_date and result.funeral_date.strip():

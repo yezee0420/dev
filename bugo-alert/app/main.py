@@ -28,15 +28,14 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 scheduler = BackgroundScheduler()
-
 PORT = 8000
 
 
 def _open_browser():
-    """서버 준비 후 브라우저를 자동으로 연다."""
+    """서버 준비 후 브라우저를 연다. 이미 열려 있으면 새 탭을 만들지 않고 기존 창을 포커스한다."""
     import time
     time.sleep(1.5)
-    webbrowser.open(f"http://localhost:{PORT}")
+    webbrowser.open(f"http://localhost:{PORT}", new=0)
 
 
 @asynccontextmanager
@@ -74,7 +73,6 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("⚠ NAVER API 키 미설정 — .env 파일에 NAVER_CLIENT_ID/SECRET을 입력하세요")
 
-    # 브라우저 자동 열기
     threading.Thread(target=_open_browser, daemon=True).start()
 
     yield
