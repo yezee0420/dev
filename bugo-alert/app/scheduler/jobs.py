@@ -246,7 +246,7 @@ async def crawl_and_notify() -> dict:
                 url_skip_count += 1
                 continue
 
-            body = await fetch_article_text(item.naver_link or url)
+            body = await fetch_article_text(item.original_link or item.naver_link)
             body_or_desc = body or item.description or ""
             # body·description 모두 없으면 제목만으로 파싱 — 고인 추출 어려움
             if not body_or_desc.strip():

@@ -12,6 +12,7 @@ from app.deduplication.quality import (
     run_quality_fixes,
     step1_source_url_dedup,
     step2_fill_blank_fields,
+    step2a_fill_deceased_from_body,
     step2b_fix_bad_deceased,
     step3_remove_self_obituary,
 )
@@ -64,6 +65,9 @@ def run_cleanup(db: Session | None = None, dry_run: bool = False) -> dict[str, A
 
         # 2. 빈 필드 보충
         all_changes.extend(step2_fill_blank_fields(db))
+
+        # 2a. deceased 없음 → 본문 직접 파싱 보충
+        all_changes.extend(step2a_fill_deceased_from_body(db))
 
         # 2b. 고인 오파싱 보정 (직급/직위 블랙리스트)
         all_changes.extend(step2b_fix_bad_deceased(db))
