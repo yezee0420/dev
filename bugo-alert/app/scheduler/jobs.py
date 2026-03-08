@@ -283,6 +283,18 @@ async def crawl_and_notify() -> dict:
                 else:
                     merge_count += 1
 
+        # 크롤링 직후 데이터 정리 (중복 제거, 병합, 품질 보정)
+        try:
+            from app.deduplication import run_cleanup
+            cleanup_result = run_cleanup(db=db)
+            if cleanup_result["total_changes"] > 0:
+                logger.info(
+                    "데이터 정리: 병합 %d건, 삭제 %d건, 보정 %d건",
+                    cleanup_result["merged"], cleanup_result["deleted"], cleanup_result["corrected"],
+                )
+        except Exception as cleanup_err:
+            logger.warning("데이터 정리 중 오류 (무시): %s", cleanup_err)
+
         duration = time.perf_counter() - started
         logger.info(
             "=== 크롤링 완료: 신규 %d건 / 보충 %d건 / 필터링 %d건 / URL스킵 %d건 (%.1f초, API %d회) ===",

@@ -1,0 +1,60 @@
+---
+description: BugoAlert 데이터 정리 전문 에이전트 — 중복 제거, 병합, 품질 보정
+globs: bugo-alert/app/deduplication/**, bugo-alert/fix_duplicates.py, bugo-alert/docs/DEDUP_MERGE_LOGIC.md
+---
+
+# Dedup Agent — 데이터 정리 전문
+
+## 역할
+
+크롤링 후 DB 데이터의 정확도를 높인다. 중복 제거, 여러 뉴스 기사를 하나의 레코드로 병합( raw_text 합침 ), 품질 보정을 수행한다.
+
+## 담당 파일
+
+- `app/deduplication/merge.py` — 동일 부고 병합 (raw_text 합침, Case 3b 장례식장 풍부화)
+- `app/deduplication/quality.py` — 품질 보정 (fix_duplicates 로직)
+- `app/deduplication/run.py` — 파이프라인 진입점 (run_cleanup)
+- `docs/DEDUP_MERGE_LOGIC.md` — 케이스별 로직 명세
+
+## 핵심 원칙 (6가지)
+
+1. **고인 distinct**: `(고인, 핵심인물)` 쌍당 정확히 1개 레코드
+2. **본인상 제거**: key_person == deceased_name 이고 같은 고인에 다른 key 있으면 삭제
+3. **Case 3b 병합**: key_person·org·position·relationship·deceased 동일, 장례식장·발인만 다름 → 풍부한 조합으로 병합
+4. **형님상 = 형제상**: 관계 정규화
+5. **소속/직급 없음 = 핵심인물 아님**: 파서 `이름(소속 직급) 관계상` 형식만 key_person 후보
+6. **복수 key_person**: 같은 고인에 소속 있는 인물 각각 별도 레코드 (예: 김형진 → 5명)
+
+## 처리 순서
+
+1. source_url 중복 삭제
+2. 빈 필드 보충 (재파싱)
+3. 본인상 제거
+4. (deceased, key_person) 동일 → 병합 (raw_text 합침, Case 3b)
+5. 복수 부고 장례식장 오매칭 보정
+6. org/pos 비정상 재파싱 보정
+7. 같은 고인 장례정보 통일
+8. 품질 최저 삭제
+
+## 병합 시 필드 규칙
+
+- **funeral_hall**: 병원명 + 상세장소(국화원/백합원) + 호실 조합
+- **raw_text**: `[출처: url]\n내용` 형식으로 합침, 최대 15000자
+- **source_urls**: JSON 배열 (병합된 모든 URL)
+- **dedup_key**: 다른 레코드가 이미 사용 중이면 None
+
+## 실행
+
+- **자동**: 크롤링 직후 `jobs.py`에서 `run_cleanup(db)` 호출
+- **수동 API**: `GET /api/cleanup-now`
+- **수동 스크립트**: `python -m app.deduplication.run` (또는 `--dry-run`)
+
+## 스키마
+
+- `Obituary.source_urls` (Text, nullable): 병합된 모든 기사 URL JSON 배열
+
+## 주의사항
+
+- `dedup_key` UNIQUE → 병합 시 remove 먼저 삭제 후 keep 업데이트
+- NotificationLog 삭제 시 obituary_id를 keep으로 이전
+- fix_duplicates.py는 레거시 수동용, 신규 로직은 deduplication 패키지 사용

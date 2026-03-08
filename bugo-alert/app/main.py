@@ -28,14 +28,14 @@ logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 scheduler = BackgroundScheduler()
-PORT = 8000
 
 
 def _open_browser():
     """서버 준비 후 브라우저를 연다. 이미 열려 있으면 새 탭을 만들지 않고 기존 창을 포커스한다."""
     import time
     time.sleep(1.5)
-    webbrowser.open(f"http://localhost:{PORT}", new=0)
+    port = get_settings().port
+    webbrowser.open(f"http://localhost:{port}", new=0)
 
 
 @asynccontextmanager
@@ -161,6 +161,28 @@ async def trigger_crawl():
             return {"status": "error", "message": str(e)}
         finally:
             status["is_running"] = False
+
+
+@app.get("/api/cleanup-now")
+async def trigger_cleanup():
+    """데이터 정리 수동 실행 — 중복 제거, 병합, 품질 보정."""
+    from app.deduplication import run_cleanup
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        result = run_cleanup(db=db)
+        return {
+            "status": "ok",
+            "message": f"병합 {result['merged']}건, 삭제 {result['deleted']}건, 보정 {result['corrected']}건",
+            "merged": result["merged"],
+            "deleted": result["deleted"],
+            "corrected": result["corrected"],
+            "total_changes": result["total_changes"],
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
 
 
 @app.get("/api/crawl-status")
