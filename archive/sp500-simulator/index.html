@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&P 500 투자 시뮬레이터</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1419;
+      --bg-panel: #1a2332;
+      --accent: #00d4aa;
+      --accent-dim: #00a884;
+      --text: #e7e9ea;
+      --text-muted: #8b98a5;
+      --border: #2f3640;
+      --danger: #f4212e;
+      --success: #00ba7c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-dark);
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 212, 170, 0.1);
+    }
+
+    .main {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .canvas-container {
+      position: relative;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    #outputCanvas {
+      display: block;
+      cursor: text;
+    }
+
+    .edit-hint {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      font-size: 0.75rem;
+      color: #666;
+      background: rgba(255,255,255,0.9);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .quick-stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stat-card {
+      background: var(--bg-panel);
+      padding: 16px 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      min-width: 140px;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .stat-card.positive .value { color: var(--success); }
+    .stat-card.negative .value { color: var(--danger); }
+
+    .edit-mode-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--accent);
+      color: var(--bg-dark);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>⚙️ 시뮬레이션 설정</h2>
+
+      <div class="form-group">
+        <label>월 투자금액 (원)</label>
+        <input type="number" id="monthlyAmount" value="1000000" min="10000" step="100000">
+        <small>매달 투자할 금액</small>
+      </div>
+
+      <div class="form-group">
+        <label>초기 시드머니 (원)</label>
+        <input type="number" id="initialSeed" value="0" min="0" step="100000">
+        <small>시작 시점 보유 자금</small>
+      </div>
+
+      <div class="form-group">
+        <label>투자 시작년도</label>
+        <input type="number" id="startYear" value="2015" min="2010" max="2024">
+        <small>2015~2024</small>
+      </div>
+
+      <div class="form-group">
+        <label>투자 기간 (년)</label>
+        <input type="number" id="years" value="10" min="1" max="15">
+      </div>
+
+      <div class="form-group">
+        <label>종목/지수</label>
+        <select id="assetType">
+          <option value="sp500">S&P 500</option>
+          <option value="sp500_aggressive">S&P 500 (공격적 가정)</option>
+          <option value="sp500_conservative">S&P 500 (보수적 가정)</option>
+          <option value="custom">커스텀 연평균 수익률</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="customReturnGroup" style="display:none">
+        <label>연평균 수익률 (%)</label>
+        <input type="number" id="customReturn" value="10" min="-50" max="50" step="0.5">
+      </div>
+
+      <button class="btn btn-primary" id="runSim">시뮬레이션 실행</button>
+      <button class="btn btn-secondary" id="exportBtn">최종본 이미지 저장</button>
+    </aside>
+
+    <main class="main">
+      <div class="quick-stats" id="quickStats"></div>
+
+      <div class="canvas-container">
+        <span class="edit-mode-badge">✏️ 캔버스 텍스트 클릭 시 직접 편집 가능</span>
+        <canvas id="outputCanvas" width="900" height="600"></canvas>
+        <div class="edit-hint">텍스트를 클릭하여 수정 후 Enter로 적용</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // S&P 500 월간 수익률 (2015~2024, %)
+    const SP500_MONTHLY_RETURNS = {
+      2015: [-3.10, 5.49, -1.74, 0.85, 1.05, -2.10, 1.97, -6.26, -2.64, 8.30, 0.05, -1.75],
+      2016: [-5.07, -0.41, 6.60, 0.27, 1.53, 0.09, 3.56, -0.12, -0.12, -1.94, 3.42, 1.82],
+      2017: [1.79, 3.72, -0.04, 0.91, 1.16, 0.48, 1.93, 0.05, 1.93, 2.22, 2.81, 0.98],
+      2018: [5.62, -3.89, -2.69, 0.27, 2.16, 0.48, 3.60, 3.03, 0.43, -6.94, 1.79, -9.18],
+      2019: [7.87, 2.97, 1.79, 3.93, -6.58, 6.89, 1.31, -1.81, 1.72, 2.04, 3.40, 2.86],
+      2020: [-0.16, -8.41, -12.51, 12.68, 4.53, 1.84, 5.51, 7.01, -3.92, -2.77, 10.75, 3.71],
+      2021: [-1.11, 2.61, 4.24, 5.24, 0.55, 2.22, 2.27, 2.90, -4.76, 6.91, -0.83, 4.36],
+      2022: [-5.26, -3.14, 3.58, -8.80, 0.01, -8.39, 9.11, -4.24, -9.34, 7.99, 5.38, -5.90],
+      2023: [6.18, -2.61, 3.51, 1.46, 0.25, 6.47, 3.11, -1.77, -4.87, -2.20, 8.92, 4.42],
+      2024: [1.59, 5.17, 3.10, -4.16, 4.80, 3.47, 1.13, 2.28, 2.02, -0.99, 5.73, -2.50],
+      2025: [1.2, 0.8, -5.9, -5.6, 8.2, 3.8, 4.5, 2.7, 2.8, 1.4, 0.1, 1.7] // 예상/추정
+    };
+
+    function getMonthlyReturns(assetType, customReturn) {
+      if (assetType === 'custom') {
+        const monthly = Math.pow(1 + customReturn / 100, 1/12) - 1;
+        return null; // 균일 수익률
+      }
+      if (assetType === 'sp500_aggressive') {
+        return Object.fromEntries(
+          Object.entries(SP500_MONTHLY_RETURNS).map(([y, arr]) => [y, arr.map(r => r * 1.15)])
+        );
+      }
+      if (assetType === 'sp500_conservative') {
+        return Object.fromEntries(
+          Object.entries(SP500_MONTHLY_RETURNS).map(([y, arr]) => [y, arr.map(r => r * 0.85)])
+        );
+      }
+      return SP500_MONTHLY_RETURNS;
+    }
+
+    function runSimulation() {
+      const monthlyAmount = Number(document.getElementById('monthlyAmount').value) || 1000000;
+      const initialSeed = Number(document.getElementById('initialSeed').value) || 0;
+      const startYear = Number(document.getElementById('startYear').value) || 2015;
+      const years = Number(document.getElementById('years').value) || 10;
+      const assetType = document.getElementById('assetType').value;
+      const customReturn = Number(document.getElementById('customReturn').value) || 10;
+
+      const returns = getMonthlyReturns(assetType, customReturn);
+      const customMonthly = assetType === 'custom' ? (Math.pow(1 + customReturn / 100, 1/12) - 1) : null;
+      let balance = initialSeed;
+      const history = [];
+      const totalMonths = years * 12;
+
+      for (let i = 0; i < totalMonths; i++) {
+        const y = startYear + Math.floor(i / 12);
+        const m = (i % 12) + 1;
+        let monthlyRet = 0;
+        if (customMonthly !== null) {
+          monthlyRet = customMonthly;
+        } else if (returns && returns[y] && returns[y][m - 1] !== undefined) {
+          monthlyRet = returns[y][m - 1] / 100;
+        } else if (y < 2025) {
+          monthlyRet = 0.007;
+        }
+        balance = balance * (1 + monthlyRet) + monthlyAmount;
+        history.push({ year: y, month: m, balance, monthlyRet });
+      }
+
+      const totalInvested = initialSeed + monthlyAmount * history.length;
+      const profit = balance - totalInvested;
+      const profitPct = totalInvested > 0 ? (profit / totalInvested * 100) : 0;
+
+      return {
+        finalBalance: balance,
+        totalInvested,
+        profit,
+        profitPct,
+        history,
+        params: { monthlyAmount, initialSeed, startYear, years, assetType }
+      };
+    }
+
+    function formatMoney(n) {
+      return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(n) + '원';
+    }
+
+    const canvas = document.getElementById('outputCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const editableBlocks = [];
+    let currentEditBlock = null;
+    let editInput = null;
+
+    function addEditableBlock(id, x, y, text, fontSize, fontWeight, color) {
+      ctx.font = `${fontWeight} ${fontSize}px "JetBrains Mono", "Noto Sans KR", sans-serif`;
+      const w = ctx.measureText(text).width;
+      editableBlocks.push({
+        id, x, y, text, fontSize, fontWeight, color, width: w, height: fontSize * 1.2
+      });
+    }
+
+    function drawCanvas(result) {
+      const dpr = window.devicePixelRatio || 1;
+      const w = 900;
+      const h = 600;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      editableBlocks.length = 0;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const pad = 40;
+      const title = `S&P 500 정기적금 시뮬레이션 결과`;
+      const sub = `${result.params.startYear}년 ~ ${result.params.startYear + result.params.years - 1}년 | 월 ${formatMoney(result.params.monthlyAmount)}`;
+
+      ctx.font = 'bold 28px "Noto Sans KR"';
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillText(title, pad, 60);
+      addEditableBlock('title', pad, 60, title, 28, 'bold', '#1a1a1a');
+
+      ctx.font = '16px "Noto Sans KR"';
+      ctx.fillStyle = '#666';
+      ctx.fillText(sub, pad, 95);
+      addEditableBlock('subtitle', pad, 95, sub, 16, 'normal', '#666');
+
+      ctx.font = 'bold 36px "JetBrains Mono"';
+      ctx.fillStyle = '#00a884';
+      const finalText = `최종 자산: ${formatMoney(result.finalBalance)}`;
+      ctx.fillText(finalText, pad, 160);
+      addEditableBlock('finalBalance', pad, 160, finalText, 36, 'bold', '#00a884');
+
+      ctx.font = '18px "Noto Sans KR"';
+      ctx.fillStyle = '#333';
+      const investText = `총 투자원금: ${formatMoney(result.totalInvested)}`;
+      ctx.fillText(investText, pad, 210);
+      addEditableBlock('totalInvested', pad, 210, investText, 18, 'normal', '#333');
+
+      const profitColor = result.profit >= 0 ? '#00ba7c' : '#f4212e';
+      const profitText = `손익: ${formatMoney(result.profit)} (${result.profitPct >= 0 ? '+' : ''}${result.profitPct.toFixed(1)}%)`;
+      ctx.fillStyle = profitColor;
+      ctx.fillText(profitText, pad, 245);
+      addEditableBlock('profit', pad, 245, profitText, 18, 'normal', profitColor);
+
+      ctx.font = '14px "Noto Sans KR"';
+      ctx.fillStyle = '#999';
+      ctx.fillText('※ 과거 수익률은 미래 수익을 보장하지 않습니다.', pad, h - 30);
+      addEditableBlock('disclaimer', pad, h - 30, '※ 과거 수익률은 미래 수익을 보장하지 않습니다.', 14, 'normal', '#999');
+
+      redrawAllBlocks();
+    }
+
+    function redrawAllBlocks() {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 900, 600);
+      editableBlocks.forEach(b => {
+        ctx.font = `${b.fontWeight} ${b.fontSize}px "JetBrains Mono", "Noto Sans KR", sans-serif`;
+        ctx.fillStyle = b.color;
+        ctx.fillText(b.text, b.x, b.y);
+      });
+    }
+
+    function getBlockAt(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (clientX - rect.left) * (900 / rect.width);
+      const my = (clientY - rect.top) * (600 / rect.height);
+      for (let i = editableBlocks.length - 1; i >= 0; i--) {
+        const b = editableBlocks[i];
+        const w = b.width || ctx.measureText(b.text).width;
+        const h = b.height || b.fontSize * 1.2;
+        if (mx >= b.x && mx <= b.x + w && my >= b.y - h && my <= b.y + 4) return b;
+      }
+      return null;
+    }
+
+    function startEdit(block) {
+      if (editInput) return;
+      currentEditBlock = block;
+      editInput = document.createElement('input');
+      editInput.type = 'text';
+      editInput.value = block.text;
+      const container = canvas.parentElement;
+      const cr = canvas.getBoundingClientRect();
+      const cont = container.getBoundingClientRect();
+      const left = (cr.left - cont.left) + (block.x / 900) * cr.width;
+      const top = (cr.top - cont.top) + ((block.y - block.height) / 600) * cr.height;
+      editInput.style.cssText = `
+        position: absolute;
+        left: ${left}px;
+        top: ${top}px;
+        width: ${Math.max(200, (block.width / 900) * cr.width + 20)}px;
+        font: ${block.fontWeight} ${block.fontSize}px "JetBrains Mono", "Noto Sans KR", sans-serif;
+        padding: 4px 8px;
+        border: 2px solid #00d4aa;
+        border-radius: 4px;
+        outline: none;
+        z-index: 1000;
+      `;
+      container.style.position = 'relative';
+      container.appendChild(editInput);
+      editInput.focus();
+      editInput.select();
+
+      const apply = () => {
+        block.text = editInput.value;
+        editInput.parentElement?.removeChild(editInput);
+        editInput = null;
+        currentEditBlock = null;
+        redrawAllBlocks();
+      };
+
+      editInput.addEventListener('blur', apply);
+      editInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          apply();
+        }
+      });
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const block = getBlockAt(e.clientX - rect.left, e.clientY - rect.top);
+      if (block) startEdit(block);
+    });
+
+    function updateQuickStats(result) {
+      const el = document.getElementById('quickStats');
+      el.innerHTML = `
+        <div class="stat-card">
+          <div class="value">${formatMoney(result.finalBalance)}</div>
+          <div class="label">최종 자산</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${formatMoney(result.totalInvested)}</div>
+          <div class="label">총 투자원금</div>
+        </div>
+        <div class="stat-card ${result.profit >= 0 ? 'positive' : 'negative'}">
+          <div class="value">${result.profit >= 0 ? '+' : ''}${formatMoney(result.profit)}</div>
+          <div class="label">손익</div>
+        </div>
+        <div class="stat-card ${result.profitPct >= 0 ? 'positive' : 'negative'}">
+          <div class="value">${result.profitPct >= 0 ? '+' : ''}${result.profitPct.toFixed(1)}%</div>
+          <div class="label">수익률</div>
+        </div>
+      `;
+    }
+
+    document.getElementById('assetType').addEventListener('change', () => {
+      document.getElementById('customReturnGroup').style.display =
+        document.getElementById('assetType').value === 'custom' ? 'block' : 'none';
+    });
+
+    document.getElementById('runSim').addEventListener('click', () => {
+      const result = runSimulation();
+      updateQuickStats(result);
+      drawCanvas(result);
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      redrawAllBlocks();
+      const link = document.createElement('a');
+      link.download = `sp500-sim-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // 초기 실행
+    const initialResult = runSimulation();
+    updateQuickStats(initialResult);
+    drawCanvas(initialResult);
+  </script>
+</body>
+</html>
