@@ -22,5 +22,10 @@
 body {
   background: var(--background);
   color: var(--foreground);
+<<<<<<< HEAD
   font-family: Arial, Helvetica, sans-serif;
+=======
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+>>>>>>> b8d83c31 (Add 프로젝트 한 줄 and 라우팅 — 상황별 읽을 md and 새 규칙·결정이 생겼을 때)
 }
