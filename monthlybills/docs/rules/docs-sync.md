@@ -12,8 +12,8 @@
 |---|---|
 | DB 마이그레이션 / 테이블 구조 변경 | `docs/db-schema.md` |
 | 새 화면·플로우 / 온보딩 수정 | `docs/onboarding-flow.md` |
-| 구독 카탈로그 추가·가격 변경 | `data/seed-subscriptions.json` + `updated_at` |
-| 카테고리 신설 | `data/seed-subscriptions.json` + (UI면) `onboarding-flow.md` |
+| 구독 카탈로그 추가·가격 변경 | `app/data/seed-subscriptions.json` + `updated_at` |
+| 카테고리 신설 | `app/data/seed-subscriptions.json` + (UI면) `onboarding-flow.md` |
 | BM·가격 정책 변경 | `docs/business-model.md` |
 | Phase 전환·주요 태스크 완료 | `docs/state/progress.md` |
 | 새 규칙·의사결정 | `docs/rules/*.md` + `CLAUDE.md` 라우팅 표 |
