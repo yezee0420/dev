@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-21",
+  "notes": "요금은 대표 플랜 기준, 실제 입력 시 사용자가 선택/수정. 변경 가능성 있으니 정기 업데이트 필요.",
+  "categories": [
+    { "slug": "delivery_shopping", "label_ko": "배달/쇼핑", "emoji": "🛵", "sort_order": 10 },
+    { "slug": "ott", "label_ko": "OTT", "emoji": "🎬", "sort_order": 20 },
+    { "slug": "music", "label_ko": "음악", "emoji": "🎵", "sort_order": 30 },
+    { "slug": "reading", "label_ko": "독서", "emoji": "📚", "sort_order": 40 },
+    { "slug": "edu_productivity", "label_ko": "교육/생산성", "emoji": "🎓", "sort_order": 50 },
+    { "slug": "cloud", "label_ko": "클라우드", "emoji": "☁️", "sort_order": 60 },
+    { "slug": "telecom", "label_ko": "통신", "emoji": "📞", "sort_order": 70 },
+    { "slug": "housing", "label_ko": "주거", "emoji": "🏠", "sort_order": 80 },
+    { "slug": "loan", "label_ko": "대출", "emoji": "💳", "sort_order": 90 },
+    { "slug": "card_fee", "label_ko": "카드 연회비", "emoji": "💳", "sort_order": 100 },
+    { "slug": "insurance", "label_ko": "보험", "emoji": "🛡️", "sort_order": 110 },
+    { "slug": "etc", "label_ko": "기타", "emoji": "📦", "sort_order": 999 }
+  ],
+  "subscriptions": [
+    {
+      "slug": "netflix",
+      "name_ko": "넷플릭스",
+      "name_en": "Netflix",
+      "category": "ott",
+      "default_price_krw": 13500,
+      "default_period": "monthly",
+      "is_popular": true,
+      "plans": [
+        { "name": "광고형 스탠다드", "price": 7000 },
+        { "name": "스탠다드", "price": 13500 },
+        { "name": "프리미엄", "price": 17000 }
+      ]
+    },
+    {
+      "slug": "youtube_premium",
+      "name_ko": "유튜브 프리미엄",
+      "name_en": "YouTube Premium",
+      "category": "ott",
+      "default_price_krw": 14900,
+      "default_period": "monthly",
+      "is_popular": true,
+      "plans": [
+        { "name": "개인", "price": 14900 },
+        { "name": "가족 (최대 6인)", "price": 23900 }
+      ]
+    },
+    {
+      "slug": "disney_plus",
+      "name_ko": "디즈니+",
+      "name_en": "Disney+",
+      "category": "ott",
+      "default_price_krw": 9900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "스탠다드", "price": 9900 },
+        { "name": "프리미엄", "price": 13900 }
+      ]
+    },
+    {
+      "slug": "tving",
+      "name_ko": "티빙",
+      "name_en": "TVING",
+      "category": "ott",
+      "default_price_krw": 17000,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "광고형 스탠다드", "price": 5500 },
+        { "name": "스탠다드", "price": 17000 },
+        { "name": "프리미엄", "price": 20000 }
+      ]
+    },
+    {
+      "slug": "wavve",
+      "name_ko": "웨이브",
+      "name_en": "Wavve",
+      "category": "ott",
+      "default_price_krw": 13900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "베이직", "price": 7900 },
+        { "name": "스탠다드", "price": 10900 },
+        { "name": "프리미엄", "price": 13900 }
+      ]
+    },
+    {
+      "slug": "watcha",
+      "name_ko": "왓챠",
+      "name_en": "Watcha",
+      "category": "ott",
+      "default_price_krw": 12900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "베이직", "price": 7900 },
+        { "name": "프리미엄", "price": 12900 }
+      ]
+    },
+    {
+      "slug": "apple_tv_plus",
+      "name_ko": "Apple TV+",
+      "name_en": "Apple TV+",
+      "category": "ott",
+      "default_price_krw": 8500,
+      "default_period": "monthly",
+      "plans": [{ "name": "기본", "price": 8500 }]
+    },
+    {
+      "slug": "youtube_music",
+      "name_ko": "유튜브 뮤직",
+      "name_en": "YouTube Music",
+      "category": "music",
+      "default_price_krw": 11990,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "개인", "price": 11990 },
+        { "name": "가족", "price": 17990 }
+      ]
+    },
+    {
+      "slug": "melon",
+      "name_ko": "멜론",
+      "name_en": "Melon",
+      "category": "music",
+      "default_price_krw": 7900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "스트리밍", "price": 7900 },
+        { "name": "스트리밍+다운로드", "price": 12000 }
+      ]
+    },
+    {
+      "slug": "spotify",
+      "name_ko": "스포티파이",
+      "name_en": "Spotify",
+      "category": "music",
+      "default_price_krw": 11990,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "개인", "price": 11990 },
+        { "name": "듀오", "price": 16350 },
+        { "name": "가족", "price": 18985 }
+      ]
+    },
+    {
+      "slug": "apple_music",
+      "name_ko": "애플 뮤직",
+      "name_en": "Apple Music",
+      "category": "music",
+      "default_price_krw": 11000,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "개인", "price": 11000 },
+        { "name": "가족", "price": 17000 }
+      ]
+    },
+    {
+      "slug": "genie_music",
+      "name_ko": "지니뮤직",
+      "name_en": "Genie Music",
+      "category": "music",
+      "default_price_krw": 8400,
+      "default_period": "monthly",
+      "plans": [{ "name": "스트리밍", "price": 8400 }]
+    },
+    {
+      "slug": "flo",
+      "name_ko": "FLO",
+      "name_en": "FLO",
+      "category": "music",
+      "default_price_krw": 7900,
+      "default_period": "monthly",
+      "plans": [{ "name": "무제한 듣기", "price": 7900 }]
+    },
+    {
+      "slug": "vibe",
+      "name_ko": "바이브",
+      "name_en": "VIBE",
+      "category": "music",
+      "default_price_krw": 8500,
+      "default_period": "monthly",
+      "plans": [{ "name": "무제한 듣기", "price": 8500 }]
+    },
+    {
+      "slug": "coupang_wow",
+      "name_ko": "쿠팡 로켓와우",
+      "name_en": "Coupang Wow",
+      "category": "delivery_shopping",
+      "default_price_krw": 7890,
+      "default_period": "monthly",
+      "is_popular": true,
+      "plans": [{ "name": "와우 멤버십", "price": 7890 }]
+    },
+    {
+      "slug": "baemin_club",
+      "name_ko": "배민클럽",
+      "name_en": "Baemin Club",
+      "category": "delivery_shopping",
+      "default_price_krw": 3990,
+      "default_period": "monthly",
+      "plans": [{ "name": "배민클럽", "price": 3990 }]
+    },
+    {
+      "slug": "naver_plus",
+      "name_ko": "네이버플러스 멤버십",
+      "name_en": "Naver Plus",
+      "category": "delivery_shopping",
+      "default_price_krw": 4900,
+      "default_period": "monthly",
+      "plans": [{ "name": "멤버십", "price": 4900 }]
+    },
+    {
+      "slug": "kurly_membership",
+      "name_ko": "마켓컬리 멤버스",
+      "name_en": "Kurly Members",
+      "category": "delivery_shopping",
+      "default_price_krw": 1900,
+      "default_period": "monthly",
+      "plans": [{ "name": "컬리멤버스", "price": 1900 }]
+    },
+    {
+      "slug": "ssg_universe",
+      "name_ko": "신세계 유니버스",
+      "name_en": "SSG Universe",
+      "category": "delivery_shopping",
+      "default_price_krw": 30000,
+      "default_period": "yearly",
+      "plans": [{ "name": "유니버스 클럽", "price": 30000 }]
+    },
+    {
+      "slug": "olive_young",
+      "name_ko": "올리브영 멤버십",
+      "name_en": "Oliveyoung Membership",
+      "category": "delivery_shopping",
+      "default_price_krw": 0,
+      "default_period": "monthly",
+      "plans": [{ "name": "기본", "price": 0 }]
+    },
+    {
+      "slug": "millie",
+      "name_ko": "밀리의서재",
+      "name_en": "Millie",
+      "category": "reading",
+      "default_price_krw": 9900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "베이직", "price": 9900 },
+        { "name": "프리미엄", "price": 13900 }
+      ]
+    },
+    {
+      "slug": "ridi_select",
+      "name_ko": "리디셀렉트",
+      "name_en": "RIDI Select",
+      "category": "reading",
+      "default_price_krw": 9900,
+      "default_period": "monthly",
+      "plans": [{ "name": "무제한 구독", "price": 9900 }]
+    },
+    {
+      "slug": "yes24_crema",
+      "name_ko": "예스24 크레마클럽",
+      "name_en": "Yes24 Crema Club",
+      "category": "reading",
+      "default_price_krw": 5500,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "스탠다드", "price": 5500 },
+        { "name": "올인원", "price": 7700 }
+      ]
+    },
+    {
+      "slug": "notion_plus",
+      "name_ko": "Notion Plus",
+      "name_en": "Notion Plus",
+      "category": "edu_productivity",
+      "default_price_krw": 14000,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "Plus (월)", "price": 14000 },
+        { "name": "Plus (연)", "price": 120000 }
+      ]
+    },
+    {
+      "slug": "chatgpt_plus",
+      "name_ko": "ChatGPT Plus",
+      "name_en": "ChatGPT Plus",
+      "category": "edu_productivity",
+      "default_price_krw": 28000,
+      "default_period": "monthly",
+      "plans": [{ "name": "Plus", "price": 28000 }]
+    },
+    {
+      "slug": "claude_pro",
+      "name_ko": "Claude Pro",
+      "name_en": "Claude Pro",
+      "category": "edu_productivity",
+      "default_price_krw": 28000,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "Pro", "price": 28000 },
+        { "name": "Max 5x", "price": 140000 },
+        { "name": "Max 20x", "price": 280000 }
+      ]
+    },
+    {
+      "slug": "github_copilot",
+      "name_ko": "GitHub Copilot",
+      "name_en": "GitHub Copilot",
+      "category": "edu_productivity",
+      "default_price_krw": 14000,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "Individual", "price": 14000 },
+        { "name": "Pro", "price": 28000 }
+      ]
+    },
+    {
+      "slug": "icloud_plus",
+      "name_ko": "iCloud+",
+      "name_en": "iCloud+",
+      "category": "cloud",
+      "default_price_krw": 3300,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "50GB", "price": 1100 },
+        { "name": "200GB", "price": 3300 },
+        { "name": "2TB", "price": 11100 }
+      ]
+    },
+    {
+      "slug": "google_one",
+      "name_ko": "Google One",
+      "name_en": "Google One",
+      "category": "cloud",
+      "default_price_krw": 2900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "100GB", "price": 2900 },
+        { "name": "200GB", "price": 4400 },
+        { "name": "2TB", "price": 14500 }
+      ]
+    },
+    {
+      "slug": "dropbox",
+      "name_ko": "드롭박스",
+      "name_en": "Dropbox",
+      "category": "cloud",
+      "default_price_krw": 13800,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "Plus", "price": 13800 },
+        { "name": "Family", "price": 21600 }
+      ]
+    },
+    {
+      "slug": "onedrive",
+      "name_ko": "Microsoft 365 / OneDrive",
+      "name_en": "Microsoft 365",
+      "category": "cloud",
+      "default_price_krw": 8900,
+      "default_period": "monthly",
+      "plans": [
+        { "name": "Personal", "price": 8900 },
+        { "name": "Family", "price": 11900 }
+      ]
+    }
+  ]
+}
