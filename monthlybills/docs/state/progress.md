@@ -4,7 +4,7 @@
 
 - **마지막 업데이트**: 2026-04-21
 - **현재 Phase**: Phase 1 (Web MVP + 소셜 로그인) — UI 작업 중
-- **현재 Sub-task**: 온보딩 Step 2 완성도 ↑ — 결제일 선택 사항으로 완화(나중에 수정 가능), 모든 고정비 이름 편집 가능(월세 → "월세 - 엠코"), 저장 리스트 위치를 `기타` 박스 위로 이동. 다음: Step 3 (직접 추가 폼).
+- **현재 Sub-task**: Step 3 (직접 추가 폼) + 대시보드 1차 완성 — 온보딩 플로우가 랜딩→구독·고정비→직접추가→대시보드까지 끝까지 돌아감. localStorage 기반 임시 저장. 다음: Supabase 연동 + 대시보드 UX 고도화.
 
 ## 한눈에 보기
 
@@ -43,16 +43,18 @@
 - [x] 온보딩 Step 2 — 구독 선택 (카테고리 아코디언, seed JSON) — `app/app/onboarding/subscriptions/page.tsx`
 - [x] 온보딩 Step 4 — 고정비 입력 (Step 2 화면 하단에 병합, 프리셋 칩 6개 + 커스텀 추가)
 - [x] seed JSON을 `app/data/`로 이동 (Turbopack이 Next 프로젝트 외부 import 차단)
-- [ ] 온보딩 Step 3 — 직접 추가 폼
-- [ ] 대시보드 — 상단 월/연 총합 + 리스트
+- [x] 온보딩 Step 3 — 직접 추가 폼 (`app/app/onboarding/custom/page.tsx`, 이름·카테고리·금액·주기·결제일 선택)
+- [x] 대시보드 1차 — 월/연 총합 카드 + 구독·고정비·직접추가 섹션별 리스트 + 초기화 + FAB (`app/app/dashboard/page.tsx`)
+- [ ] 대시보드 고도화 — 카테고리 차트, 결제일 타임라인, 항목 편집(인라인)
+- [ ] Supabase 클라이언트 + localStorage→DB 마이그레이션
 - [ ] 구독/고정비 CRUD
 - [ ] 배포 (Vercel)
 
 ## 다음 할 일 (Top 3)
 
-1. **직접 추가 폼 (Step 3)** — `/onboarding/custom` 루트. 서비스명·카테고리·금액·주기·결제일, 여러 개 누적 가능, skip 버튼.
-2. **고정비 입력 (Step 4)** — `/onboarding/fixed-costs` 루트 (칩 + 금액 인라인 입력, skip 버튼).
-3. **대시보드 (Step 5)** — `/dashboard` 루트, 상단 월/연 총합 카드 + 구독·고정비 리스트. localStorage로 Supabase 전까지 임시 저장.
+1. **Supabase 프로젝트 생성 + Kakao/Naver 개발자 앱 등록** (사용자 작업). 이후 `@supabase/ssr` 도입 + OAuth 실동작.
+2. **localStorage → Supabase 마이그레이션** — 온보딩 완료 시점에 `user_subscriptions`/`user_fixed_costs` insert. 로그인 후 localStorage 데이터 병합 로직.
+3. **대시보드 고도화** — 카테고리별 막대 차트, 다가오는 결제일 타임라인, 인라인 편집(항목 탭 → 모달).
 
 ## 블로커 / 외부 의존
 
