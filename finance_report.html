@@ -229,6 +229,30 @@ https://yezee0420.github.io/dev/finance_report.html
   .callout { background:var(--bg-secondary); border-radius:var(--radius-md); padding:10px 12px; font-size:12.5px; color:var(--text-secondary); line-height:1.65; margin-top:10px; }
   .callout b { color:var(--text-primary); }
   .pill { display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--bg-secondary); color:var(--text-primary); margin-right:6px; }
+
+  /* ── 아코디언 (월 현금흐름) ── */
+  .accordion-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; padding: 7px 0; border-bottom: 0.5px solid var(--border-tertiary);
+    font-size: 13px; gap: 8px; user-select: none;
+  }
+  .accordion-header:hover { background: var(--bg-secondary); margin: 0 -1.25rem; padding: 7px 1.25rem; border-radius: 4px; }
+  .accordion-header .lbl { color: var(--text-secondary); flex: 1; }
+  .accordion-header .val { font-weight: 500; white-space: nowrap; }
+  .accordion-header .arrow { font-size: 11px; color: var(--text-tertiary); transition: transform 0.2s; margin-left: 6px; }
+  .accordion-header.open .arrow { transform: rotate(180deg); }
+  .accordion-body { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+  .accordion-body.open { max-height: 400px; }
+  .accordion-inner { padding: 6px 0 4px 12px; border-left: 2px solid var(--border-tertiary); margin: 6px 0 4px 0; }
+  .accordion-inner .row { font-size: 12px; padding: 4px 0; }
+  .accordion-inner .row .lbl { color: var(--text-tertiary); }
+  .input-row .input-hint { font-size: 11px; color: var(--text-tertiary); margin-right: 8px; }
+  /* ── 시뮬레이터 결과 메타 ── */
+  .sim-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .sim-meta-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; }
+  .sim-meta-item .slbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .sim-meta-item .sval { font-size: 16px; font-weight: 500; color: var(--text-primary); }
+
   .btn {
     margin-top: 12px;
     width: 100%;
@@ -330,29 +354,29 @@ https://yezee0420.github.io/dev/finance_report.html
     </div>
   </div>
 
-  <!-- 월 현금흐름 -->
+  <!-- 월 현금흐름 (아코디언) -->
   <div class="section" id="cashflow">
     <div class="section-title">월 현금흐름 상세</div>
+
     <div class="grid2">
       <div class="card">
         <h3>수입</h3>
-        <div class="row"><span class="lbl">예지 기본급 (연장 20h 포함)</span><span class="val grn">+814만</span></div>
+        <div class="row"><span class="lbl">예지 월급 (연장 20h 포함)</span><span class="val grn">+814만</span></div>
         <div class="row"><span class="lbl">승모 기본급</span><span class="val grn">+535만</span></div>
         <div class="row"><span class="lbl">승모 분기급 (월 평산)</span><span class="val grn">+178만</span></div>
-        <div class="row"><span class="lbl">마포 월세</span><span class="val grn">+155만</span></div>
-        <div class="row"><span class="lbl">부산 상가 월세 (임차 후)</span><span class="val amb">+100만 예정</span></div>
+        <div class="row"><span class="lbl">마포 아파트 월세 수입</span><span class="val grn">+155만</span></div>
         <div class="divider"></div>
-        <div class="row"><span class="lbl" style="font-weight:500">월 합산 수입</span><span class="val grn" style="font-size:15px">약 1,782만</span></div>
-        <p class="note" style="padding-top:6px">* 분기급 178만 = 535×4÷12</p>
+        <div class="row"><span class="lbl" style="font-weight:500">월 합산 수입</span><span class="val grn" style="font-size:15px">약 1,682만</span></div>
+        <p class="note" style="padding-top:6px">* 분기급 178만 = 535×4÷12 / 부산 상가 월세는 임차 확정 후 별도 반영</p>
       </div>
       <div class="card">
         <h3>고정 지출</h3>
-        <div class="row"><span class="lbl">마포 원리금</span><span class="val red">-315만</span></div>
-        <div class="row"><span class="lbl">부산 사업자대출 이자</span><span class="val red">-116만</span></div>
-        <div class="row"><span class="lbl">부산 신용대출 이자</span><span class="val red">-50만</span></div>
-        <div class="row"><span class="lbl">전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
-        <div class="row"><span class="lbl">상가 관리비</span><span class="val red">-11만</span></div>
-        <div class="row"><span class="lbl">오피스텔 월세</span><span class="val red">-30만</span></div>
+        <div class="row"><span class="lbl">마포 아파트 대출 상환 원리금</span><span class="val red">-315만</span></div>
+        <div class="row"><span class="lbl">부산 상가 사업자대출 이자</span><span class="val red">-116만</span></div>
+        <div class="row"><span class="lbl">부산 상가 신용대출 이자</span><span class="val red">-50만</span></div>
+        <div class="row"><span class="lbl">정자 오피스텔 전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
+        <div class="row"><span class="lbl">부산 상가 관리비</span><span class="val red">-11만</span></div>
+        <div class="row"><span class="lbl">정자 오피스텔 월세</span><span class="val red">-30만</span></div>
         <div class="divider"></div>
         <div class="row"><span class="lbl" style="font-weight:500">고정 지출 합계</span><span class="val red" style="font-size:15px">약 547만</span></div>
       </div>
@@ -367,24 +391,60 @@ https://yezee0420.github.io/dev/finance_report.html
       <p class="note" style="padding-top:6px">* 월 평균 환산 시 +183만 / 연말 목돈으로 집중 운용 추천</p>
     </div>
 
+    <!-- 현금흐름 요약 — 아코디언 -->
     <div class="card">
       <h3>현금흐름 요약</h3>
-      <div class="row"><span class="lbl">월 합산 수입 (분기급 포함 평균)</span><span class="val grn">+1,782만</span></div>
-      <div class="row"><span class="lbl">고정 지출</span><span class="val red">-547만</span></div>
+
+      <!-- 월 합산 수입 아코디언 -->
+      <div class="accordion-header" id="acc-income-h" onclick="toggleAcc('income')">
+        <span class="lbl">월 합산 수입 (분기급 포함 평균)</span>
+        <span class="val grn">+1,682만</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="accordion-body" id="acc-income-b">
+        <div class="accordion-inner">
+          <div class="row"><span class="lbl">예지 월급</span><span class="val grn">+814만</span></div>
+          <div class="row"><span class="lbl">승모 기본급</span><span class="val grn">+535만</span></div>
+          <div class="row"><span class="lbl">승모 분기급 (월 평산)</span><span class="val grn">+178만</span></div>
+          <div class="row"><span class="lbl">마포 아파트 월세 수입</span><span class="val grn">+155만</span></div>
+        </div>
+      </div>
+
+      <!-- 고정 지출 아코디언 -->
+      <div class="accordion-header" id="acc-fixed-h" onclick="toggleAcc('fixed')">
+        <span class="lbl">고정 지출</span>
+        <span class="val red">-547만</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="accordion-body" id="acc-fixed-b">
+        <div class="accordion-inner">
+          <div class="row"><span class="lbl">마포 아파트 대출 상환 원리금</span><span class="val red">-315만</span></div>
+          <div class="row"><span class="lbl">부산 상가 사업자대출 이자</span><span class="val red">-116만</span></div>
+          <div class="row"><span class="lbl">부산 상가 신용대출 이자</span><span class="val red">-50만</span></div>
+          <div class="row"><span class="lbl">정자 오피스텔 전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
+          <div class="row"><span class="lbl">부산 상가 관리비</span><span class="val red">-11만</span></div>
+          <div class="row"><span class="lbl">정자 오피스텔 월세</span><span class="val red">-30만</span></div>
+        </div>
+      </div>
+
+      <!-- 생활비 -->
       <div class="row"><span class="lbl">생활비 추정</span><span class="val red">-200~300만</span></div>
+
       <div class="divider"></div>
-      <div class="row"><span class="lbl" style="font-weight:500">월 잉여 현금 (추정)</span><span class="val blue" style="font-size:16px">약 900~1,000만/월</span></div>
-      <p class="note" style="padding-top:6px">* 상가 매매 처분 후 대출 상환 완료 시 +166만 추가 잉여 발생</p>
+      <div class="row"><span class="lbl" style="font-weight:500">월 잉여 현금 (추정)</span><span class="val blue" style="font-size:16px">약 835~935만/월</span></div>
+      <p class="note" style="padding-top:6px">* 부산 상가 매매 처분 후 대출 상환 완료 시 +166만 추가 잉여 발생</p>
     </div>
 
+    <!-- 차트 -->
     <div class="card">
       <h3>현금흐름 차트</h3>
       <div id="cashflow-legend" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; color:var(--text-secondary);"></div>
-      <div style="position:relative; width:100%; height:300px;">
+      <div style="position:relative; width:100%; height:320px;">
         <canvas id="cashflowChart" role="img" aria-label="월 수입 지출 현금흐름 바 차트"></canvas>
       </div>
     </div>
   </div>
+
 
   <!-- 부채 분석 -->
   <div class="section" id="debt">
@@ -790,39 +850,110 @@ https://yezee0420.github.io/dev/finance_report.html
     </p>
   </div>
 
-  <!-- 시뮬레이터 -->
+  <!-- 투자 시뮬레이터 (강화판) -->
   <div class="section" id="simulator">
-    <div class="section-title">월 잉여금 투자 시뮬레이터</div>
+    <div class="section-title">투자 시뮬레이터</div>
+
+    <!-- 현금흐름 연동 박스 -->
+    <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:1rem;">
+      <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:10px;">월 현금흐름 자동 연동</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+        <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
+          <div style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">월 합산 수입</div>
+          <div style="font-size:15px; font-weight:500; color:#3B6D11;">1,682만</div>
+        </div>
+        <div style="font-size:16px; color:var(--text-tertiary); padding:0 2px;">−</div>
+        <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
+          <div style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">고정 지출</div>
+          <div style="font-size:15px; font-weight:500; color:#A32D2D;">547만</div>
+        </div>
+        <div style="font-size:16px; color:var(--text-tertiary); padding:0 2px;">−</div>
+        <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
+          <div style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">생활비</div>
+          <div style="font-size:15px; font-weight:500; color:#A32D2D;" id="living-display">250만</div>
+        </div>
+        <div style="font-size:16px; color:var(--text-tertiary); padding:0 2px;">=</div>
+        <div style="flex:1; min-width:100px; text-align:center; background:#E6F1FB; border-radius:var(--radius-md); padding:10px 8px; border:1px solid #B5D4F4;">
+          <div style="font-size:10px; color:#185FA5; margin-bottom:4px;">월 투자 가능액</div>
+          <div style="font-size:15px; font-weight:500; color:#185FA5;" id="investable-display">885만</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
+      <h3>변수 입력</h3>
+
+      <div style="font-size:11px; color:var(--text-tertiary); padding:4px 0 8px 0; border-bottom:0.5px solid var(--border-tertiary); margin-bottom:2px;">월 납입금</div>
+
       <div class="input-row">
-        <label>월 투자금액 (만원)</label>
-        <input type="number" id="monthly" value="500" min="100" max="1500" step="50">
+        <label>월 생활비 (만원)</label>
+        <span class="input-hint">식비·교통·통신 등</span>
+        <input type="number" id="living" value="250" min="100" max="800" step="50" oninput="syncInvestable()">
+      </div>
+      <div class="input-row" style="background:var(--bg-secondary); margin:0 -1.25rem; padding:9px 1.25rem;">
+        <label style="font-weight:500; color:var(--text-primary);">월 투자 납입금 (만원)
+          <span style="font-size:11px; font-weight:400; color:var(--text-tertiary);"> 수입−고정지출−생활비 자동, 직접 수정 가능</span>
+        </label>
+        <span class="input-hint"></span>
+        <input type="number" id="monthly" value="885" min="50" max="1500" step="50" style="border-color:#185FA5;">
+      </div>
+
+      <div style="font-size:11px; color:var(--text-tertiary); padding:12px 0 8px 0; border-bottom:0.5px solid var(--border-tertiary); margin-bottom:2px;">시드 &amp; 연간</div>
+
+      <div class="input-row">
+        <label>초기 시드 (만원)</label>
+        <span class="input-hint">현재 보유 현금(주식 별도)</span>
+        <input type="number" id="seed" value="3200" min="0" max="50000" step="500">
       </div>
       <div class="input-row">
+        <label>연말 특별 납입 (만원)</label>
+        <span class="input-hint">승모 연말 인센티브 등</span>
+        <input type="number" id="annualExtra" value="2000" min="0" max="5000" step="100">
+      </div>
+      <div class="input-row">
+        <label>연 투자 납입 증가율 (%)</label>
+        <span class="input-hint">연봉 상승분 재투자</span>
+        <input type="number" id="growthRate" value="3" min="0" max="15" step="1">
+      </div>
+
+      <div style="font-size:11px; color:var(--text-tertiary); padding:12px 0 8px 0; border-bottom:0.5px solid var(--border-tertiary); margin-bottom:2px;">수익률 &amp; 기간</div>
+
+      <div class="input-row">
         <label>연 기대 수익률 (%)</label>
+        <span class="input-hint">ETF 장기 평균 7~8%</span>
         <input type="number" id="rate" value="7" min="3" max="15" step="0.5">
       </div>
       <div class="input-row">
         <label>투자 기간 (년)</label>
+        <span class="input-hint"></span>
         <input type="number" id="years" value="10" min="1" max="30" step="1">
       </div>
-      <div class="input-row">
-        <label>초기 시드 (신규 현금, 만원)</label>
-        <input type="number" id="seed" value="3200" min="0" max="50000" step="500">
-      </div>
+
       <button class="btn" onclick="calcSim()">계산하기 →</button>
     </div>
 
     <div class="card" id="sim-result" style="display:none">
       <h3>시뮬레이션 결과</h3>
-      <div class="row"><span class="lbl">투자 원금 합계</span><span class="val" id="r-principal">-</span></div>
-      <div class="row"><span class="lbl">예상 최종 자산</span><span class="val grn" id="r-total">-</span></div>
-      <div class="row"><span class="lbl">수익금</span><span class="val blue" id="r-profit">-</span></div>
-      <div class="row"><span class="lbl">4% 인출 시 월 패시브 소득</span><span class="val grn" id="r-passive">-</span></div>
-      <div class="divider"></div>
-      <div id="r-comment" class="note" style="padding: 8px 0;"></div>
-      <div style="position:relative; width:100%; height:280px; margin-top:1rem;">
-        <canvas id="simChart" role="img" aria-label="투자 자산 성장 그래프"></canvas>
+      <div class="sim-meta" style="margin-bottom:1rem;">
+        <div class="sim-meta-item"><div class="slbl">납입 원금 합계</div><div class="sval" id="r-principal">-</div></div>
+        <div class="sim-meta-item"><div class="slbl">예상 최종 자산</div><div class="sval" style="color:#3B6D11" id="r-total">-</div></div>
+        <div class="sim-meta-item"><div class="slbl">복리 수익금</div><div class="sval" style="color:#185FA5" id="r-profit">-</div></div>
+        <div class="sim-meta-item"><div class="slbl">월 패시브 소득 (4%룰)</div><div class="sval" style="color:#3B6D11" id="r-passive">-</div></div>
+      </div>
+      <div class="row"><span class="lbl">경제적 자유 달성</span><span class="val" id="r-fi-status">-</span></div>
+      <div class="row"><span class="lbl">생활비 커버율</span><span class="val" id="r-cover">-</span></div>
+      <div id="r-comment" class="note" style="padding:8px 0 0;"></div>
+
+      <!-- 차트 영역 -->
+      <div style="margin-top:1.5rem;">
+        <div id="sim-legend" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; color:var(--text-secondary);"></div>
+        <div style="position:relative; width:100%; height:320px;">
+          <canvas id="simChart" role="img" aria-label="투자 자산 성장 그래프"></canvas>
+        </div>
+        <!-- 연도별 스냅샷 테이블 -->
+        <div style="margin-top:1.5rem; overflow-x:auto;">
+          <table id="sim-table" style="width:100%; font-size:12px; border-collapse:collapse;"></table>
+        </div>
       </div>
     </div>
   </div>
@@ -844,26 +975,25 @@ let cashflowInited = false;
 function initCashflowChart() {
   if (cashflowInited) return;
   cashflowInited = true;
-  const labels = ['예지 월급', '승모 월급', '승모 분기급', '마포 월세', '상가 월세(예정)', '원리금', '상가 이자', '기타 이자', '생활비(추정)'];
-  const data = [814, 535, 178, 155, 100, -315, -166, -36, -250];
+  const labels = [
+    '예지 월급', '승모 기본급', '승모 분기급', '마포 월세',
+    '마포 원리금', '부산 사업자이자', '부산 신용이자',
+    '전세 대출이자', '상가 관리비', '오피스텔 월세'
+  ];
+  const data = [814, 535, 178, 155, -315, -116, -50, -25, -11, -30];
   const colors = data.map(v => v > 0 ? '#3B6D11' : '#A32D2D');
-  const legend = document.getElementById('cashflow-legend');
-  legend.innerHTML = '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#3B6D11;display:inline-block"></span>수입</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#A32D2D;display:inline-block"></span>지출</span>';
+  document.getElementById('cashflow-legend').innerHTML =
+    '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#3B6D11;display:inline-block"></span>수입</span>' +
+    '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#A32D2D;display:inline-block"></span>지출</span>';
   new Chart(document.getElementById('cashflowChart'), {
     type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{ label: '만원', data: data, backgroundColor: colors, borderRadius: 4 }]
-    },
+    data: { labels, datasets: [{ label: '만원', data, backgroundColor: colors, borderRadius: 4 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: {
-          ticks: { callback: v => v.toLocaleString() + '만', font: { size: 11 } },
-          grid: { color: 'rgba(128,128,128,0.1)' }
-        },
-        x: { ticks: { font: { size: 11 }, maxRotation: 30 }, grid: { display: false } }
+        y: { ticks: { callback: v => v.toLocaleString() + '만', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        x: { ticks: { font: { size: 10 }, maxRotation: 35 }, grid: { display: false } }
       }
     }
   });
@@ -873,20 +1003,18 @@ let debtInited = false;
 function initDebtChart() {
   if (debtInited) return;
   debtInited = true;
-  const labels = ['마포 주담대 6.5억', '사업자대출 3.1억', '전세 대출 1.44억', '신용대출 0.96억'];
+  const labels = ['마포 아파트 주담대 6.5억', '부산 상가 사업자대출 3.1억', '정자 오피스텔 전세대출 1.44억', '부산 상가 신용대출 0.96억'];
   const data = [6.5, 3.1, 1.44, 0.96];
   const bgColors = ['#378ADD', '#BA7517', '#639922', '#E24B4A'];
-  const legend = document.getElementById('debt-legend');
-  legend.innerHTML = labels.map((l, i) => `<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${bgColors[i]};display:inline-block"></span>${l}</span>`).join('');
+  document.getElementById('debt-legend').innerHTML = labels.map((l, i) =>
+    `<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${bgColors[i]};display:inline-block"></span>${l}</span>`
+  ).join('');
   new Chart(document.getElementById('debtChart'), {
     type: 'doughnut',
-    data: { labels: labels, datasets: [{ data: data, backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff' }] },
+    data: { labels, datasets: [{ data, backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff' }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}억원` } }
-      }
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}억원` } } }
     }
   });
 }
@@ -1015,68 +1143,186 @@ function calcPortfolio() {
   });
 }
 
+function toggleAcc(key) {
+  const h = document.getElementById('acc-' + key + '-h');
+  const b = document.getElementById('acc-' + key + '-b');
+  h.classList.toggle('open');
+  b.classList.toggle('open');
+}
+
+/* ---- 시뮬레이터 연동 ---- */
+const INCOME = 1682;
+const FIXED  = 547;
+
+function syncInvestable() {
+  const living = parseFloat(document.getElementById('living').value) || 0;
+  const investable = Math.max(0, INCOME - FIXED - living);
+  document.getElementById('living-display').textContent = living.toLocaleString() + '만';
+  document.getElementById('investable-display').textContent = investable.toLocaleString() + '만';
+  document.getElementById('monthly').value = investable;
+}
+
+/* ---- 시뮬레이터 ---- */
 let simChartInst = null;
 function calcSim() {
-  const monthly = parseFloat(document.getElementById('monthly').value) || 500;
-  const rate = parseFloat(document.getElementById('rate').value) / 100 || 0.07;
-  const years = parseInt(document.getElementById('years').value) || 10;
-  const seed = parseFloat(document.getElementById('seed').value) || 0;
+  const living      = parseFloat(document.getElementById('living').value)     || 250;
+  const monthly     = parseFloat(document.getElementById('monthly').value)    || 885;
+  const rate        = parseFloat(document.getElementById('rate').value) / 100 || 0.07;
+  const years       = parseInt(document.getElementById('years').value)        || 10;
+  const seed        = parseFloat(document.getElementById('seed').value)       || 0;
+  const growthRate  = parseFloat(document.getElementById('growthRate').value) / 100 || 0.03;
+  const annualExtra = parseFloat(document.getElementById('annualExtra').value)|| 0;
+
   const monthlyRate = rate / 12;
-  const months = years * 12;
   let total = seed * 10000;
-  const labels = ['시작'];
-  const dataPts = [Math.round(total / 10000)];
-  for (let m = 1; m <= months; m++) {
-    total = total * (1 + monthlyRate) + monthly * 10000;
-    if (m % 12 === 0) {
-      labels.push(m / 12 + '년');
-      dataPts.push(Math.round(total / 10000));
+  let currentMonthly = monthly;
+  let totalPrincipal = seed;
+
+  const labels       = ['시작'];
+  const totalPts     = [Math.round(seed)];     // 총 자산 (만원)
+  const principalPts = [Math.round(seed)];     // 납입 원금
+  const profitPts    = [0];                    // 수익금
+
+  for (let y = 1; y <= years; y++) {
+    for (let m = 1; m <= 12; m++) {
+      total = total * (1 + monthlyRate) + currentMonthly * 10000;
+      totalPrincipal += currentMonthly;
     }
+    total += annualExtra * 10000;
+    totalPrincipal += annualExtra;
+    currentMonthly = Math.round(currentMonthly * (1 + growthRate));
+
+    const tMan = Math.round(total / 10000);
+    const pMan = Math.round(totalPrincipal);
+    labels.push(y + '년');
+    totalPts.push(tMan);
+    principalPts.push(pMan);
+    profitPts.push(Math.max(0, tMan - pMan));
   }
-  const principal = Math.round(seed + monthly * months);
-  const totalMan = Math.round(total / 10000);
-  const profit = totalMan - principal;
-  const passive = Math.round(totalMan * 0.04 / 12);
-  document.getElementById('r-principal').textContent = principal.toLocaleString() + '만원';
-  document.getElementById('r-total').textContent = totalMan.toLocaleString() + '만원';
-  document.getElementById('r-profit').textContent = '+' + profit.toLocaleString() + '만원';
-  document.getElementById('r-passive').textContent = '월 ' + passive.toLocaleString() + '만원';
-  let comment = passive >= 300
+
+  const totalMan  = totalPts[totalPts.length - 1];
+  const profitMan = profitPts[profitPts.length - 1];
+  const pMan      = principalPts[principalPts.length - 1];
+  const passive   = Math.round(totalMan * 0.04 / 12);
+  const coverPct  = Math.round(passive / living * 100);
+  const fi        = passive >= living;
+
+  document.getElementById('r-principal').textContent = pMan.toLocaleString() + '만원';
+  document.getElementById('r-total').textContent     = totalMan.toLocaleString() + '만원';
+  document.getElementById('r-profit').textContent    = '+' + profitMan.toLocaleString() + '만원';
+  document.getElementById('r-passive').textContent   = '월 ' + passive.toLocaleString() + '만원';
+  document.getElementById('r-fi-status').innerHTML   = fi
+    ? '<span style="color:#3B6D11;font-weight:500">달성 가능</span>'
+    : '<span style="color:#854F0B;font-weight:500">미달 — 납입금·기간 확대 필요</span>';
+  document.getElementById('r-cover').textContent = coverPct + '% (생활비 ' + living.toLocaleString() + '만원 기준)';
+  document.getElementById('r-comment').textContent = fi
     ? years + '년 후 월 ' + passive.toLocaleString() + '만원 패시브 소득. 경제적 자유 달성 가능한 구조입니다.'
-    : passive >= 150
-    ? '월 ' + passive.toLocaleString() + '만원 패시브 소득. 투자금 확대 또는 기간 연장을 고려해보세요.'
-    : '패시브 소득이 아직 낮습니다. 투자금 확대 또는 기간 연장을 고려해보세요.';
-  document.getElementById('r-comment').textContent = comment;
+    : '패시브 소득이 생활비의 ' + coverPct + '% 수준. 납입금을 늘리거나 기간을 연장해보세요.';
   document.getElementById('sim-result').style.display = 'block';
+
+  /* 범례 */
+  document.getElementById('sim-legend').innerHTML =
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:2px;background:#185FA5;display:inline-block"></span>납입 원금</span>' +
+    '<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:2px;background:#97C459;display:inline-block"></span>복리 수익</span>' +
+    '<span style="display:flex;align-items:center;gap:5px; color:var(--text-tertiary); font-size:11px;">마우스 올리면 상세 보기</span>';
+
+  /* 차트 — 스택 바 */
   if (simChartInst) simChartInst.destroy();
   simChartInst = new Chart(document.getElementById('simChart'), {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: labels,
-      datasets: [{
-        label: '총 자산 (만원)',
-        data: dataPts,
-        borderColor: '#185FA5',
-        backgroundColor: 'rgba(55,138,221,0.08)',
-        tension: 0.3,
-        fill: true,
-        pointRadius: 3,
-        borderDash: []
-      }]
+      labels,
+      datasets: [
+        {
+          label: '납입 원금',
+          data: principalPts,
+          backgroundColor: '#378ADD',
+          borderRadius: 3,
+          stack: 'asset'
+        },
+        {
+          label: '복리 수익',
+          data: profitPts,
+          backgroundColor: '#97C459',
+          borderRadius: 3,
+          stack: 'asset'
+        }
+      ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: ctx => ctx[0].label,
+            afterBody: ctx => {
+              const idx = ctx[0].dataIndex;
+              const total = totalPts[idx];
+              const p     = principalPts[idx];
+              const profit = profitPts[idx];
+              const pct = p > 0 ? Math.round(profit / p * 100) : 0;
+              return [
+                '─────────────',
+                '총 자산: ' + total.toLocaleString() + '만원',
+                '납입 원금: ' + p.toLocaleString() + '만원',
+                '복리 수익: +' + profit.toLocaleString() + '만원 (+' + pct + '%)',
+                '월 패시브(4%): ' + Math.round(total * 0.04 / 12).toLocaleString() + '만원'
+              ];
+            },
+            label: () => ''
+          }
+        }
+      },
       scales: {
-        y: {
-          ticks: { callback: v => v >= 10000 ? Math.round(v / 10000) + '억' : v.toLocaleString() + '만', font: { size: 11 } },
-          grid: { color: 'rgba(128,128,128,0.1)' }
+        x: {
+          stacked: true,
+          ticks: { font: { size: 11 } },
+          grid: { display: false }
         },
-        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        y: {
+          stacked: true,
+          ticks: {
+            callback: v => v >= 10000 ? (v / 10000).toFixed(1) + '억' : v.toLocaleString() + '만',
+            font: { size: 11 }
+          },
+          grid: { color: 'rgba(128,128,128,0.08)' }
+        }
       }
     }
   });
+
+  /* 연도별 스냅샷 테이블 */
+  const snapYears = [1, 3, 5, 10, 15, 20, 30].filter(y => y <= years);
+  if (!snapYears.includes(years)) snapYears.push(years);
+  snapYears.sort((a, b) => a - b);
+
+  let tHtml = '<thead><tr style="border-bottom:1px solid var(--border-tertiary);">'
+    + ['경과','총 자산','납입 원금','복리 수익','월 패시브(4%)'].map(h =>
+        `<th style="padding:6px 8px; text-align:right; font-weight:500; color:var(--text-secondary); white-space:nowrap;">${h}</th>`).join('')
+    + '</tr></thead><tbody>';
+
+  snapYears.forEach(y => {
+    const idx = y;
+    if (idx >= totalPts.length) return;
+    const t  = totalPts[idx];
+    const p  = principalPts[idx];
+    const pr = profitPts[idx];
+    const mo = Math.round(t * 0.04 / 12);
+    const isFi = mo >= living;
+    tHtml += `<tr style="border-bottom:0.5px solid var(--border-tertiary);">
+      <td style="padding:7px 8px; color:var(--text-secondary); white-space:nowrap;">${y}년차</td>
+      <td style="padding:7px 8px; text-align:right; font-weight:500; color:${isFi ? '#3B6D11' : 'var(--text-primary)'};">${t >= 10000 ? (t/10000).toFixed(2)+'억' : t.toLocaleString()+'만'}</td>
+      <td style="padding:7px 8px; text-align:right; color:#185FA5;">${p >= 10000 ? (p/10000).toFixed(2)+'억' : p.toLocaleString()+'만'}</td>
+      <td style="padding:7px 8px; text-align:right; color:#3B6D11;">+${pr >= 10000 ? (pr/10000).toFixed(2)+'억' : pr.toLocaleString()+'만'}</td>
+      <td style="padding:7px 8px; text-align:right; font-weight:500; color:${isFi ? '#3B6D11' : 'var(--text-primary)'};">${mo.toLocaleString()}만${isFi ? ' ✓' : ''}</td>
+    </tr>`;
+  });
+  tHtml += '</tbody>';
+  document.getElementById('sim-table').innerHTML = tHtml;
 }
+
 </script>
 </body>
 </html>
