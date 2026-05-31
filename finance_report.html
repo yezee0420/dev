@@ -538,8 +538,8 @@ https://yezee0420.github.io/dev/finance_report.html
         <table class="ptable">
           <thead><tr><th>대전제</th><th class="num">값</th><th>근거 · 숨은 가정(리스크)</th></tr></thead>
           <tbody>
-            <tr><td><b>① 투자 시드</b></td><td class="num">약 8,860만</td><td>승모현금 1,500 + 예지현금 1,700 + 예지 해외주식 평가 5,500 + 카카오페이 160 / <b>결혼식 비용 0</b> 전제 (비용 발생 시 현금에서 차감)</td></tr>
-            <tr><td><b>② 보유주식</b></td><td class="num">5,660만</td><td>원금 5,700 → 평가 5,500 (−약 200, 손실 중). Recursion −1,341·UiPath −5. 개별 바이오주 집중 → <b>코어 ETF 재편 권고</b></td></tr>
+            <tr><td><b>① 투자 시드(신규)</b></td><td class="num">3,200만</td><td>승모현금 1,500 + 예지현금 1,700 (<b>현금만</b>) / <b>결혼식 비용 0</b> 전제 (비용 발생 시 현금에서 차감). 보유주식은 이미 투자된 별도 포지션(②)</td></tr>
+            <tr><td><b>② 보유주식(별도)</b></td><td class="num">5,660만</td><td><b>이미 투자됨 → 시드에서 제외.</b> 원금 5,700 → 평가 5,500 (−약 200, 손실 중) + 카카오페이 160. Recursion −1,341·UiPath −5. 개별 바이오주 집중 → <b>코어 ETF 재편 권고</b></td></tr>
             <tr><td><b>③ 월 적립</b></td><td class="num">700만</td><td>월 잉여 900~1,000 − 생활비 − 신용대출 상환 / 소득·월세 유지·대형지출 없음 전제</td></tr>
             <tr><td><b>④ 수익률</b></td><td class="num">8.2%</td><td>미국 ETF 보수 가정 / <b>환율 고정·세금 0(절세계좌)·하락장 평균화</b> 전제</td></tr>
             <tr><td><b>⑤ 부산 처분</b></td><td class="num">4.5억</td><td>호가 5.8억이나 4.5~4.9억 실제 매도 가정 → 회수 약 4,400만·월 166만 이자 소멸</td></tr>
@@ -550,7 +550,7 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="callout">
         <b>순자산 약 10.8억 도출:</b> 마포 17억 + 부산 4.5억(처분가정) + 금융자산 0.89억 − 총부채 11.6억 = <b>약 10.8억</b>
         (전세 보증금·전세대출은 상계 중립). 단, 이 중 <b>지금 굴릴 수 있는 유동 투자자산은 8,860만뿐</b> — 나머지는 전부 부동산에 묶여 있습니다.
-        그래서 아래 시뮬레이터의 출발 시드는 19.3억·10.8억이 아니라 <b>8,860만</b>입니다.
+        그래서 아래 시뮬레이터의 출발 시드는 19.3억·10.8억이 아니라 <b>신규 현금 3,200만</b>입니다 (이미 투자된 보유주식 5,660만은 별도 포지션으로 제외).
       </div>
     </div>
 
@@ -589,8 +589,8 @@ https://yezee0420.github.io/dev/finance_report.html
     <div class="card">
       <h3>2. 두 분의 현재 좌표</h3>
       <div class="row"><span class="lbl">월 투자 여력 (생활비·신용대출상환 후)</span><span class="val blue">약 700~900만</span></div>
-      <div class="row"><span class="lbl">현재 투자 시드 (현금 3,200 + 주식 5,660)</span><span class="val grn">약 8,860만</span></div>
-      <div class="row"><span class="lbl">현재 순수 투자자산 (해외주식)</span><span class="val amb">약 5,660만 <span class="badge danger">손실 중</span></span></div>
+      <div class="row"><span class="lbl">신규 투자 시드 (현금 1,500+1,700)</span><span class="val grn">약 3,200만</span></div>
+      <div class="row"><span class="lbl">기존 보유주식 (이미 투자됨·별도)</span><span class="val amb">약 5,660만 <span class="badge danger">손실 중</span></span></div>
       <div class="row"><span class="lbl">현재 순자산</span><span class="val">약 10.8억 <span class="badge warn">대부분 부동산</span></span></div>
       <div class="row"><span class="lbl">부산 처분 시 추가 시드 (4.5억 처분)</span><span class="val grn">+약 4,400만</span></div>
       <div class="row"><span class="lbl">Normal FIRE(9억)까지 거리</span><span class="val">시드+적립으로 약 6년 9개월 (아래 6번)</span></div>
@@ -708,23 +708,25 @@ https://yezee0420.github.io/dev/finance_report.html
     <!-- 6. 성장 경로 -->
     <div class="card">
       <h3>6. 자산 성장 경로 — 두 분 숫자 기준</h3>
-      <p class="note" style="margin-top:0;">가정: 초기 시드 <b style="color:var(--text-primary)">8,860만</b>(현금+보유주식) + 월 적립 <b style="color:var(--text-primary)">700만</b> + 블렌디드 수익률 <b style="color:var(--text-primary)">8.2%</b> (보수적).</p>
+      <p class="note" style="margin-top:0;">가정: 초기 시드 <b style="color:var(--text-primary)">3,200만</b>(신규 현금만, 보유주식 제외) + 월 적립 <b style="color:var(--text-primary)">700만</b> + 블렌디드 수익률 <b style="color:var(--text-primary)">8.2%</b> (보수적).</p>
       <div class="table-wrap">
         <table class="ptable">
           <thead><tr><th>경과</th><th class="num">투자자산</th><th>이정표</th></tr></thead>
           <tbody>
-            <tr><td>현재</td><td class="num">약 0.89억</td><td>시드(현금+주식) 투입 시작</td></tr>
-            <tr><td>3년차</td><td class="num">약 4.0억</td><td>토대 구축</td></tr>
-            <tr><td>약 5년 9개월</td><td class="num">약 7.5억</td><td><span class="badge ok">Lean FIRE 도달</span></td></tr>
-            <tr><td>약 6년 9개월</td><td class="num">약 9.0억</td><td><span class="badge info">Normal FIRE · 월 300만 패시브 ★</span></td></tr>
-            <tr><td>약 10년차</td><td class="num">약 15.0억</td><td><span class="badge warn">Fat FIRE 도달</span></td></tr>
-            <tr><td>12년차</td><td class="num">약 19.4억</td><td>월 648만 패시브 (4% 인출)</td></tr>
+            <tr><td>현재</td><td class="num">약 0.32억</td><td>시드(현금) 투입 시작</td></tr>
+            <tr><td>3년차</td><td class="num">약 3.3억</td><td>토대 구축</td></tr>
+            <tr><td>약 6년 5개월</td><td class="num">약 7.5억</td><td><span class="badge ok">Lean FIRE 도달</span></td></tr>
+            <tr><td>약 7년 5개월</td><td class="num">약 9.0억</td><td><span class="badge info">Normal FIRE · 월 300만 패시브 ★</span></td></tr>
+            <tr><td>약 10년 8개월</td><td class="num">약 15.0억</td><td><span class="badge warn">Fat FIRE 도달</span></td></tr>
+            <tr><td>12년차</td><td class="num">약 17.9억</td><td>월 597만 패시브 (4% 인출)</td></tr>
           </tbody>
         </table>
       </div>
       <div class="callout">
-        결론: 두 분은 <b>약 7년이면 "월 300만 패시브 = 생활비 자급"</b> 구조에 도달합니다.
-        실제로는 초기 3~4년 예지 신용대출(6.23%) 상환을 병행하므로 <b>현실적 Normal FIRE 도달은 7~9년</b>으로 보시면 됩니다 —
+        결론: 두 분은 <b>약 7년 반이면 "월 300만 패시브 = 생활비 자급"</b> 구조에 도달합니다.
+        실제로는 초기 3~4년 예지 신용대출(6.23%) 상환을 병행하므로 <b>현실적 Normal FIRE 도달은 8~10년</b>으로 보시면 됩니다 —
+        고금리 빚 상환 = 연 6.23% 확정수익 투자와 동일하므로 먼저 갚는 게 정답입니다.
+        <b>참고:</b> 손실 중인 보유주식 5,660만을 코어 ETF로 합쳐 굴리면 출발 시드가 8,860만이 되어 <b>Normal FIRE가 약 1년 앞당겨집니다(6년 9개월)</b>.
         고금리 빚 상환 = 연 6.23% 확정수익 투자와 동일하므로 먼저 갚는 게 정답입니다.
       </div>
     </div>
@@ -757,7 +759,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
       <div style="margin-top:14px;">
         <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50"></div>
-        <div class="input-row"><label>초기 시드 (현금+보유주식, 만원)</label><input type="number" id="pf-seed" value="8860" min="0" max="100000" step="500"></div>
+        <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500"></div>
         <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1"></div>
         <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10"></div>
       </div>
@@ -805,8 +807,8 @@ https://yezee0420.github.io/dev/finance_report.html
         <input type="number" id="years" value="10" min="1" max="30" step="1">
       </div>
       <div class="input-row">
-        <label>초기 시드 (현재 현금+보유주식, 만원)</label>
-        <input type="number" id="seed" value="8860" min="0" max="50000" step="500">
+        <label>초기 시드 (신규 현금, 만원)</label>
+        <input type="number" id="seed" value="3200" min="0" max="50000" step="500">
       </div>
       <button class="btn" onclick="calcSim()">계산하기 →</button>
     </div>
