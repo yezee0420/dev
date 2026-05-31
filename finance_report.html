@@ -211,6 +211,24 @@ https://yezee0420.github.io/dev/finance_report.html
     color: var(--text-primary);
     font-family: var(--font-sans);
   }
+  .ptable { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:4px; }
+  .ptable th { text-align:left; font-weight:500; color:var(--text-secondary); padding:8px 6px; border-bottom:0.5px solid var(--border-secondary); font-size:10.5px; white-space:nowrap; }
+  .ptable td { padding:9px 6px; border-bottom:0.5px solid var(--border-tertiary); color:var(--text-primary); vertical-align:top; }
+  .ptable tr:last-child td { border-bottom:none; }
+  .ptable td.num, .ptable th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ptable tfoot td { font-weight:600; border-top:0.5px solid var(--border-secondary); border-bottom:none; }
+  .tk { font-weight:600; }
+  .tk-sub { font-size:10.5px; color:var(--text-tertiary); display:block; margin-top:1px; }
+  .table-wrap { overflow-x:auto; margin:0 -4px; }
+  .alloc-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:0.5px solid var(--border-tertiary); font-size:13px; }
+  .alloc-row:last-of-type { border-bottom:none; }
+  .alloc-row .nm { flex:1; color:var(--text-secondary); min-width:0; }
+  .alloc-row .nm b { color:var(--text-primary); font-weight:600; }
+  .alloc-row input { width:62px; text-align:right; font-size:13px; padding:5px 7px; border:0.5px solid var(--border-secondary); border-radius:var(--radius-md); background:var(--bg-primary); color:var(--text-primary); font-family:var(--font-sans); }
+  .alloc-row .unit { font-size:11px; color:var(--text-tertiary); width:12px; }
+  .callout { background:var(--bg-secondary); border-radius:var(--radius-md); padding:10px 12px; font-size:12.5px; color:var(--text-secondary); line-height:1.65; margin-top:10px; }
+  .callout b { color:var(--text-primary); }
+  .pill { display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--bg-secondary); color:var(--text-primary); margin-right:6px; }
   .btn {
     margin-top: 12px;
     width: 100%;
@@ -242,6 +260,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <button class="tab" onclick="show('cashflow', this)">월 현금흐름</button>
     <button class="tab" onclick="show('debt', this)">부채 분석</button>
     <button class="tab" onclick="show('strategy', this)">전략 로드맵</button>
+    <button class="tab" onclick="show('freedom', this)">경제적 자유 설계</button>
     <button class="tab" onclick="show('simulator', this)">시뮬레이터</button>
   </div>
 
@@ -499,6 +518,251 @@ https://yezee0420.github.io/dev/finance_report.html
     </div>
   </div>
 
+  <!-- 경제적 자유 설계 -->
+  <div class="section" id="freedom">
+    <div class="section-title">경제적 자유 설계 — 재무설계사 상세 리포트</div>
+
+    <div class="card">
+      <p class="note" style="margin-top:0; font-size:12.5px; color:var(--text-secondary);">
+        안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 7.7억 + 월 잉여현금 900만원대</b>라는, 또래 대비 매우 앞선 출발선에 계십니다.
+        다만 자산이 대부분 <b style="color:var(--text-primary)">부동산(비유동·레버리지)</b>에 묶여 있어, 진짜 경제적 자유 = "일하지 않아도 들어오는 현금흐름"은 아직 0에 가깝습니다.
+        이 리포트는 그 잉여현금을 <b style="color:var(--text-primary)">패시브 인컴 기계</b>로 바꾸는 구체적 설계도입니다.
+      </p>
+    </div>
+
+    <!-- 1. FIRE 정의 -->
+    <div class="card">
+      <h3>1. 목표 정의 — 얼마면 경제적 자유인가 (4% 법칙)</h3>
+      <p class="note" style="margin-top:0;">
+        경제적 자유의 글로벌 표준 공식은 <b style="color:var(--text-primary)">"연 생활비 × 25 = 필요 투자자산"</b> 입니다.
+        (= 자산의 4%만 매년 인출하면 원금이 평생 줄지 않는다는 트리니티 연구 기반. 4% = 1/25)
+        두 분의 생활비 수준에 따라 목표를 3단계로 나눕니다.
+      </p>
+      <div class="grid3" style="margin-top:14px;">
+        <div class="metric">
+          <div class="label">Lean FIRE · 월 250만 생활</div>
+          <div class="value" style="color:#3B6D11">7.5억</div>
+          <div class="sub">250만 × 12 × 25</div>
+        </div>
+        <div class="metric">
+          <div class="label">Normal FIRE · 월 300만 생활</div>
+          <div class="value" style="color:#185FA5">9.0억</div>
+          <div class="sub">현실적 1차 목표 ★</div>
+        </div>
+        <div class="metric">
+          <div class="label">Fat FIRE · 월 500만 생활</div>
+          <div class="value" style="color:#854F0B">15.0억</div>
+          <div class="sub">여유로운 자유</div>
+        </div>
+      </div>
+      <div class="callout">
+        ※ 위 금액은 <b>부동산을 제외한 순수 투자자산(주식·ETF)</b> 기준입니다. 마포 아파트 등 거주·부동산 자산은 별도이며,
+        만약 부산 상가 처분·마포 일부 정리로 투자자산을 더 키우면 도달 시점은 크게 앞당겨집니다.
+      </div>
+    </div>
+
+    <!-- 2. 현재 좌표 -->
+    <div class="card">
+      <h3>2. 두 분의 현재 좌표</h3>
+      <div class="row"><span class="lbl">월 투자 여력 (생활비·신용대출상환 후)</span><span class="val blue">약 700~900만</span></div>
+      <div class="row"><span class="lbl">초기 시드 (부산 상가 처분 회수금)</span><span class="val grn">약 1.74억</span></div>
+      <div class="row"><span class="lbl">현재 순자산</span><span class="val">약 7.7억+ <span class="badge warn">대부분 부동산</span></span></div>
+      <div class="row"><span class="lbl">현재 순수 투자자산 (주식·ETF)</span><span class="val red">거의 0 <span class="badge danger">출발선</span></span></div>
+      <div class="row"><span class="lbl">Normal FIRE(9억)까지 거리</span><span class="val">시드+적립으로 약 6년 (아래 6번)</span></div>
+      <p class="note" style="padding-top:8px;">
+        진단: 부동산 레버리지는 잘 깔려 있으나 <b style="color:var(--text-primary)">유동 투자자산이 0</b>인 상태. 지금부터의 핵심 과제는
+        "월 잉여현금 → 절세 그릇 → 글로벌 우량자산"으로 흐르는 자동 파이프라인을 까는 것입니다.
+      </p>
+    </div>
+
+    <!-- 3. 절세 3층 -->
+    <div class="card">
+      <h3>3. 절세 계좌 3층 구조 — 같은 수익도 세금이 다르다</h3>
+      <p class="note" style="margin-top:0;">같은 ETF를 사도 <b style="color:var(--text-primary)">어느 계좌</b>에서 사느냐로 세후 수익이 갈립니다. 아래 순서대로 그릇을 채우세요.</p>
+      <div style="margin:12px 0; padding-bottom:12px; border-bottom:0.5px solid var(--border-tertiary);">
+        <div class="tl-title" style="color:#3B6D11; margin-bottom:6px"><span class="pill">1층</span> 연금저축펀드 + IRP (세액공제)</div>
+        <p class="note" style="color:var(--text-secondary);">
+          부부 <b style="color:var(--text-primary)">각자 연 900만(합산 1,800만)</b> 납입 시 <b style="color:var(--text-primary)">16.5% 세액공제 → 연 297만원 현금 환급</b> (즉시 확정 24.75% 수익).
+          계좌 안 매매차익·배당은 과세이연, 만 55세 이후 연금소득세 3.3~5.5%만. 노후 코어로 최우선.
+        </p>
+      </div>
+      <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:0.5px solid var(--border-tertiary);">
+        <div class="tl-title" style="color:#185FA5; margin-bottom:6px"><span class="pill">2층</span> ISA (중개형, 비과세·분리과세)</div>
+        <p class="note" style="color:var(--text-secondary);">
+          1인 연 2,000만(부부 4,000만) 납입. 순이익 <b style="color:var(--text-primary)">200만(서민형 400만) 비과세</b> + 초과분 9.9% 분리과세.
+          3년 만기 후 자금을 연금계좌로 옮기면 추가 세액공제(최대 300만)까지. 중기 자금의 절세 허브.
+        </p>
+      </div>
+      <div>
+        <div class="tl-title" style="color:#854F0B; margin-bottom:6px"><span class="pill">3층</span> 일반 해외주식 직투 계좌</div>
+        <p class="note" style="color:var(--text-secondary);">
+          양도차익 250만 공제 후 22%, 배당 15.4%. 절세 한도를 다 채운 <b style="color:var(--text-primary)">뒤</b> 남는 잉여를 여기서 운용.
+          유동성·유연성 최고 — 비상금/기회 매수용. 부산 처분 시드의 거치식 투입도 여기서.
+        </p>
+      </div>
+      <div class="callout"><b>실행 순서:</b> 1층 세액공제 한도(1,800만) → 2층 ISA(4,000만) → 3층 직투. 월 잉여 700만이면 1·2층만으로도 거의 다 소화됩니다.</div>
+    </div>
+
+    <!-- 4. 핵심 포트폴리오 -->
+    <div class="card">
+      <h3>4. 핵심 포트폴리오 — 구체적 종목과 기대수익률</h3>
+      <p class="note" style="margin-top:0;">미국 상장 ETF 기준 글로벌 표준 코어-위성 구성입니다. 기대수익률은 <b style="color:var(--text-primary)">과거 실적이 아닌, 보수적 장기 가정치</b>입니다.</p>
+      <div class="table-wrap">
+        <table class="ptable">
+          <thead>
+            <tr>
+              <th>자산군 · 티커</th>
+              <th class="num">비중</th>
+              <th class="num">기대수익(연)</th>
+              <th class="num">배당률</th>
+              <th>역할</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tk">VOO</span><span class="tk-sub">미국 S&P500 (대안 IVV·SPLG)</span></td>
+              <td class="num">45%</td><td class="num">8.0%</td><td class="num">1.3%</td>
+              <td>코어 · 미국 대형주 500</td>
+            </tr>
+            <tr>
+              <td><span class="tk">QQQM</span><span class="tk-sub">미국 나스닥100 (QQQ 저보수판)</span></td>
+              <td class="num">20%</td><td class="num">10.0%</td><td class="num">0.6%</td>
+              <td>성장 엔진 · 빅테크</td>
+            </tr>
+            <tr>
+              <td><span class="tk">SCHD</span><span class="tk-sub">미국 배당성장 다우존스</span></td>
+              <td class="num">25%</td><td class="num">8.0%</td><td class="num">3.7%</td>
+              <td>배당+성장 · 인컴 코어</td>
+            </tr>
+            <tr>
+              <td><span class="tk">JEPQ</span><span class="tk-sub">나스닥 커버드콜 (월배당)</span></td>
+              <td class="num">5%</td><td class="num">7.5%</td><td class="num">10%+</td>
+              <td>현금흐름 · 월배당</td>
+            </tr>
+            <tr>
+              <td><span class="tk">SGOV</span><span class="tk-sub">미국 초단기국채 (대안 BIL)</span></td>
+              <td class="num">5%</td><td class="num">4.3%</td><td class="num">4.3%</td>
+              <td>변동성 완충 · 매수대기</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>블렌디드(가중평균)</td>
+              <td class="num">100%</td><td class="num">≈ 8.2%</td><td class="num">≈ 2.3%</td>
+              <td>코어-위성 종합</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="callout">
+        <b>계산 근거 (블렌디드 8.2%):</b> 0.45×8.0 + 0.20×10.0 + 0.25×8.0 + 0.05×7.5 + 0.05×4.3 = <b>8.18%</b>.<br>
+        <b>참고:</b> 최근 10년 실제 연수익은 S&P500 ≈ 12~13%, 나스닥100 ≈ 17%였지만, 미래는 보수적으로 잡았습니다.
+        대신 <b>-30~50% 하락 구간을 견딜 각오와 환율(원/달러) 변동</b>은 반드시 감안하세요. 변동성이 부담되면 SGOV·SCHD 비중을 높이면 됩니다.
+      </div>
+    </div>
+
+    <!-- 5. 국내상장 대체 -->
+    <div class="card">
+      <h3>5. 연금·ISA 계좌용 — 국내상장 동일전략 ETF</h3>
+      <p class="note" style="margin-top:0;">절세 계좌(1·2층) 안에서는 미국 직투 대신 <b style="color:var(--text-primary)">국내상장 해외ETF(원화)</b>가 과세이연·저율과세로 더 유리합니다. 1:1로 갈아끼우세요.</p>
+      <div class="table-wrap">
+        <table class="ptable">
+          <thead><tr><th>미국 직투</th><th>국내상장 동일 노출 (원화)</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tk">VOO</span></td><td>TIGER 미국S&P500 / KODEX 미국S&P500</td></tr>
+            <tr><td><span class="tk">QQQM</span></td><td>TIGER 미국나스닥100 / KODEX 미국나스닥100</td></tr>
+            <tr><td><span class="tk">SCHD</span></td><td>SOL 미국배당다우존스 / TIGER 미국배당다우존스</td></tr>
+            <tr><td><span class="tk">JEPQ</span></td><td>TIGER 미국나스닥100커버드콜(합성)</td></tr>
+            <tr><td><span class="tk">SGOV</span></td><td>TIGER CD금리투자KIS / KODEX 머니마켓액티브</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">연금저축/IRP·ISA = <b>국내상장 ETF</b> 사용 / 일반 직투 계좌 = <b>미국 상장 ETF</b> 사용. 그릇에 맞는 상품을 담는 게 핵심입니다.</div>
+    </div>
+
+    <!-- 6. 성장 경로 -->
+    <div class="card">
+      <h3>6. 자산 성장 경로 — 두 분 숫자 기준</h3>
+      <p class="note" style="margin-top:0;">가정: 초기 시드 <b style="color:var(--text-primary)">1.74억</b> + 월 적립 <b style="color:var(--text-primary)">700만</b> + 블렌디드 수익률 <b style="color:var(--text-primary)">8.2%</b> (보수적).</p>
+      <div class="table-wrap">
+        <table class="ptable">
+          <thead><tr><th>경과</th><th class="num">투자자산</th><th>이정표</th></tr></thead>
+          <tbody>
+            <tr><td>현재</td><td class="num">1.74억</td><td>시드 투입 시작</td></tr>
+            <tr><td>3년차</td><td class="num">약 4.9억</td><td>토대 구축</td></tr>
+            <tr><td>5년차</td><td class="num">약 7.5억</td><td><span class="badge ok">Lean FIRE 도달</span></td></tr>
+            <tr><td>6년차</td><td class="num">약 9.0억</td><td><span class="badge info">Normal FIRE · 월 300만 패시브 ★</span></td></tr>
+            <tr><td>10년차</td><td class="num">약 16.1억</td><td><span class="badge warn">Fat FIRE 근접</span></td></tr>
+            <tr><td>12년차</td><td class="num">약 20.5억</td><td>월 680만 패시브 (4% 인출)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        결론: 두 분은 <b>약 5~6년이면 "월 300만 패시브 = 생활비 자급"</b> 구조에 도달합니다.
+        실제로는 초기 3~4년 예지 신용대출(6.23%) 상환을 병행하므로 <b>현실적 Normal FIRE 도달은 6~8년</b>으로 보시면 됩니다 —
+        고금리 빚 상환 = 연 6.23% 확정수익 투자와 동일하므로 먼저 갚는 게 정답입니다.
+      </div>
+    </div>
+
+    <!-- 7. 실행 체크리스트 -->
+    <div class="card">
+      <h3>7. 90일 실행 체크리스트</h3>
+      <div class="row"><span class="lbl">① 부부 각자 연금저축펀드 + IRP 계좌 개설 (증권사 앱)</span><span class="val blue">D+7</span></div>
+      <div class="row"><span class="lbl">② ISA 중개형 계좌 개설 (서민형 자격 확인)</span><span class="val blue">D+7</span></div>
+      <div class="row"><span class="lbl">③ 자동이체 세팅 — 연금 월 150만(부부합산), ISA 월 나머지</span><span class="val blue">D+14</span></div>
+      <div class="row"><span class="lbl">④ 핵심 4종목 적립식 매수 시작 (타이밍 No, 분할 Yes)</span><span class="val blue">D+14</span></div>
+      <div class="row"><span class="lbl">⑤ 예지 신용대출(6.23%) 집중상환과 투자 비중 분배 확정</span><span class="val amb">D+30</span></div>
+      <div class="row"><span class="lbl">⑥ 부산 처분 회수금 → 신용대출 정리 후 잔여 6~12개월 분할 투입</span><span class="val amb">처분 연동</span></div>
+      <p class="note" style="padding-top:8px;">핵심 원칙: <b style="color:var(--text-primary)">자동화(타이밍 예측 금지) · 절세그릇 우선 · 고금리빚 선상환 · 분산 · 장기보유.</b></p>
+    </div>
+
+    <!-- 8. 포트폴리오 시뮬레이터 -->
+    <div class="card">
+      <h3>8. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
+      <p class="note" style="margin-top:0;">비중·기대수익률·적립금·기간·목표 생활비를 바꾸면 블렌디드 수익률과 FIRE 도달 시점이 실시간 재계산됩니다.</p>
+
+      <div style="margin-top:14px; font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; padding:0 6px 4px;">
+        <span style="flex:1">자산</span><span style="width:62px; text-align:right">비중%</span><span style="width:62px; text-align:right">수익%</span>
+      </div>
+      <div class="alloc-row"><span class="nm"><b>VOO</b> S&P500</span><input type="number" id="a-voo" value="45" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-voo" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>QQQM</b> 나스닥100</span><input type="number" id="a-qqq" value="20" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-qqq" value="10.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>SCHD</b> 배당성장</span><input type="number" id="a-schd" value="25" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-schd" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>JEPQ</b> 커버드콜</span><input type="number" id="a-jepq" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-jepq" value="7.5" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>SGOV</b> 초단기채</span><input type="number" id="a-cash" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-cash" value="4.3" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+
+      <div style="margin-top:14px;">
+        <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50"></div>
+        <div class="input-row"><label>초기 시드 (만원)</label><input type="number" id="pf-seed" value="17400" min="0" max="100000" step="1000"></div>
+        <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1"></div>
+        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10"></div>
+      </div>
+      <button class="btn" onclick="calcPortfolio()">시뮬레이션 계산 →</button>
+    </div>
+
+    <div class="card" id="pf-result" style="display:none">
+      <h3>시뮬레이션 결과</h3>
+      <div class="grid2" style="margin-bottom:4px;">
+        <div class="metric"><div class="label">블렌디드 기대수익률</div><div class="value" id="pf-blended" style="color:#185FA5">-</div><div class="sub" id="pf-allocnote">비중 합계 100%</div></div>
+        <div class="metric"><div class="label">FIRE 목표 / 도달 시점</div><div class="value" id="pf-fire" style="color:#3B6D11">-</div><div class="sub" id="pf-firesub">-</div></div>
+      </div>
+      <div class="row"><span class="lbl">투자 원금 합계 (시드+적립)</span><span class="val" id="pf-principal">-</span></div>
+      <div class="row"><span class="lbl">예상 최종 자산</span><span class="val grn" id="pf-total">-</span></div>
+      <div class="row"><span class="lbl">수익금</span><span class="val blue" id="pf-profit">-</span></div>
+      <div class="row"><span class="lbl">최종 시점 연 배당 인컴 (배당률 가중)</span><span class="val grn" id="pf-divincome">-</span></div>
+      <div class="row"><span class="lbl">4% 인출 시 월 패시브 소득</span><span class="val grn" id="pf-passive">-</span></div>
+      <div class="divider"></div>
+      <div id="pf-comment" class="note" style="padding:8px 0;"></div>
+      <div style="position:relative; width:100%; height:300px; margin-top:1rem;">
+        <canvas id="pfChart" role="img" aria-label="포트폴리오 자산 성장 및 FIRE 목표 그래프"></canvas>
+      </div>
+    </div>
+
+    <p class="note" style="text-align:center; padding:8px 0 4px;">
+      ※ 본 리포트는 교육·참고용 시뮬레이션이며 특정 종목의 매수 권유나 수익 보장이 아닙니다. 모든 투자는 원금 손실 위험이 있으며,
+      기대수익률·환율·세율은 가정치입니다. 실제 실행 전 세무·투자 전문가와 본인 상황을 확인하세요.
+    </p>
+  </div>
+
   <!-- 시뮬레이터 -->
   <div class="section" id="simulator">
     <div class="section-title">월 잉여금 투자 시뮬레이터</div>
@@ -546,6 +810,7 @@ function show(id, el) {
   el.classList.add('active');
   if (id === 'cashflow') initCashflowChart();
   if (id === 'debt') initDebtChart();
+  if (id === 'freedom') calcPortfolio();
 }
 
 let cashflowInited = false;
@@ -594,6 +859,130 @@ function initDebtChart() {
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}억원` } }
+      }
+    }
+  });
+}
+
+// 만원 단위를 보기 좋게 (억/만)
+function fmtMan(v) {
+  v = Math.round(v);
+  if (Math.abs(v) >= 10000) {
+    const eok = v / 10000;
+    return (Math.round(eok * 100) / 100).toLocaleString() + '억';
+  }
+  return v.toLocaleString() + '만';
+}
+
+let pfChartInst = null;
+const PF_KEYS = ['voo', 'qqq', 'schd', 'jepq', 'cash'];
+const PF_DIV = { voo: 1.3, qqq: 0.6, schd: 3.7, jepq: 10.0, cash: 4.3 }; // 배당률 가정(%)
+function calcPortfolio() {
+  // 비중 · 기대수익률 읽기
+  const alloc = {}, ret = {};
+  let sum = 0;
+  PF_KEYS.forEach(k => {
+    alloc[k] = parseFloat(document.getElementById('a-' + k).value) || 0;
+    ret[k] = parseFloat(document.getElementById('r-' + k).value) || 0;
+    sum += alloc[k];
+  });
+  const norm = sum > 0 ? sum : 100;
+  let blended = 0, blendedDiv = 0;
+  PF_KEYS.forEach(k => {
+    blended += (alloc[k] / norm) * ret[k];
+    blendedDiv += (alloc[k] / norm) * PF_DIV[k];
+  });
+
+  const monthly = parseFloat(document.getElementById('pf-monthly').value) || 0;
+  const seed = parseFloat(document.getElementById('pf-seed').value) || 0;
+  const years = parseInt(document.getElementById('pf-years').value) || 10;
+  const living = parseFloat(document.getElementById('pf-living').value) || 300;
+  const fireTarget = living * 12 / 0.04; // 만원 (= living × 300)
+
+  const mRate = blended / 100 / 12;
+  const months = years * 12;
+  let total = seed;
+  const labels = ['시작'], pts = [Math.round(seed)];
+  let fireMonth = null;
+  for (let m = 1; m <= months; m++) {
+    total = total * (1 + mRate) + monthly;
+    if (fireMonth === null && total >= fireTarget) fireMonth = m;
+    if (m % 12 === 0) { labels.push((m / 12) + '년'); pts.push(Math.round(total)); }
+  }
+
+  const principal = Math.round(seed + monthly * months);
+  const finalMan = Math.round(total);
+  const profit = finalMan - principal;
+  const annualDiv = Math.round(finalMan * blendedDiv / 100);
+  const passive4 = Math.round(finalMan * 0.04 / 12);
+
+  // FIRE 도달 시점 텍스트
+  let fireWhen;
+  if (fireMonth === null) {
+    fireWhen = years + '년 내 미도달';
+  } else {
+    const yy = Math.floor(fireMonth / 12), mm = fireMonth % 12;
+    fireWhen = (yy > 0 ? yy + '년 ' : '') + (mm > 0 ? mm + '개월' : '') || '1개월';
+    fireWhen = fireWhen.trim();
+  }
+
+  document.getElementById('pf-blended').textContent = (Math.round(blended * 10) / 10) + '%';
+  document.getElementById('pf-allocnote').textContent =
+    Math.round(sum) === 100 ? '비중 합계 100% · 배당률 ' + (Math.round(blendedDiv * 10) / 10) + '%'
+      : '비중 합계 ' + Math.round(sum) + '% → 100% 정규화 적용';
+  document.getElementById('pf-fire').textContent = fmtMan(fireTarget);
+  document.getElementById('pf-firesub').textContent =
+    fireMonth === null ? '기간 연장/적립 확대 필요' : '도달까지 약 ' + fireWhen;
+  document.getElementById('pf-principal').textContent = fmtMan(principal);
+  document.getElementById('pf-total').textContent = fmtMan(finalMan);
+  document.getElementById('pf-profit').textContent = '+' + fmtMan(profit);
+  document.getElementById('pf-divincome').textContent = '연 ' + fmtMan(annualDiv) + ' (월 ' + fmtMan(annualDiv / 12) + ')';
+  document.getElementById('pf-passive').textContent = '월 ' + passive4.toLocaleString() + '만원';
+
+  let comment;
+  if (fireMonth !== null) {
+    comment = '블렌디드 ' + (Math.round(blended * 10) / 10) + '% 가정 시, 약 ' + fireWhen + ' 만에 목표 자산 ' + fmtMan(fireTarget) +
+      '(월 ' + living + '만 생활비 자급)에 도달합니다. 그 시점부터 일하지 않아도 생활비가 나오는 경제적 자유 구조입니다.';
+  } else {
+    comment = '현재 설정으로는 ' + years + '년 내 목표(' + fmtMan(fireTarget) + ')에 못 미칩니다. 월 적립금↑, 기간↑, 또는 성장자산(QQQM·VOO) 비중↑을 검토하세요.';
+  }
+  document.getElementById('pf-comment').textContent = comment;
+  document.getElementById('pf-result').style.display = 'block';
+
+  if (pfChartInst) pfChartInst.destroy();
+  pfChartInst = new Chart(document.getElementById('pfChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '포트폴리오 자산',
+          data: pts,
+          borderColor: '#185FA5',
+          backgroundColor: 'rgba(55,138,221,0.08)',
+          tension: 0.3, fill: true, pointRadius: 3
+        },
+        {
+          label: 'FIRE 목표 (' + fmtMan(fireTarget) + ')',
+          data: labels.map(() => Math.round(fireTarget)),
+          borderColor: '#3B6D11',
+          borderDash: [6, 5],
+          pointRadius: 0, fill: false, tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12, usePointStyle: true } },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtMan(ctx.raw) } }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => v >= 10000 ? Math.round(v / 10000 * 10) / 10 + '억' : v.toLocaleString() + '만', font: { size: 11 } },
+          grid: { color: 'rgba(128,128,128,0.1)' }
+        },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
       }
     }
   });
