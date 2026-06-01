@@ -647,7 +647,7 @@ https://yezee0420.github.io/dev/finance_report.html
       <p class="note" style="margin-top:0;" id="fs-journey-note"></p>
       <div class="input-row" style="margin:10px 0 14px;">
         <label>연간 예비비 (만원) <span class="input-hint">차·여행 등 매년 12월 인출</span></label>
-        <input type="number" id="fs-reserve" value="0" min="0" max="10000" step="100" onchange="fsSetReserve()">
+        <input type="number" id="fs-reserve" value="0" min="0" max="10000" step="100" onchange="linkEdit('annualReserve','fs-reserve')">
       </div>
       <div class="grid3" id="fs-journey-chips" style="margin-bottom:14px;"></div>
       <div style="position:relative; width:100%; height:300px;">
@@ -674,10 +674,10 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="alloc-row"><span class="nm"><b>SGOV</b> 초단기채</span><input type="number" id="a-cash" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-cash" value="4.3" min="0" max="30" step="0.5"><span class="unit">%</span></div>
 
       <div style="margin-top:14px;">
-        <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50"></div>
-        <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500"></div>
-        <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1"></div>
-        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10"></div>
+        <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50" onchange="linkEdit('monthly','pf-monthly')"></div>
+        <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500" onchange="linkEdit('seed','pf-seed')"></div>
+        <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1" onchange="linkEdit('years','pf-years')"></div>
+        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10" onchange="linkEdit('living','pf-living')"></div>
       </div>
       <button class="btn" onclick="calcPortfolio()">시뮬레이션 계산 →</button>
     </div>
@@ -867,14 +867,14 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="input-row">
         <label>월 생활비 (만원)</label>
         <span class="input-hint">식비·교통·통신 등</span>
-        <input type="number" id="living" value="250" min="100" max="800" step="50" oninput="syncInvestable()">
+        <input type="number" id="living" value="250" min="100" max="800" step="50" onchange="linkEdit('living','living')">
       </div>
       <div class="input-row" style="background:var(--bg-secondary); margin:0 -1.25rem; padding:9px 1.25rem;">
         <label style="font-weight:500; color:var(--text-primary);">월 투자 납입금 (만원)
           <span style="font-size:11px; font-weight:400; color:var(--text-tertiary);"> 수입−고정지출−생활비 자동, 직접 수정 가능</span>
         </label>
         <span class="input-hint"></span>
-        <input type="number" id="monthly" value="885" min="50" max="1500" step="50" style="border-color:#185FA5;">
+        <input type="number" id="monthly" value="885" min="50" max="1500" step="50" style="border-color:#185FA5;" onchange="linkEdit('monthly','monthly')">
       </div>
 
       <div style="font-size:11px; color:var(--text-tertiary); padding:12px 0 8px 0; border-bottom:0.5px solid var(--border-tertiary); margin-bottom:2px;">시드 &amp; 연간</div>
@@ -882,17 +882,17 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="input-row">
         <label>초기 시드 (만원)</label>
         <span class="input-hint">현재 보유 현금(주식 별도)</span>
-        <input type="number" id="seed" value="3200" min="0" max="50000" step="500">
+        <input type="number" id="seed" value="3200" min="0" max="50000" step="500" onchange="linkEdit('seed','seed')">
       </div>
       <div class="input-row">
         <label>연말 특별 납입 (만원)</label>
         <span class="input-hint">승모 연말 인센티브 등</span>
-        <input type="number" id="annualExtra" value="2000" min="0" max="5000" step="100">
+        <input type="number" id="annualExtra" value="2000" min="0" max="5000" step="100" onchange="linkEdit('annualExtra','annualExtra')">
       </div>
       <div class="input-row">
         <label>연간 예비비 (만원)</label>
         <span class="input-hint">차·여행 등 매년 빼놓는 돈</span>
-        <input type="number" id="annualReserve" value="0" min="0" max="10000" step="100">
+        <input type="number" id="annualReserve" value="0" min="0" max="10000" step="100" onchange="linkEdit('annualReserve','annualReserve')">
       </div>
       <div class="input-row">
         <label>연 투자 납입 증가율 (%)</label>
@@ -905,12 +905,12 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="input-row">
         <label>연 기대 수익률 (%)</label>
         <span class="input-hint">ETF 장기 평균 7~8%</span>
-        <input type="number" id="rate" value="7" min="3" max="15" step="0.5">
+        <input type="number" id="rate" value="8.2" min="3" max="15" step="0.5" onchange="linkEdit('rate','rate')">
       </div>
       <div class="input-row">
         <label>투자 기간 (년)</label>
         <span class="input-hint"></span>
-        <input type="number" id="years" value="10" min="1" max="30" step="1">
+        <input type="number" id="years" value="12" min="1" max="30" step="1" onchange="linkEdit('years','years')">
       </div>
 
       <button class="btn" onclick="calcSim()">계산하기 →</button>
@@ -959,8 +959,8 @@ https://yezee0420.github.io/dev/finance_report.html
       <p class="note" style="margin-top:0;">매월 <b>실제로 넣거나 뺀 돈(현금흐름 +/−)</b>을 입력하세요. 가능하면 그달 <b>실제 평가액</b>도 입력 — 비우면 추정 수익률로 자동 계산합니다. 입력값은 이 브라우저에 자동 저장되고, <b>“깃 저장용 JSON”</b>으로 내보내 영구 보관·기기 공유할 수 있습니다.</p>
       <div class="grid3" style="margin-top:12px;">
         <div class="input-row" style="border:none;padding:6px 0;"><label>시작 연도</label><input type="number" id="ac-startyear" value="2026" min="2000" max="2100" step="1" onchange="acCfg()"></div>
-        <div class="input-row" style="border:none;padding:6px 0;"><label>시작 시드 (만원)</label><input type="number" id="ac-seed" value="3200" min="0" step="100" onchange="acCfg()"></div>
-        <div class="input-row" style="border:none;padding:6px 0;"><label>추정 수익률 (%)</label><input type="number" id="ac-rate" value="8.2" min="0" max="30" step="0.1" onchange="acCfg()"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>시작 시드 (만원)</label><input type="number" id="ac-seed" value="3200" min="0" step="100" onchange="linkEdit('seed','ac-seed')"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>추정 수익률 (%)</label><input type="number" id="ac-rate" value="8.2" min="0" max="30" step="0.1" onchange="linkEdit('rate','ac-rate')"></div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;">
         <button class="btn" style="margin:0;" onclick="acAddYear()">+ 연도 추가</button>
@@ -1292,7 +1292,7 @@ function reSetYear(id){ const e=RE_EVENTS.find(x=>x.id===id); e.year=Math.max(0,
    매월 실제 현금흐름(+/-) 입력 + 선택적 실제 평가액. 평가액 빈칸은 추정 수익률로 계산.
    저장: localStorage(즉시) + "깃 저장용 JSON" 내보내기로 ACTUAL_SEED에 커밋.
    ============================================================ */
-const ACTUAL_SEED = { startYear:2026, endYear:2026, seed:3200, rate:8.2, metric:'flow', flow:{}, value:{} };
+const ACTUAL_SEED = { startYear:2026, endYear:2026, metric:'flow', flow:{}, value:{} };  // 시드·수익률은 공유 플랜(SCEN/SCEN_RATE)에서 가져옴
 let ACTUAL = JSON.parse(JSON.stringify(ACTUAL_SEED));
 let acChartInst = null;
 let acInited = false;
@@ -1306,16 +1306,14 @@ function acInit(){
   try{ const raw = localStorage.getItem('fr_actual'); if(raw) ACTUAL = Object.assign(JSON.parse(JSON.stringify(ACTUAL_SEED)), JSON.parse(raw)); }catch(e){}
   const now = new Date(); if(ACTUAL.endYear < now.getFullYear()) ACTUAL.endYear = now.getFullYear();
   document.getElementById('ac-startyear').value = ACTUAL.startYear;
-  document.getElementById('ac-seed').value = ACTUAL.seed;
-  document.getElementById('ac-rate').value = ACTUAL.rate;
+  document.getElementById('ac-seed').value = SCEN[curScen].seed;   // 공유 시드
+  document.getElementById('ac-rate').value = SCEN_RATE;            // 공유 수익률
   document.querySelectorAll('#ac-metric button').forEach(b=> b.classList.toggle('active', b.getAttribute('data-m')===(ACTUAL.metric||'flow')));
   acInited = true;
   acRender();
 }
 function acCfg(){
   ACTUAL.startYear = parseInt(document.getElementById('ac-startyear').value)||2026;
-  ACTUAL.seed = acNum(document.getElementById('ac-seed').value);
-  ACTUAL.rate = acNum(document.getElementById('ac-rate').value);
   if(ACTUAL.endYear < ACTUAL.startYear) ACTUAL.endYear = ACTUAL.startYear;
   acSave(); acRender();
 }
@@ -1325,14 +1323,15 @@ function acSetMetric(m){ ACTUAL.metric=m; document.querySelectorAll('#ac-metric 
 function acEditFlow(key, v){ if(v===''||v==null) delete ACTUAL.flow[key]; else ACTUAL.flow[key]=acNum(v); acSave(); acRender(); }
 function acEditValue(key, v){ if(v===''||v==null) delete ACTUAL.value[key]; else ACTUAL.value[key]=acNum(v); acSave(); acRender(); }
 
-/* 계획 기본 현금흐름 (빈 칸 기본값) */
-function acPlan(){ const s=SCEN.combined; return { monthly:Math.max(0, s.income - s.fixed - s.living), annualExtra:s.annualExtra, reserve:s.annualReserve||0 }; }
+/* 계획 기본 현금흐름 (빈 칸 기본값) — 공유 플랜 기준 */
+function acPlan(){ const s=SCEN[curScen]; return { monthly:scenMonthly(s), annualExtra:s.annualExtra, reserve:s.annualReserve||0 }; }
 function acDefaultFlow(m){ const p=acPlan(); return Math.round(p.monthly + (m===12 ? p.annualExtra - p.reserve : 0)); }
 
 /* 실제 경로 계산 (시드부터 월별 누적). 빈 칸은 계획 기본값 사용 */
 function acCompute(){
-  const mR = (ACTUAL.rate/100)/12;
-  let cumP = ACTUAL.seed, val = ACTUAL.seed;
+  const mR = (SCEN_RATE/100)/12;
+  const seed0 = SCEN[curScen].seed;
+  let cumP = seed0, val = seed0;
   const cells = {};
   acYears().forEach(y=>{ for(let m=1;m<=12;m++){
     const key = y+'-'+m;
@@ -1350,10 +1349,10 @@ function acCompute(){
 /* 계획(TARGET) 경로 — 합산 시나리오 기준, 같은 시드에서 출발 */
 function acTarget(){
   const mR = SCEN_RATE/100/12;
-  const s = SCEN.combined;
-  const monthly = Math.max(0, s.income - s.fixed - s.living);
+  const s = SCEN[curScen];
+  const monthly = scenMonthly(s);
   const reserve = s.annualReserve||0;
-  let t = ACTUAL.seed; const tv = {};
+  let t = s.seed; const tv = {};
   acYears().forEach(y=>{ for(let m=1;m<=12;m++){
     t = t*(1+mR) + monthly;
     if(m===12){ t += s.annualExtra; t = Math.max(0, t - reserve); }
@@ -1455,7 +1454,7 @@ function acRender(){
 
 function acExport(){
   // 빈 항목 제거 후 JSON
-  const out = { startYear:ACTUAL.startYear, endYear:ACTUAL.endYear, seed:ACTUAL.seed, rate:ACTUAL.rate, metric:ACTUAL.metric, flow:{}, value:{} };
+  const out = { startYear:ACTUAL.startYear, endYear:ACTUAL.endYear, metric:ACTUAL.metric, flow:{}, value:{} };
   Object.keys(ACTUAL.flow).forEach(k=>{ if(ACTUAL.flow[k]!==''&&ACTUAL.flow[k]!=null) out.flow[k]=ACTUAL.flow[k]; });
   Object.keys(ACTUAL.value).forEach(k=>{ if(ACTUAL.value[k]!==''&&ACTUAL.value[k]!=null) out.value[k]=ACTUAL.value[k]; });
   const json = 'const ACTUAL_SEED = ' + JSON.stringify(out) + ';';
@@ -1697,8 +1696,34 @@ const SCEN = {
     incomeNote:'기본급 535 + 분기급 178 + 마포 월세 155',
     diag:'마포 원리금 315만이 매월 투자여력을 잠식 → 월 적립 293만으로 낮음. 대신 연말 인센티브 2,000만이 큰 무기 → 연말 일시납으로 만회.' }
 };
-const SCEN_RATE = 8.2;
+let SCEN_RATE = 8.2;        // 공유 수익률 (전 탭 연동)
+let LINKVAL_YEARS = 12;     // 공유 투자 기간
 let curScen = 'combined';
+
+/* 월 투자 납입금: 직접 수정(override) 없으면 수입−고정−생활비에서 자동 도출 */
+function scenMonthly(s){ return (s.monthlyOverride && s.monthly != null) ? s.monthly : Math.max(0, s.income - s.fixed - s.living); }
+
+/* ===== 변수 연동 — 한 곳에서 바꾸면 모든 탭이 같이 바뀜 =====
+   대상: 시드·생활비·월납입·연말납입·예비비·수익률·기간 */
+function linkEdit(key, id){
+  const v = acNum(document.getElementById(id).value);
+  const s = SCEN[curScen];
+  if (key==='seed')              s.seed = v;
+  else if (key==='living')     { s.living = v; s.monthlyOverride = false; }   // 생활비 바꾸면 월납입 재도출
+  else if (key==='monthly')    { s.monthly = v; s.monthlyOverride = true; }   // 직접 입력 = override
+  else if (key==='annualExtra')   s.annualExtra = v;
+  else if (key==='annualReserve') s.annualReserve = v;
+  else if (key==='rate')          SCEN_RATE = v;
+  else if (key==='years')         LINKVAL_YEARS = v;
+  recalcAll();
+}
+function recalcAll(){
+  setScenario(curScen);            // 공유값을 전 입력칸에 재푸시 + 경제자유/여정 재렌더
+  if (typeof calcSim === 'function')       calcSim();
+  if (typeof calcPortfolio === 'function') calcPortfolio();
+  if (acInited) acRender();
+}
+function _setV(id, val){ const el=document.getElementById(id); if(el) el.value = val; }
 
 function buildGrowth(seed, monthly, annualExtra, ratePct, target, annualReserve) {
   const mR = ratePct / 100 / 12;
@@ -1828,7 +1853,7 @@ function toggleJourney(){
 function setScenario(key) {
   curScen = key;
   const s = SCEN[key];
-  const investable = Math.max(0, s.income - s.fixed - s.living);
+  const investable = scenMonthly(s);
   const reserve = s.annualReserve || 0;
   const target = s.living * 300;            // 만원: 월생활비 × 12 × 25 (4% 룰)
   const g = buildGrowth(s.seed, investable, s.annualExtra, SCEN_RATE, target, reserve);
@@ -1851,11 +1876,11 @@ function setScenario(key) {
     + '<span class="pill">월 적립 ' + investable.toLocaleString() + '만</span>'
     + (s.annualExtra ? '<span class="pill">연말 ' + s.annualExtra.toLocaleString() + '만</span>' : '')
     + (reserve ? '<span class="pill" style="color:#A32D2D;">예비비 −' + reserve.toLocaleString() + '만/년</span>' : '')
-    + '<span class="pill">수익률 8.2%</span>'
+    + '<span class="pill">수익률 ' + SCEN_RATE + '%</span>'
     + (s.stocks ? '<span class="pill">보유주식 ' + s.stocks.toLocaleString() + '만(별도)</span>' : '')
     + '</div>'
     + '<p class="note" style="margin:0;"><b>어떤 조건으로?</b> 현금 ' + s.seed.toLocaleString() + '만으로 시작해 매월 ' + investable.toLocaleString() + '만'
-    + (s.annualExtra ? ' + 연말 ' + s.annualExtra.toLocaleString() + '만' : '') + (reserve ? ' − 매년 예비비 ' + reserve.toLocaleString() + '만' : '') + '씩 연 8.2% 복리로 굴리면, <b>약 ' + fireWhen + '</b> 뒤 월 ' + s.living + '만 패시브(목표 ' + fmtMan(target) + ')에 도달합니다. 자세한 가정·경로는 아래.</p>';
+    + (s.annualExtra ? ' + 연말 ' + s.annualExtra.toLocaleString() + '만' : '') + (reserve ? ' − 매년 예비비 ' + reserve.toLocaleString() + '만' : '') + '씩 연 ' + SCEN_RATE + '% 복리로 굴리면, <b>약 ' + fireWhen + '</b> 뒤 월 ' + s.living + '만 패시브(목표 ' + fmtMan(target) + ')에 도달합니다. 자세한 가정·경로는 아래.</p>';
 
   /* 대전제 표 */
   const tr = (a, b, c) => '<tr><td><b>' + a + '</b></td><td class="num">' + b + '</td><td>' + c + '</td></tr>';
@@ -1866,7 +1891,7 @@ function setScenario(key) {
     + tr('③ 월 적립', investable.toLocaleString() + '만', '수입 ' + s.income + ' − 고정 ' + s.fixed + ' − 생활비 ' + s.living + ' (' + s.incomeNote + ')')
     + tr('④ 연말 특별납입', s.annualExtra ? s.annualExtra.toLocaleString() + '만/년' : '없음', s.annualExtra ? '승모 연말 인센티브·연차보상' : '-')
     + tr('④-1 연간 예비비', reserve ? '−' + reserve.toLocaleString() + '만/년' : '없음', reserve ? '차·여행 등 매년 12월 인출 (투자에서 제외)' : '-')
-    + tr('⑤ 블렌디드 수익률', '8.2%', '미국 ETF 보수 가정 · 환율 고정·세금 0(절세계좌)·하락장 평균화')
+    + tr('⑤ 블렌디드 수익률', SCEN_RATE + '%', '미국 ETF 보수 가정 · 환율 고정·세금 0(절세계좌)·하락장 평균화')
     + tr('⑥ FIRE 목표', fmtMan(target), '월 생활비 ' + s.living + '만 × 12 × 25 (4% 룰)')
     + '</tbody></table>';
   document.getElementById('fs-networth').innerHTML =
@@ -1885,7 +1910,7 @@ function setScenario(key) {
   /* 성장 경로 */
   document.getElementById('fs-growth-assume').innerHTML =
     '가정: 초기 시드 <b>' + s.seed.toLocaleString() + '만</b>(현금) + 월 적립 <b>' + investable.toLocaleString() + '만</b>'
-    + (s.annualExtra ? ' + 연말 <b>' + s.annualExtra.toLocaleString() + '만</b>' : '') + ' + 수익률 <b>8.2%</b> (보수적).';
+    + (s.annualExtra ? ' + 연말 <b>' + s.annualExtra.toLocaleString() + '만</b>' : '') + ' + 수익률 <b>' + SCEN_RATE + '%</b> (보수적).';
   const yrs = [3, 5, 7, 10, 15, 20];
   let rows = '<tr><td>현재</td><td class="num">' + fmtMan(s.seed) + '</td><td>시드(현금) 투입 시작</td></tr>';
   yrs.forEach(y => {
@@ -1905,6 +1930,12 @@ function setScenario(key) {
   document.getElementById('pf-seed').value = s.seed;
   document.getElementById('pf-monthly').value = investable;
   document.getElementById('pf-living').value = s.living;
+  _setV('pf-years', LINKVAL_YEARS);
+
+  /* 공유 수익률·기간·실적탭 시드 동기화 */
+  _setV('rate', SCEN_RATE);  _setV('ac-rate', SCEN_RATE);
+  _setV('years', LINKVAL_YEARS);
+  _setV('ac-seed', s.seed);
 
   /* 메인 시뮬레이터 입력 + 연동 박스 */
   INCOME = s.income; FIXED = s.fixed;
