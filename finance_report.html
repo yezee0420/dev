@@ -557,7 +557,7 @@ https://yezee0420.github.io/dev/finance_report.html
         <div class="tl-item">
           <div class="tl-dot goal"></div>
           <div class="tl-title">경제적 자유 기준선 도달</div>
-          <div class="tl-desc">생활비 월 300만 기준 → 순자산 약 9억 + 배당수익률 4% = 월 300만 패시브. 현실적 목표치.</div>
+          <div class="tl-desc">생활비 월 <span id="strat-living">450</span>만 기준 → 순자산 약 <span id="strat-target">13.5억</span> + 배당수익률 4% = 월 <span id="strat-living2">450</span>만 패시브. 목표치.</div>
         </div>
       </div>
     </div>
@@ -587,7 +587,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <div class="card">
       <p class="note" style="margin-top:0; font-size:12.5px; color:var(--text-secondary);">
-        안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 <span id="fs-intro-net">약 11.8억</span> + 월 잉여현금 900만원대</b>라는, 또래 대비 매우 앞선 출발선에 계십니다.
+        안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 <span id="fs-intro-net">약 11.8억</span> + 월 투자여력 <span id="fs-intro-surplus">약 685만</span></b>이라는, 또래 대비 매우 앞선 출발선에 계십니다.
         다만 자산이 대부분 <b style="color:var(--text-primary)">부동산(비유동·레버리지)</b>에 묶여 있고, 유동 투자자산은 약 8,860만(대부분 손실 중인 개별 해외주식)뿐이라, 진짜 경제적 자유 = "일하지 않아도 들어오는 현금흐름"은 아직 거의 없습니다.
         이 리포트는 그 잉여현금을 <b style="color:var(--text-primary)">패시브 인컴 기계</b>로 바꾸는 구체적 설계도입니다.
       </p>
@@ -732,7 +732,7 @@ https://yezee0420.github.io/dev/finance_report.html
           유동성·유연성 최고 — 비상금/기회 매수용. 부산 처분 시드의 거치식 투입도 여기서.
         </p>
       </div>
-      <div class="callout"><b>실행 순서:</b> 1층 세액공제 한도(1,800만) → 2층 ISA(4,000만) → 3층 직투. 월 잉여 700만이면 1·2층만으로도 거의 다 소화됩니다.</div>
+      <div class="callout"><b>실행 순서:</b> 1층 세액공제 한도(1,800만) → 2층 ISA(4,000만) → 3층 직투. 월 잉여 <span id="fs-tax-surplus">685만</span>이면 1·2층만으로도 거의 다 소화됩니다.</div>
     </div>
 
     <!-- 4. 핵심 포트폴리오 -->
@@ -1154,6 +1154,14 @@ function renderModel(){
   const L = (typeof SCEN!=='undefined' && SCEN.combined) ? SCEN.combined.living : MODEL.living.high;
   _set('cf-living',      '-'+man(L));
   _set('cf-surplus',     '약 '+man(D.surplusPreLiving - L)+'/월');
+  // 경제자유 인트로·절세·전략 로드맵의 생활비/투자여력/목표 동기화 (합산 기준)
+  if (typeof SCEN!=='undefined' && SCEN.combined){
+    const cInv = scenMonthly(SCEN.combined);
+    _set('fs-intro-surplus', '약 '+man(cInv));
+    _set('fs-tax-surplus', man(cInv));
+    _set('strat-living', L); _set('strat-living2', L);
+    _set('strat-target', '약 '+fmtMan(L*300));
+  }
 
   // --- 부채 분석: 목록 ---
   const sorted = [...MODEL.loans].sort((a,b)=>b.rate-a.rate);
@@ -1272,7 +1280,7 @@ function reRender(){
     + _row('월 고정지출', man(after.expense)+dMan(base.expense,after.expense), 'red')
     + _div()
     + '<div class="row"><span class="lbl" style="font-weight:500">생활비 전 잉여</span><span class="val blue" style="font-size:15px">'+man(after.surplus)+dMan(base.surplus,after.surplus)+'</span></div>'
-    + '<p class="note" style="padding-top:6px">생활비 300만 차감 시 월 투자여력 약 '+man(Math.max(0,after.surplus-MODEL.living.high))+'</p>');
+    + '<p class="note" style="padding-top:6px">생활비 '+SCEN.combined.living+'만 차감 시 월 투자여력 약 '+man(Math.max(0,after.surplus-SCEN.combined.living))+'</p>');
 
   // 4) 일시 현금
   let cashRows = active.map(ev=>{
