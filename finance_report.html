@@ -297,22 +297,22 @@ https://yezee0420.github.io/dev/finance_report.html
     <div class="grid4">
       <div class="metric">
         <div class="label">합산 자산</div>
-        <div class="value">약 22.4억</div>
-        <div class="sub">마포17+부산4.5+금융0.9</div>
+        <div class="value" id="ov-assets">-</div>
+        <div class="sub">마포17+부산4.5+전세1.44+금융0.9</div>
       </div>
       <div class="metric">
         <div class="label">합산 부채</div>
-        <div class="value" style="color:#A32D2D">약 11.6억</div>
-        <div class="sub">대출 전체</div>
+        <div class="value" id="ov-debt" style="color:#A32D2D">-</div>
+        <div class="sub">대출 전체(전세대출 포함)</div>
       </div>
       <div class="metric">
         <div class="label">순자산 (추정)</div>
-        <div class="value" style="color:#185FA5">약 10.8억</div>
-        <div class="sub">자산22.4 − 부채11.6</div>
+        <div class="value" id="ov-net" style="color:#185FA5">-</div>
+        <div class="sub" id="ov-net-sub">-</div>
       </div>
       <div class="metric">
-        <div class="label">월 고정 이자·원리금</div>
-        <div class="value" style="color:#A32D2D">약 517만</div>
+        <div class="label">월 부채 상환 (이자·원리금)</div>
+        <div class="value" id="ov-debtsvc" style="color:#A32D2D">-</div>
         <div class="sub">승모+예지 합산</div>
       </div>
     </div>
@@ -340,20 +340,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <div class="card">
       <h3>합산 월 현금흐름 (결혼 후 예상)</h3>
-      <div class="row"><span class="lbl">예지 월급 (평균, 연장 20h)</span><span class="val grn">+814만</span></div>
-      <div class="row"><span class="lbl">승모 월급</span><span class="val grn">+535만</span></div>
-      <div class="row"><span class="lbl">승모 분기급 (월 평산)</span><span class="val grn">+178만</span></div>
-      <div class="row"><span class="lbl">승모 월세 수입</span><span class="val grn">+155만</span></div>
-      <div class="row"><span class="lbl">승모 원리금</span><span class="val red">-315만</span></div>
-      <div class="row"><span class="lbl">예지 상가 대출이자</span><span class="val red">-166만</span></div>
-      <div class="row"><span class="lbl">예지 전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
-      <div class="row"><span class="lbl">예지 상가 관리비</span><span class="val red">-11만</span></div>
-      <div class="divider"></div>
-      <div class="row">
-        <span class="lbl" style="font-weight:500">생활비 전 실수령 잉여</span>
-        <span class="val blue" style="font-size:15px">+약 1,165만/월</span>
-      </div>
-      <p class="note">* 생활비, 식비, 교통, 통신 등 미반영 / 상가 월세 발생 시 +100만 추가</p>
+      <div id="ov-cashflow"></div>
     </div>
   </div>
 
@@ -364,34 +351,17 @@ https://yezee0420.github.io/dev/finance_report.html
     <div class="grid2">
       <div class="card">
         <h3>수입</h3>
-        <div class="row"><span class="lbl">예지 월급 (연장 20h 포함)</span><span class="val grn">+814만</span></div>
-        <div class="row"><span class="lbl">승모 기본급</span><span class="val grn">+535만</span></div>
-        <div class="row"><span class="lbl">승모 분기급 (월 평산)</span><span class="val grn">+178만</span></div>
-        <div class="row"><span class="lbl">마포 아파트 월세 수입</span><span class="val grn">+155만</span></div>
-        <div class="divider"></div>
-        <div class="row"><span class="lbl" style="font-weight:500">월 합산 수입</span><span class="val grn" style="font-size:15px">약 1,682만</span></div>
-        <p class="note" style="padding-top:6px">* 분기급 178만 = 535×4÷12 / 부산 상가 월세는 임차 확정 후 별도 반영</p>
+        <div id="cf-income"></div>
       </div>
       <div class="card">
         <h3>고정 지출</h3>
-        <div class="row"><span class="lbl">마포 아파트 대출 상환 원리금</span><span class="val red">-315만</span></div>
-        <div class="row"><span class="lbl">부산 상가 사업자대출 이자</span><span class="val red">-116만</span></div>
-        <div class="row"><span class="lbl">부산 상가 신용대출 이자</span><span class="val red">-50만</span></div>
-        <div class="row"><span class="lbl">정자 오피스텔 전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
-        <div class="row"><span class="lbl">부산 상가 관리비</span><span class="val red">-11만</span></div>
-        <div class="row"><span class="lbl">정자 오피스텔 월세</span><span class="val red">-30만</span></div>
-        <div class="divider"></div>
-        <div class="row"><span class="lbl" style="font-weight:500">고정 지출 합계</span><span class="val red" style="font-size:15px">약 547만</span></div>
+        <div id="cf-expense"></div>
       </div>
     </div>
 
     <div class="card">
       <h3>연간 특별 수입 (승모)</h3>
-      <div class="row"><span class="lbl">연차보상금 (12월)</span><span class="val grn">+700만</span></div>
-      <div class="row"><span class="lbl">고정 인센티브 (12월 말)</span><span class="val grn">+1,500만</span></div>
-      <div class="divider"></div>
-      <div class="row"><span class="lbl" style="font-weight:500">합계</span><span class="val grn" style="font-size:15px">연 +2,200만</span></div>
-      <p class="note" style="padding-top:6px">* 월 평균 환산 시 +183만 / 연말 목돈으로 집중 운용 추천</p>
+      <div id="cf-annual"></div>
     </div>
 
     <!-- 현금흐름 요약 — 아코디언 -->
@@ -401,40 +371,28 @@ https://yezee0420.github.io/dev/finance_report.html
       <!-- 월 합산 수입 아코디언 -->
       <div class="accordion-header" id="acc-income-h" onclick="toggleAcc('income')">
         <span class="lbl">월 합산 수입 (분기급 포함 평균)</span>
-        <span class="val grn">+1,682만</span>
+        <span class="val grn" id="acc-income-total">-</span>
         <span class="arrow">▼</span>
       </div>
       <div class="accordion-body" id="acc-income-b">
-        <div class="accordion-inner">
-          <div class="row"><span class="lbl">예지 월급</span><span class="val grn">+814만</span></div>
-          <div class="row"><span class="lbl">승모 기본급</span><span class="val grn">+535만</span></div>
-          <div class="row"><span class="lbl">승모 분기급 (월 평산)</span><span class="val grn">+178만</span></div>
-          <div class="row"><span class="lbl">마포 아파트 월세 수입</span><span class="val grn">+155만</span></div>
-        </div>
+        <div class="accordion-inner" id="cf-income-acc"></div>
       </div>
 
       <!-- 고정 지출 아코디언 -->
       <div class="accordion-header" id="acc-fixed-h" onclick="toggleAcc('fixed')">
         <span class="lbl">고정 지출</span>
-        <span class="val red">-547만</span>
+        <span class="val red" id="acc-fixed-total">-</span>
         <span class="arrow">▼</span>
       </div>
       <div class="accordion-body" id="acc-fixed-b">
-        <div class="accordion-inner">
-          <div class="row"><span class="lbl">마포 아파트 대출 상환 원리금</span><span class="val red">-315만</span></div>
-          <div class="row"><span class="lbl">부산 상가 사업자대출 이자</span><span class="val red">-116만</span></div>
-          <div class="row"><span class="lbl">부산 상가 신용대출 이자</span><span class="val red">-50만</span></div>
-          <div class="row"><span class="lbl">정자 오피스텔 전세 대출이자 (자부담)</span><span class="val red">-25만</span></div>
-          <div class="row"><span class="lbl">부산 상가 관리비</span><span class="val red">-11만</span></div>
-          <div class="row"><span class="lbl">정자 오피스텔 월세</span><span class="val red">-30만</span></div>
-        </div>
+        <div class="accordion-inner" id="cf-fixed-acc"></div>
       </div>
 
       <!-- 생활비 -->
-      <div class="row"><span class="lbl">생활비 추정</span><span class="val red">-200~300만</span></div>
+      <div class="row"><span class="lbl">생활비 추정</span><span class="val red" id="cf-living">-</span></div>
 
       <div class="divider"></div>
-      <div class="row"><span class="lbl" style="font-weight:500">월 잉여 현금 (추정)</span><span class="val blue" style="font-size:16px">약 835~935만/월</span></div>
+      <div class="row"><span class="lbl" style="font-weight:500">월 잉여 현금 (추정)</span><span class="val blue" style="font-size:16px" id="cf-surplus">-</span></div>
       <p class="note" style="padding-top:6px">* 부산 상가 매매 처분 후 대출 상환 완료 시 +166만 추가 잉여 발생</p>
     </div>
 
@@ -454,24 +412,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <div class="section-title">부채 현황 및 상환 우선순위</div>
     <div class="card">
       <h3>부채 목록 (금리 높은 순)</h3>
-      <div class="row">
-        <span class="lbl">예지 신용대출 <span class="badge danger">1순위</span></span>
-        <span class="val">6.231% / 9,600만 / 월 50만</span>
-      </div>
-      <div class="row">
-        <span class="lbl">예지 사업자대출 <span class="badge warn">처분 연동</span></span>
-        <span class="val">4.43% / 3.1억 / 월 116만</span>
-      </div>
-      <div class="row">
-        <span class="lbl">전세 보증금대출</span>
-        <span class="val">4.54% / 1.44억 / 월 55만 (30만 지원)</span>
-      </div>
-      <div class="row">
-        <span class="lbl">승모 주담대 <span class="badge info">원리금균등</span></span>
-        <span class="val">약 4.8% / 6.5억 / 월 315만</span>
-      </div>
-      <div class="divider"></div>
-      <div class="row"><span class="lbl" style="font-weight:500">총 부채</span><span class="val red" style="font-size:15px">약 11.64억</span></div>
+      <div id="debt-list"></div>
     </div>
 
     <div class="card">
@@ -596,7 +537,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <div class="card">
       <p class="note" style="margin-top:0; font-size:12.5px; color:var(--text-secondary);">
-        안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 약 10.8억 + 월 잉여현금 900만원대</b>라는, 또래 대비 매우 앞선 출발선에 계십니다.
+        안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 <span id="fs-intro-net">약 11.8억</span> + 월 잉여현금 900만원대</b>라는, 또래 대비 매우 앞선 출발선에 계십니다.
         다만 자산이 대부분 <b style="color:var(--text-primary)">부동산(비유동·레버리지)</b>에 묶여 있고, 유동 투자자산은 약 8,860만(대부분 손실 중인 개별 해외주식)뿐이라, 진짜 경제적 자유 = "일하지 않아도 들어오는 현금흐름"은 아직 거의 없습니다.
         이 리포트는 그 잉여현금을 <b style="color:var(--text-primary)">패시브 인컴 기계</b>로 바꾸는 구체적 설계도입니다.
       </p>
@@ -947,6 +888,135 @@ https://yezee0420.github.io/dev/finance_report.html
 </div>
 
 <script>
+/* ============================================================
+   단일 진실 데이터 모델 (Single Source of Truth)
+   모든 탭의 숫자·합계·차트는 이 MODEL 한 곳에서 계산됩니다.
+   숫자를 바꿀 땐 여기만 고치세요 → 6개 탭이 자동 동기화됩니다.
+   단위: 부동산=억원, 그 외 금액=만원, 금리=%
+   ============================================================ */
+const MODEL = {
+  // 부동산 (억원). busan은 처분가정(disposal)을 자산가로 사용, 호가(quote)는 참고.
+  property: {
+    mapo:   { name:'마포 래미안 아파트', value:17.0, equity:10.5, owner:'승모', use:'임대' },
+    busan:  { name:'부산 해운대 상가',   value:4.5,  quote:5.8,  owner:'예지', use:'공실' },
+    jeonse: { name:'정자 오피스텔 전세보증금', value:1.44, owner:'부부', use:'거주' }, // 전세대출과 매칭(gross)
+  },
+  // 금융자산 (만원)
+  financial: { stocks:5660, cash:3200 },
+  // 대출 (만원 / 금리% / 월상환 만원). jeonse는 월 55만 중 자부담 25(30 지원).
+  loans: [
+    { id:'yeji_credit',   name:'예지 신용대출',          balance:9600,  rate:6.231, monthly:50,  type:'이자',   owner:'예지', color:'#E24B4A', badge:{cls:'danger',txt:'1순위'} },
+    { id:'busan_biz',     name:'예지 사업자대출',        balance:31000, rate:4.43,  monthly:116, type:'이자',   owner:'예지', color:'#BA7517', badge:{cls:'warn',txt:'처분 연동'} },
+    { id:'jeonse',        name:'전세 보증금대출',        balance:14400, rate:4.54,  monthly:55, selfMonthly:25, type:'이자', owner:'부부', color:'#639922' },
+    { id:'mapo_mortgage', name:'승모 주담대',            balance:65000, rate:4.8,   monthly:315, type:'원리금', owner:'승모', color:'#378ADD', badge:{cls:'info',txt:'원리금균등'} },
+  ],
+  // 월 수입 (만원)
+  income: [
+    { id:'yeji_salary', name:'예지 월급 (연장 20h)',  amount:814, owner:'예지' },
+    { id:'sm_base',     name:'승모 기본급',           amount:535, owner:'승모' },
+    { id:'sm_quarter',  name:'승모 분기급 (월 평산)', amount:178, owner:'승모', note:'535×4÷12' },
+    { id:'mapo_rent',   name:'마포 아파트 월세 수입', amount:155, owner:'승모' },
+  ],
+  // 월 고정지출 (만원). kind: 원리금/이자/관리비/월세
+  expense: [
+    { id:'mapo_mortgage', name:'마포 아파트 대출 원리금',            amount:315, kind:'원리금' },
+    { id:'busan_biz',     name:'부산 상가 사업자대출 이자',          amount:116, kind:'이자' },
+    { id:'busan_credit',  name:'부산 상가 신용대출 이자',            amount:50,  kind:'이자' },
+    { id:'jeonse',        name:'정자 오피스텔 전세대출 이자(자부담)', amount:25,  kind:'이자' },
+    { id:'busan_mgmt',    name:'부산 상가 관리비',                   amount:11,  kind:'관리비' },
+    { id:'officetel',     name:'정자 오피스텔 월세',                 amount:30,  kind:'월세' },
+  ],
+  // 연간 특별수입 (만원, 승모)
+  annual: [
+    { name:'연차보상금 (12월)',     amount:700 },
+    { name:'고정 인센티브 (12월말)', amount:1500 },
+  ],
+  living: { low:200, high:300, normal:300, lean:250, fat:500 },
+};
+
+/* 파생값(합계 등) — 절대 하드코딩하지 말 것 */
+const D = {
+  get totalLoansMan()    { return MODEL.loans.reduce((s,l)=>s+l.balance,0); },
+  get totalLoansEok()    { return this.totalLoansMan/10000; },
+  get financialMan()     { return MODEL.financial.stocks + MODEL.financial.cash; },
+  get totalAssetsEok()   { return MODEL.property.mapo.value + MODEL.property.busan.value + MODEL.property.jeonse.value + this.financialMan/10000; },
+  get netWorthEok()      { return this.totalAssetsEok - this.totalLoansEok; },
+  get monthlyIncome()    { return MODEL.income.reduce((s,i)=>s+i.amount,0); },
+  get monthlyFixed()     { return MODEL.expense.reduce((s,e)=>s+e.amount,0); },
+  get monthlyDebtSvc()   { return MODEL.expense.filter(e=>e.kind==='이자'||e.kind==='원리금').reduce((s,e)=>s+e.amount,0); },
+  get surplusPreLiving() { return this.monthlyIncome - this.monthlyFixed; },
+  get surplusLow()       { return this.surplusPreLiving - MODEL.living.high; },
+  get surplusHigh()      { return this.surplusPreLiving - MODEL.living.low; },
+  get annualExtra()      { return MODEL.annual.reduce((s,a)=>s+a.amount,0); },
+};
+
+/* 렌더 헬퍼 */
+function man(v){ return Math.round(v).toLocaleString()+'만'; }
+function eok(v){ return (Math.round(v*100)/100).toLocaleString()+'억'; }
+function _set(id,html){ const el=document.getElementById(id); if(el) el.innerHTML=html; }
+function _row(lbl,val,vcls){ return '<div class="row"><span class="lbl">'+lbl+'</span><span class="val '+(vcls||'')+'">'+val+'</span></div>'; }
+function _div(){ return '<div class="divider"></div>'; }
+
+/* ===== 모델 → DOM 렌더링 ===== */
+function renderModel(){
+  // --- 현황 요약 메트릭 ---
+  _set('ov-assets', '약 '+eok(D.totalAssetsEok));
+  _set('ov-debt',   '약 '+eok(D.totalLoansEok));
+  _set('ov-net',    '약 '+eok(D.netWorthEok));
+  _set('ov-debtsvc','약 '+man(D.monthlyDebtSvc));
+  _set('ov-net-sub','자산'+eok(D.totalAssetsEok)+' − 부채'+eok(D.totalLoansEok));
+  _set('fs-intro-net','약 '+eok(D.netWorthEok));
+
+  // --- 현황 요약: 합산 월 현금흐름 카드 ---
+  let ov = MODEL.income.map(i=>_row(i.name, '+'+man(i.amount), 'grn')).join('');
+  ov += MODEL.expense.map(e=>_row(e.name, '-'+man(e.amount), 'red')).join('');
+  ov += _div();
+  ov += '<div class="row"><span class="lbl" style="font-weight:500">생활비 전 실수령 잉여</span><span class="val blue" style="font-size:15px">+약 '+man(D.surplusPreLiving)+'/월</span></div>';
+  ov += '<p class="note">* 생활비·식비·교통·통신 등 미반영 / 부산 상가 월세(+100만) 발생 시 추가</p>';
+  _set('ov-cashflow', ov);
+
+  // --- 월 현금흐름 탭: 수입 카드 ---
+  let inc = MODEL.income.map(i=>_row(i.name, '+'+man(i.amount), 'grn')).join('');
+  inc += _div();
+  inc += '<div class="row"><span class="lbl" style="font-weight:500">월 합산 수입</span><span class="val grn" style="font-size:15px">약 '+man(D.monthlyIncome)+'</span></div>';
+  inc += '<p class="note" style="padding-top:6px">* 분기급 178만 = 535×4÷12 / 부산 상가 월세는 임차 확정 후 별도 반영</p>';
+  _set('cf-income', inc);
+
+  // --- 월 현금흐름 탭: 고정지출 카드 ---
+  let exp = MODEL.expense.map(e=>_row(e.name, '-'+man(e.amount), 'red')).join('');
+  exp += _div();
+  exp += '<div class="row"><span class="lbl" style="font-weight:500">고정 지출 합계</span><span class="val red" style="font-size:15px">약 '+man(D.monthlyFixed)+'</span></div>';
+  _set('cf-expense', exp);
+
+  // --- 연간 특별수입 ---
+  let an = MODEL.annual.map(a=>_row(a.name, '+'+man(a.amount), 'grn')).join('');
+  an += _div();
+  an += '<div class="row"><span class="lbl" style="font-weight:500">합계</span><span class="val grn" style="font-size:15px">연 +'+man(D.annualExtra)+'</span></div>';
+  an += '<p class="note" style="padding-top:6px">* 월 평균 환산 시 +'+man(D.annualExtra/12)+' / 연말 목돈으로 집중 운용 추천</p>';
+  _set('cf-annual', an);
+
+  // --- 현금흐름 요약 아코디언 헤더 합계 ---
+  _set('acc-income-total', '+'+man(D.monthlyIncome));
+  _set('acc-fixed-total',  '-'+man(D.monthlyFixed));
+  _set('cf-income-acc',  MODEL.income.map(i=>_row(i.name,'+'+man(i.amount),'grn')).join(''));
+  _set('cf-fixed-acc',   MODEL.expense.map(e=>_row(e.name,'-'+man(e.amount),'red')).join(''));
+  _set('cf-living',      '-'+MODEL.living.low+'~'+MODEL.living.high+'만');
+  _set('cf-surplus',     '약 '+man(D.surplusLow)+'~'+man(D.surplusHigh)+'/월');
+
+  // --- 부채 분석: 목록 ---
+  const sorted = [...MODEL.loans].sort((a,b)=>b.rate-a.rate);
+  let dl = sorted.map(l=>{
+    const badge = l.badge ? ' <span class="badge '+l.badge.cls+'">'+l.badge.txt+'</span>' : '';
+    const mNote = l.selfMonthly ? '월 '+l.monthly+'만 ('+l.selfMonthly+'만 자부담)' : '월 '+l.monthly+'만';
+    return '<div class="row"><span class="lbl">'+l.name+badge+'</span><span class="val">'+l.rate+'% / '+eok(l.balance/10000)+' / '+mNote+'</span></div>';
+  }).join('');
+  dl += _div();
+  dl += '<div class="row"><span class="lbl" style="font-weight:500">총 부채</span><span class="val red" style="font-size:15px">약 '+eok(D.totalLoansEok)+'</span></div>';
+  _set('debt-list', dl);
+
+  // 차트는 탭 진입 시 그려지므로 데이터만 최신화 (initXChart가 MODEL 직접 참조)
+}
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -961,12 +1031,12 @@ let cashflowInited = false;
 function initCashflowChart() {
   if (cashflowInited) return;
   cashflowInited = true;
-  const labels = [
-    '예지 월급', '승모 기본급', '승모 분기급', '마포 월세',
-    '마포 원리금', '부산 사업자이자', '부산 신용이자',
-    '전세 대출이자', '상가 관리비', '오피스텔 월세'
+  const items = [
+    ...MODEL.income.map(i => ({ label:i.name.replace(/\s*\(.*\)/,''), v:i.amount })),
+    ...MODEL.expense.map(e => ({ label:e.name.replace(/\s*\(.*\)/,''), v:-e.amount })),
   ];
-  const data = [814, 535, 178, 155, -315, -116, -50, -25, -11, -30];
+  const labels = items.map(i => i.label);
+  const data = items.map(i => i.v);
   const colors = data.map(v => v > 0 ? '#3B6D11' : '#A32D2D');
   document.getElementById('cashflow-legend').innerHTML =
     '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#3B6D11;display:inline-block"></span>수입</span>' +
@@ -989,9 +1059,10 @@ let debtInited = false;
 function initDebtChart() {
   if (debtInited) return;
   debtInited = true;
-  const labels = ['마포 아파트 주담대 6.5억', '부산 상가 사업자대출 3.1억', '정자 오피스텔 전세대출 1.44억', '부산 상가 신용대출 0.96억'];
-  const data = [6.5, 3.1, 1.44, 0.96];
-  const bgColors = ['#378ADD', '#BA7517', '#639922', '#E24B4A'];
+  const sorted = [...MODEL.loans].sort((a,b)=>b.balance-a.balance);
+  const labels = sorted.map(l => l.name + ' ' + eok(l.balance/10000));
+  const data = sorted.map(l => Math.round(l.balance/10000 * 100)/100);
+  const bgColors = sorted.map(l => l.color);
   document.getElementById('debt-legend').innerHTML = labels.map((l, i) =>
     `<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${bgColors[i]};display:inline-block"></span>${l}</span>`
   ).join('');
@@ -1160,8 +1231,8 @@ function syncInvestable() {
 
 /* ---- 시나리오 (합산 / 예지 / 승모) ---- */
 const SCEN = {
-  combined: { label:'합산 (부부)', income:1682, fixed:547, living:250, seed:3200, annualExtra:2000, stocks:5660,
-    networth:'약 10.8억', re:'마포 17억(임대) + 부산 상가 4.5억(처분 가정)',
+  combined: { label:'합산 (부부)', income:D.monthlyIncome, fixed:D.monthlyFixed, living:250, seed:MODEL.financial.cash, annualExtra:2000, stocks:MODEL.financial.stocks,
+    networth:'약 '+eok(D.netWorthEok), re:'마포 17억(임대) + 부산 상가 4.5억(처분 가정)',
     seedNote:'승모 현금 1,500 + 예지 현금 1,700 (결혼식 비용 0 전제)',
     incomeNote:'예지 814 + 승모 713 + 마포 월세 155',
     diag:'유동 투자자산이 8,860만(개별 해외주식 위주)뿐 — 절세그릇으로 자동 적립 파이프라인 구축이 핵심.' },
@@ -1481,7 +1552,8 @@ function calcSim() {
 }
 
 
-/* 초기 렌더 (합산 시나리오) */
+/* 초기 렌더 */
+renderModel();
 setScenario('combined');
 </script>
 </body>
