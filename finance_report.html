@@ -684,7 +684,7 @@ https://yezee0420.github.io/dev/finance_report.html
         <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50" onchange="linkEdit('monthly','pf-monthly')"></div>
         <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500" onchange="linkEdit('seed','pf-seed')"></div>
         <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1" onchange="linkEdit('years','pf-years')"></div>
-        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10" onchange="linkEdit('living','pf-living')"></div>
+        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="450" min="100" max="1000" step="10" onchange="linkEdit('living','pf-living')"></div>
       </div>
       <button class="btn" onclick="calcPortfolio()">시뮬레이션 계산 →</button>
     </div>
@@ -874,7 +874,7 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="input-row">
         <label>월 생활비 (만원)</label>
         <span class="input-hint">식비·교통·통신 등</span>
-        <input type="number" id="living" value="250" min="100" max="800" step="50" onchange="linkEdit('living','living')">
+        <input type="number" id="living" value="450" min="100" max="800" step="50" onchange="linkEdit('living','living')">
       </div>
       <div class="input-row" style="background:var(--bg-secondary); margin:0 -1.25rem; padding:9px 1.25rem;">
         <label style="font-weight:500; color:var(--text-primary);">월 투자 납입금 (만원)
@@ -1873,7 +1873,7 @@ function syncInvestable() {
 
 /* ---- 시나리오 (합산 / 예지 / 승모) ---- */
 const SCEN = {
-  combined: { label:'합산 (부부)', income:D.monthlyIncome, fixed:D.monthlyFixed, living:250, seed:MODEL.financial.cash, annualExtra:2000, annualReserve:0, stocks:MODEL.financial.stocks,
+  combined: { label:'합산 (부부)', income:D.monthlyIncome, fixed:D.monthlyFixed, living:450, seed:MODEL.financial.cash, annualExtra:2000, annualReserve:0, stocks:MODEL.financial.stocks,
     networth:'약 '+eok(D.netWorthEok), re:'마포 17억(임대) + 부산 상가 4.5억(처분 가정)',
     seedNote:'승모 현금 1,500 + 예지 현금 1,700 (결혼식 비용 0 전제)',
     incomeNote:'예지 814 + 승모 713 + 마포 월세 155',
