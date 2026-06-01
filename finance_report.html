@@ -253,6 +253,9 @@ https://yezee0420.github.io/dev/finance_report.html
   .sim-meta-item .slbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
   .sim-meta-item .sval { font-size: 16px; font-weight: 500; color: var(--text-primary); }
 
+  .seg { display:inline-flex; gap:4px; background:var(--bg-primary); border:0.5px solid var(--border-tertiary); border-radius:var(--radius-md); padding:4px; margin-bottom:1rem; flex-wrap:wrap; }
+  .seg button { padding:6px 14px; font-size:12.5px; border:0.5px solid transparent; border-radius:6px; background:transparent; color:var(--text-secondary); cursor:pointer; font-family:var(--font-sans); }
+  .seg button.active { background:var(--bg-secondary); color:var(--text-primary); font-weight:500; border-color:var(--border-primary); }
   .btn {
     margin-top: 12px;
     width: 100%;
@@ -590,28 +593,18 @@ https://yezee0420.github.io/dev/finance_report.html
       </p>
     </div>
 
+    <div class="seg" id="seg-freedom">
+      <button data-scen="combined" onclick="setScenario('combined')">합산 (부부)</button>
+      <button data-scen="yeji" onclick="setScenario('yeji')">예지 단독</button>
+      <button data-scen="seungmo" onclick="setScenario('seungmo')">승모 단독</button>
+    </div>
+
     <!-- 0. 대전제 -->
     <div class="card" style="border-color:var(--border-primary);">
       <h3>0. 이 시뮬레이션의 대전제 (가장 먼저 확인) <span class="badge danger">핵심</span></h3>
-      <p class="note" style="margin-top:0;">아래 가정이 틀리면 모든 그래프가 무의미합니다. 변수를 바꾸기 전에 이 전제부터 점검하세요.</p>
-      <div class="table-wrap">
-        <table class="ptable">
-          <thead><tr><th>대전제</th><th class="num">값</th><th>근거 · 숨은 가정(리스크)</th></tr></thead>
-          <tbody>
-            <tr><td><b>① 투자 시드(신규)</b></td><td class="num">3,200만</td><td>승모현금 1,500 + 예지현금 1,700 (<b>현금만</b>) / <b>결혼식 비용 0</b> 전제 (비용 발생 시 현금에서 차감). 보유주식은 이미 투자된 별도 포지션(②)</td></tr>
-            <tr><td><b>② 보유주식(별도)</b></td><td class="num">5,660만</td><td><b>이미 투자됨 → 시드에서 제외.</b> 원금 5,700 → 평가 5,500 (−약 200, 손실 중) + 카카오페이 160. Recursion −1,341·UiPath −5. 개별 바이오주 집중 → <b>코어 ETF 재편 권고</b></td></tr>
-            <tr><td><b>③ 월 적립</b></td><td class="num">700만</td><td>월 잉여 900~1,000 − 생활비 − 신용대출 상환 / 소득·월세 유지·대형지출 없음 전제</td></tr>
-            <tr><td><b>④ 수익률</b></td><td class="num">8.2%</td><td>미국 ETF 보수 가정 / <b>환율 고정·세금 0(절세계좌)·하락장 평균화</b> 전제</td></tr>
-            <tr><td><b>⑤ 부산 처분</b></td><td class="num">4.5억</td><td>호가 5.8억이나 4.5~4.9억 실제 매도 가정 → 회수 약 4,400만·월 166만 이자 소멸</td></tr>
-            <tr><td><b>⑥ FIRE 목표</b></td><td class="num">9억</td><td>부동산 제외 <b>투자자산만</b>, 4% 룰, 명목금액(인플레 미반영)</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="callout">
-        <b>순자산 약 10.8억 도출:</b> 마포 17억 + 부산 4.5억(처분가정) + 금융자산 0.89억 − 총부채 11.6억 = <b>약 10.8억</b>
-        (전세 보증금·전세대출은 상계 중립). 단, 이 중 <b>지금 굴릴 수 있는 유동 투자자산은 8,860만뿐</b> — 나머지는 전부 부동산에 묶여 있습니다.
-        그래서 아래 시뮬레이터의 출발 시드는 19.3억·10.8억이 아니라 <b>신규 현금 3,200만</b>입니다 (이미 투자된 보유주식 5,660만은 별도 포지션으로 제외).
-      </div>
+      <p class="note" style="margin-top:0;">아래 가정이 틀리면 모든 그래프가 무의미합니다. 위 토글로 <b>합산 / 예지 / 승모</b>를 전환하면 시드·수입·지출·목표가 모두 바뀝니다.</p>
+      <div class="table-wrap" id="fs-premise"></div>
+      <div class="callout" id="fs-networth"></div>
     </div>
 
     <!-- 1. FIRE 정의 -->
@@ -648,16 +641,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <!-- 2. 현재 좌표 -->
     <div class="card">
       <h3>2. 두 분의 현재 좌표</h3>
-      <div class="row"><span class="lbl">월 투자 여력 (생활비·신용대출상환 후)</span><span class="val blue">약 700~900만</span></div>
-      <div class="row"><span class="lbl">신규 투자 시드 (현금 1,500+1,700)</span><span class="val grn">약 3,200만</span></div>
-      <div class="row"><span class="lbl">기존 보유주식 (이미 투자됨·별도)</span><span class="val amb">약 5,660만 <span class="badge danger">손실 중</span></span></div>
-      <div class="row"><span class="lbl">현재 순자산</span><span class="val">약 10.8억 <span class="badge warn">대부분 부동산</span></span></div>
-      <div class="row"><span class="lbl">부산 처분 시 추가 시드 (4.5억 처분)</span><span class="val grn">+약 4,400만</span></div>
-      <div class="row"><span class="lbl">Normal FIRE(9억)까지 거리</span><span class="val">시드+적립으로 약 6년 9개월 (아래 6번)</span></div>
-      <p class="note" style="padding-top:8px;">
-        진단: 부동산 레버리지는 잘 깔려 있으나 <b style="color:var(--text-primary)">유동 투자자산이 8,860만(대부분 손실 중인 개별 해외주식)</b>에 불과한 상태. 지금부터의 핵심 과제는
-        "월 잉여현금 → 절세 그릇 → 글로벌 우량자산"으로 흐르는 자동 파이프라인을 까는 것입니다.
-      </p>
+      <div id="fs-position"></div>
     </div>
 
     <!-- 3. 절세 3층 -->
@@ -767,28 +751,10 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 6. 성장 경로 -->
     <div class="card">
-      <h3>6. 자산 성장 경로 — 두 분 숫자 기준</h3>
-      <p class="note" style="margin-top:0;">가정: 초기 시드 <b style="color:var(--text-primary)">3,200만</b>(신규 현금만, 보유주식 제외) + 월 적립 <b style="color:var(--text-primary)">700만</b> + 블렌디드 수익률 <b style="color:var(--text-primary)">8.2%</b> (보수적).</p>
-      <div class="table-wrap">
-        <table class="ptable">
-          <thead><tr><th>경과</th><th class="num">투자자산</th><th>이정표</th></tr></thead>
-          <tbody>
-            <tr><td>현재</td><td class="num">약 0.32억</td><td>시드(현금) 투입 시작</td></tr>
-            <tr><td>3년차</td><td class="num">약 3.3억</td><td>토대 구축</td></tr>
-            <tr><td>약 6년 5개월</td><td class="num">약 7.5억</td><td><span class="badge ok">Lean FIRE 도달</span></td></tr>
-            <tr><td>약 7년 5개월</td><td class="num">약 9.0억</td><td><span class="badge info">Normal FIRE · 월 300만 패시브 ★</span></td></tr>
-            <tr><td>약 10년 8개월</td><td class="num">약 15.0억</td><td><span class="badge warn">Fat FIRE 도달</span></td></tr>
-            <tr><td>12년차</td><td class="num">약 17.9억</td><td>월 597만 패시브 (4% 인출)</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="callout">
-        결론: 두 분은 <b>약 7년 반이면 "월 300만 패시브 = 생활비 자급"</b> 구조에 도달합니다.
-        실제로는 초기 3~4년 예지 신용대출(6.23%) 상환을 병행하므로 <b>현실적 Normal FIRE 도달은 8~10년</b>으로 보시면 됩니다 —
-        고금리 빚 상환 = 연 6.23% 확정수익 투자와 동일하므로 먼저 갚는 게 정답입니다.
-        <b>참고:</b> 손실 중인 보유주식 5,660만을 코어 ETF로 합쳐 굴리면 출발 시드가 8,860만이 되어 <b>Normal FIRE가 약 1년 앞당겨집니다(6년 9개월)</b>.
-        고금리 빚 상환 = 연 6.23% 확정수익 투자와 동일하므로 먼저 갚는 게 정답입니다.
-      </div>
+      <h3>6. 자산 성장 경로 (시나리오별)</h3>
+      <p class="note" style="margin-top:0;" id="fs-growth-assume"></p>
+      <div class="table-wrap" id="fs-growth"></div>
+      <div class="callout" id="fs-growth-note"></div>
     </div>
 
     <!-- 7. 실행 체크리스트 -->
@@ -854,18 +820,24 @@ https://yezee0420.github.io/dev/finance_report.html
   <div class="section" id="simulator">
     <div class="section-title">투자 시뮬레이터</div>
 
+    <div class="seg" id="seg-sim">
+      <button data-scen="combined" onclick="setScenario('combined')">합산 (부부)</button>
+      <button data-scen="yeji" onclick="setScenario('yeji')">예지 단독</button>
+      <button data-scen="seungmo" onclick="setScenario('seungmo')">승모 단독</button>
+    </div>
+
     <!-- 현금흐름 연동 박스 -->
     <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); padding:1rem 1.25rem; margin-bottom:1rem;">
       <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:10px;">월 현금흐름 자동 연동</div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
         <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
           <div style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">월 합산 수입</div>
-          <div style="font-size:15px; font-weight:500; color:#3B6D11;">1,682만</div>
+          <div style="font-size:15px; font-weight:500; color:#3B6D11;" id="income-display">1,682만</div>
         </div>
         <div style="font-size:16px; color:var(--text-tertiary); padding:0 2px;">−</div>
         <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
           <div style="font-size:10px; color:var(--text-secondary); margin-bottom:4px;">고정 지출</div>
-          <div style="font-size:15px; font-weight:500; color:#A32D2D;">547만</div>
+          <div style="font-size:15px; font-weight:500; color:#A32D2D;" id="fixed-display">547만</div>
         </div>
         <div style="font-size:16px; color:var(--text-tertiary); padding:0 2px;">−</div>
         <div style="flex:1; min-width:100px; text-align:center; background:var(--bg-primary); border-radius:var(--radius-md); padding:10px 8px;">
@@ -968,7 +940,7 @@ function show(id, el) {
   el.classList.add('active');
   if (id === 'cashflow') initCashflowChart();
   if (id === 'debt') initDebtChart();
-  if (id === 'freedom') calcPortfolio();
+  if (id === 'freedom' || id === 'simulator') setScenario(curScen);
 }
 
 let cashflowInited = false;
@@ -1151,8 +1123,8 @@ function toggleAcc(key) {
 }
 
 /* ---- 시뮬레이터 연동 ---- */
-const INCOME = 1682;
-const FIXED  = 547;
+let INCOME = 1682;
+let FIXED  = 547;
 
 function syncInvestable() {
   const living = parseFloat(document.getElementById('living').value) || 0;
@@ -1160,6 +1132,117 @@ function syncInvestable() {
   document.getElementById('living-display').textContent = living.toLocaleString() + '만';
   document.getElementById('investable-display').textContent = investable.toLocaleString() + '만';
   document.getElementById('monthly').value = investable;
+}
+
+/* ---- 시나리오 (합산 / 예지 / 승모) ---- */
+const SCEN = {
+  combined: { label:'합산 (부부)', income:1682, fixed:547, living:250, seed:3200, annualExtra:2000, stocks:5660,
+    networth:'약 10.8억', re:'마포 17억(임대) + 부산 상가 4.5억(처분 가정)',
+    seedNote:'승모 현금 1,500 + 예지 현금 1,700 (결혼식 비용 0 전제)',
+    incomeNote:'예지 814 + 승모 713 + 마포 월세 155',
+    diag:'유동 투자자산이 8,860만(개별 해외주식 위주)뿐 — 절세그릇으로 자동 적립 파이프라인 구축이 핵심.' },
+  yeji: { label:'예지 단독', income:914, fixed:232, living:180, seed:1700, annualExtra:0, stocks:5660,
+    networth:'약 1.2억', re:'부산 상가 보유·임대(월세 +100), 정자 오피스텔 거주',
+    seedNote:'예지 현금 1,700 (결혼식 비용 0 전제)',
+    incomeNote:'월급 814 + 부산 상가 월세 100',
+    diag:'소득이 높고(914) 이미 주식 5,660만 보유 → 출발이 유리하나, 부산 고금리 이자 166만이 매월 새는 구멍. 신용대출(6.23%) 우선 정리 권고.' },
+  seungmo: { label:'승모 단독', income:868, fixed:395, living:180, seed:1500, annualExtra:2000, stocks:0,
+    networth:'약 10.7억', re:'마포 임대(월세 +155) + 본인 별도 거주(월세 -80)',
+    seedNote:'승모 현금 1,500 (보유 주식 없음)',
+    incomeNote:'기본급 535 + 분기급 178 + 마포 월세 155',
+    diag:'마포 원리금 315만이 매월 투자여력을 잠식 → 월 적립 293만으로 낮음. 대신 연말 인센티브 2,000만이 큰 무기 → 연말 일시납으로 만회.' }
+};
+const SCEN_RATE = 8.2;
+let curScen = 'combined';
+
+function buildGrowth(seed, monthly, annualExtra, ratePct, target) {
+  const mR = ratePct / 100 / 12;
+  let t = seed;
+  const yearVal = {};
+  let fireMonth = null;
+  for (let m = 1; m <= 360; m++) {
+    t = t * (1 + mR) + monthly;
+    if (m % 12 === 0) t += annualExtra;
+    if (fireMonth === null && t >= target) fireMonth = m;
+    if (m % 12 === 0) yearVal[m / 12] = t;
+  }
+  return { yearVal, fireMonth };
+}
+
+function setScenario(key) {
+  curScen = key;
+  const s = SCEN[key];
+  const investable = Math.max(0, s.income - s.fixed - s.living);
+  const target = s.living * 300;            // 만원: 월생활비 × 12 × 25 (4% 룰)
+  const g = buildGrowth(s.seed, investable, s.annualExtra, SCEN_RATE, target);
+  const fireWhen = g.fireMonth
+    ? (Math.floor(g.fireMonth / 12) + '년 ' + (g.fireMonth % 12) + '개월')
+    : '30년+ 미도달';
+
+  document.querySelectorAll('[data-scen]').forEach(b =>
+    b.classList.toggle('active', b.getAttribute('data-scen') === key));
+
+  /* 대전제 표 */
+  const tr = (a, b, c) => '<tr><td><b>' + a + '</b></td><td class="num">' + b + '</td><td>' + c + '</td></tr>';
+  document.getElementById('fs-premise').innerHTML =
+    '<table class="ptable"><thead><tr><th>대전제</th><th class="num">값</th><th>근거 · 가정</th></tr></thead><tbody>'
+    + tr('① 투자 시드(현금)', s.seed.toLocaleString() + '만', s.seedNote)
+    + tr('② 보유주식(별도)', s.stocks ? s.stocks.toLocaleString() + '만' : '없음', s.stocks ? '이미 투자된 별도 포지션 → 시드 제외 (손실 중, 코어 ETF 재편 권고)' : '보유 주식 없음')
+    + tr('③ 월 적립', investable.toLocaleString() + '만', '수입 ' + s.income + ' − 고정 ' + s.fixed + ' − 생활비 ' + s.living + ' (' + s.incomeNote + ')')
+    + tr('④ 연말 특별납입', s.annualExtra ? s.annualExtra.toLocaleString() + '만/년' : '없음', s.annualExtra ? '승모 연말 인센티브·연차보상' : '-')
+    + tr('⑤ 블렌디드 수익률', '8.2%', '미국 ETF 보수 가정 · 환율 고정·세금 0(절세계좌)·하락장 평균화')
+    + tr('⑥ FIRE 목표', fmtMan(target), '월 생활비 ' + s.living + '만 × 12 × 25 (4% 룰)')
+    + '</tbody></table>';
+  document.getElementById('fs-networth').innerHTML =
+    '<b>순자산 ' + s.networth + '</b> · 부동산: ' + s.re + ' · 전세 보증금·대출은 상계 중립. 단, 지금 굴릴 수 있는 유동 시드는 <b>' + s.seed.toLocaleString() + '만</b>입니다.';
+
+  /* 현재 좌표 */
+  const pr = (l, v, c) => '<div class="row"><span class="lbl">' + l + '</span><span class="val ' + (c || '') + '">' + v + '</span></div>';
+  document.getElementById('fs-position').innerHTML =
+    pr('월 투자 여력 (수입−고정−생활비)', investable.toLocaleString() + '만/월', 'blue')
+    + pr('투자 시드 (현금)', s.seed.toLocaleString() + '만', 'grn')
+    + pr('기존 보유주식', s.stocks ? s.stocks.toLocaleString() + '만 (손실 중·별도)' : '없음', s.stocks ? 'amb' : '')
+    + pr('현재 순자산', s.networth, '')
+    + pr('FIRE 목표 / 도달 시점', fmtMan(target) + ' / 약 ' + fireWhen, '')
+    + '<p class="note" style="padding-top:8px;">진단: ' + s.diag + '</p>';
+
+  /* 성장 경로 */
+  document.getElementById('fs-growth-assume').innerHTML =
+    '가정: 초기 시드 <b>' + s.seed.toLocaleString() + '만</b>(현금) + 월 적립 <b>' + investable.toLocaleString() + '만</b>'
+    + (s.annualExtra ? ' + 연말 <b>' + s.annualExtra.toLocaleString() + '만</b>' : '') + ' + 수익률 <b>8.2%</b> (보수적).';
+  const yrs = [3, 5, 7, 10, 15, 20];
+  let rows = '<tr><td>현재</td><td class="num">' + fmtMan(s.seed) + '</td><td>시드(현금) 투입 시작</td></tr>';
+  yrs.forEach(y => {
+    if (!g.yearVal[y]) return;
+    const v = g.yearVal[y];
+    const hit = v >= target;
+    rows += '<tr><td>' + y + '년차</td><td class="num">' + fmtMan(v) + '</td><td>'
+      + (hit ? '<span class="badge ok">FIRE 달성</span> ' : '') + '월 ' + Math.round(v * 0.04 / 12).toLocaleString() + '만 패시브</td></tr>';
+  });
+  document.getElementById('fs-growth').innerHTML =
+    '<table class="ptable"><thead><tr><th>경과</th><th class="num">투자자산</th><th>이정표</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  document.getElementById('fs-growth-note').innerHTML =
+    '<b>' + s.label + '</b> 기준, FIRE 목표 <b>' + fmtMan(target) + '</b>(월 ' + s.living + '만 자급) 도달까지 <b>약 ' + fireWhen + '</b>. '
+    + s.diag + (s.stocks ? ' 보유주식 ' + s.stocks.toLocaleString() + '만을 코어로 합치면 더 빨라집니다.' : '');
+
+  /* 포트폴리오 시뮬레이터 입력값 */
+  document.getElementById('pf-seed').value = s.seed;
+  document.getElementById('pf-monthly').value = investable;
+  document.getElementById('pf-living').value = s.living;
+
+  /* 메인 시뮬레이터 입력 + 연동 박스 */
+  INCOME = s.income; FIXED = s.fixed;
+  document.getElementById('income-display').textContent = s.income.toLocaleString() + '만';
+  document.getElementById('fixed-display').textContent = s.fixed.toLocaleString() + '만';
+  document.getElementById('living-display').textContent = s.living.toLocaleString() + '만';
+  document.getElementById('investable-display').textContent = investable.toLocaleString() + '만';
+  document.getElementById('living').value = s.living;
+  document.getElementById('monthly').value = investable;
+  document.getElementById('seed').value = s.seed;
+  document.getElementById('annualExtra').value = s.annualExtra;
+
+  if (document.getElementById('freedom').classList.contains('active')) calcPortfolio();
+  if (document.getElementById('simulator').classList.contains('active')) calcSim();
 }
 
 /* ---- 시뮬레이터 ---- */
@@ -1323,6 +1406,9 @@ function calcSim() {
   document.getElementById('sim-table').innerHTML = tHtml;
 }
 
+
+/* 초기 렌더 (합산 시나리오) */
+setScenario('combined');
 </script>
 </body>
 </html>
