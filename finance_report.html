@@ -633,6 +633,20 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="callout" id="fs-growth-note"></div>
     </div>
 
+    <!-- 4-1. 월별 적립 여정 -->
+    <div class="card" style="border-color:var(--border-primary);">
+      <h3>📈 월별 적립 여정 — 매월 통장이 차오르는 과정</h3>
+      <p class="note" style="margin-top:0;" id="fs-journey-note"></p>
+      <div class="grid3" id="fs-journey-chips" style="margin-bottom:14px;"></div>
+      <div style="position:relative; width:100%; height:300px;">
+        <canvas id="fsJourneyChart" role="img" aria-label="월별 적립 여정: 원금과 복리수익이 쌓여 FIRE 목표에 도달하는 과정"></canvas>
+      </div>
+      <button class="btn" id="fs-journey-btn" onclick="toggleJourney()" style="margin-top:14px;">📋 월별 표 펼치기 — 매월 적립·복리·달성률 ▼</button>
+      <div id="fs-journey-wrap" style="display:none; margin-top:10px; overflow:auto; max-height:460px; border:0.5px solid var(--border-tertiary); border-radius:var(--radius-md);">
+        <table id="fs-journey-table" style="width:100%; font-size:11.5px; border-collapse:collapse;"></table>
+      </div>
+    </div>
+
     <!-- 8. 포트폴리오 시뮬레이터 -->
     <div class="card">
       <h3>5. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
@@ -1461,12 +1475,110 @@ function buildGrowth(seed, monthly, annualExtra, ratePct, target) {
   return { yearVal, fireMonth };
 }
 
+/* ---- 월별 적립 여정 (경제자유 탭) ---- */
+let fsJourneyChartInst = null;
+let fsJourneyRows = [];
+function mLabel(m){ const y=Math.floor(m/12), mm=m%12; return ((y? y+'년':'')+(mm? ' '+mm+'개월':'')).trim() || '시작'; }
+
+function renderJourney(seed, monthly, annualExtra, ratePct, target, living, fireMonth){
+  const mR = ratePct/100/12;
+  const horizon = fireMonth ? Math.min(360, fireMonth + 6) : 120;   // 도달 후 6개월까지 (미도달이면 10년)
+  let total = seed, principal = seed;
+  const labels=['시작'], totalPts=[Math.round(seed)], prinPts=[Math.round(seed)], firePt=[null];
+  fsJourneyRows = [];
+  for (let m=1; m<=horizon; m++){
+    const before = total;
+    const interest = before * mR;
+    total = total*(1+mR) + monthly;
+    principal += monthly;
+    let extra = 0;
+    if (m%12===0){ total += annualExtra; principal += annualExtra; extra = annualExtra; }
+    const profit = total - principal;
+    const pct = Math.min(100, total/target*100);
+    const isFire = fireMonth && m===fireMonth;
+    fsJourneyRows.push({ m, contrib:monthly, extra, interest:Math.round(interest), total:Math.round(total), principal:Math.round(principal), profit:Math.round(profit), pct, isFire, isYearEnd:(m%12===0) });
+    labels.push(mLabel(m));
+    totalPts.push(Math.round(total));
+    prinPts.push(Math.round(principal));
+    firePt.push(isFire ? Math.round(total) : null);
+  }
+
+  // 칩 요약 (도달 시점 기준, 미도달이면 마지막)
+  const fIdx = fireMonth ? fireMonth : horizon;
+  const fRow = fsJourneyRows[fIdx-1] || fsJourneyRows[fsJourneyRows.length-1];
+  const fireWhen = fireMonth ? mLabel(fireMonth)+' ('+fireMonth+'개월)' : (horizon+'개월 내 미도달');
+  const profitPct = fRow.principal>0 ? Math.round(fRow.profit/fRow.principal*100) : 0;
+  document.getElementById('fs-journey-chips').innerHTML =
+      '<div class="metric"><div class="label">목표 도달</div><div class="value" style="color:#3B6D11;font-size:16px">'+(fireMonth?mLabel(fireMonth):'미도달')+'</div><div class="sub">'+(fireMonth?fireMonth+'개월 째':'10년 내')+'</div></div>'
+    + '<div class="metric"><div class="label">그동안 넣은 내 돈(원금)</div><div class="value" style="color:#185FA5;font-size:16px">'+fmtMan(fRow.principal)+'</div><div class="sub">시드+월적립+연말</div></div>'
+    + '<div class="metric"><div class="label">시장이 불려준 돈(복리)</div><div class="value" style="color:#3B6D11;font-size:16px">+'+fmtMan(fRow.profit)+'</div><div class="sub">원금 대비 +'+profitPct+'%</div></div>';
+
+  document.getElementById('fs-journey-note').innerHTML =
+    '현금 <b>'+fmtMan(seed)+'</b>로 시작 + 매월 <b>'+fmtMan(monthly)+'</b>'+(annualExtra?' (+연말 <b>'+fmtMan(annualExtra)+'</b>)':'')+'을 연 <b>'+ratePct+'%</b> 복리로. '
+    + '<span style="color:#185FA5">■</span> 내가 넣은 원금 · <span style="color:#3B6D11">■</span> 복리로 불어난 수익 · <span style="color:#A32D2D">┄</span> 목표 '+fmtMan(target)+' · ★ 달성 지점';
+
+  // 차트 (원금 area + 그 위 수익 band + 목표선 + 달성★)
+  if (fsJourneyChartInst) fsJourneyChartInst.destroy();
+  fsJourneyChartInst = new Chart(document.getElementById('fsJourneyChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'납입 원금', data:prinPts, borderColor:'#185FA5', backgroundColor:'rgba(55,138,221,0.20)', fill:'origin', tension:0.25, pointRadius:0, borderWidth:1.5, order:3 },
+      { label:'총 자산',  data:totalPts, borderColor:'#3B6D11', backgroundColor:'rgba(59,109,17,0.18)', fill:'-1',     tension:0.25, pointRadius:0, borderWidth:1.5, order:2 },
+      { label:'목표', data:labels.map(()=>Math.round(target)), borderColor:'#A32D2D', borderDash:[6,5], pointRadius:0, fill:false, borderWidth:1.5, order:1 },
+      { label:'달성', data:firePt, borderColor:'#854F0B', backgroundColor:'#F2B705', pointRadius:firePt.map(v=>v?8:0), pointStyle:'star', showLine:false, order:0 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false },
+        tooltip:{ filter: it => it.datasetIndex<=1, callbacks:{
+          title: ctx => ctx[0].label,
+          afterBody: ctx => { const i=ctx[0].dataIndex; const t=totalPts[i], p=prinPts[i], pf=t-p, pc=p>0?Math.round(pf/p*100):0;
+            return ['─────────────','총 자산: '+t.toLocaleString()+'만','내 원금: '+p.toLocaleString()+'만','복리 수익: +'+pf.toLocaleString()+'만 (+'+pc+'%)','월 패시브(4%): '+Math.round(t*0.04/12).toLocaleString()+'만','목표 달성률: '+Math.min(100,Math.round(t/target*100))+'%']; },
+          label: () => '' } } },
+      scales:{ x:{ ticks:{ font:{size:10}, autoSkip:true, maxTicksLimit:10 }, grid:{ display:false } },
+        y:{ ticks:{ callback:v=> v>=10000?(v/10000).toFixed(1)+'억':v.toLocaleString()+'만', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.08)' } } } }
+  });
+
+  // 월별 표
+  renderJourneyTable(target, living);
+}
+
+function renderJourneyTable(target, living){
+  const th = (t)=>'<th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--text-secondary);white-space:nowrap;position:sticky;top:0;background:var(--bg-primary);">'+t+'</th>';
+  let h = '<thead><tr style="border-bottom:1px solid var(--border-tertiary);">'
+    + '<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--text-secondary);position:sticky;top:0;background:var(--bg-primary);">개월차</th>'
+    + th('월 적립')+th('그달 복리')+th('누적 자산')+th('달성률')+'</tr></thead><tbody>';
+  fsJourneyRows.forEach(r=>{
+    const bg = r.isFire ? 'background:rgba(242,183,5,0.18);' : (r.isYearEnd ? 'background:rgba(59,109,17,0.08);' : '');
+    const contrib = r.contrib.toLocaleString()+'만' + (r.extra? ' <span style="color:#3B6D11">+'+r.extra.toLocaleString()+'(연말)</span>' : '');
+    const pctTxt = r.pct.toFixed(0)+'%';
+    const bar = '<div style="display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;">'
+      + '<span style="width:54px;height:6px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden;display:inline-block;"><span style="display:block;height:100%;width:'+r.pct+'%;background:'+(r.pct>=100?'#3B6D11':'#378ADD')+';"></span></span>'
+      + '<span style="width:34px;text-align:right;">'+pctTxt+'</span></div>';
+    h += '<tr style="border-bottom:0.5px solid var(--border-tertiary);'+bg+'">'
+      + '<td style="padding:5px 8px;white-space:nowrap;">'+mLabel(r.m)+(r.isFire?' <span class="badge ok">🎯 달성</span>':'')+'</td>'
+      + '<td style="padding:5px 8px;text-align:right;white-space:nowrap;">'+contrib+'</td>'
+      + '<td style="padding:5px 8px;text-align:right;color:#3B6D11;">+'+r.interest.toLocaleString()+'만</td>'
+      + '<td style="padding:5px 8px;text-align:right;font-weight:500;">'+fmtMan(r.total)+'</td>'
+      + '<td style="padding:5px 8px;text-align:right;">'+bar+'</td></tr>';
+  });
+  document.getElementById('fs-journey-table').innerHTML = h + '</tbody>';
+}
+
+function toggleJourney(){
+  const w = document.getElementById('fs-journey-wrap');
+  const b = document.getElementById('fs-journey-btn');
+  const open = w.style.display === 'none';
+  w.style.display = open ? 'block' : 'none';
+  b.innerHTML = open ? '📋 월별 표 접기 ▲' : '📋 월별 표 펼치기 — 매월 적립·복리·달성률 ▼';
+}
+
 function setScenario(key) {
   curScen = key;
   const s = SCEN[key];
   const investable = Math.max(0, s.income - s.fixed - s.living);
   const target = s.living * 300;            // 만원: 월생활비 × 12 × 25 (4% 룰)
   const g = buildGrowth(s.seed, investable, s.annualExtra, SCEN_RATE, target);
+  renderJourney(s.seed, investable, s.annualExtra, SCEN_RATE, target, s.living, g.fireMonth);
   const fireWhen = g.fireMonth
     ? (Math.floor(g.fireMonth / 12) + '년 ' + (g.fireMonth % 12) + '개월')
     : '30년+ 미도달';
