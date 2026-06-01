@@ -286,6 +286,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <button class="tab active" onclick="show('overview', this)">현황 요약</button>
     <button class="tab" onclick="show('cashflow', this)">월 현금흐름</button>
     <button class="tab" onclick="show('debt', this)">부채 분석</button>
+    <button class="tab" onclick="show('realestate', this)">부동산 시나리오</button>
     <button class="tab" onclick="show('strategy', this)">전략 로드맵</button>
     <button class="tab" onclick="show('freedom', this)">경제적 자유 설계</button>
     <button class="tab" onclick="show('simulator', this)">시뮬레이터</button>
@@ -436,6 +437,40 @@ https://yezee0420.github.io/dev/finance_report.html
       <div id="debt-legend" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; color:var(--text-secondary);"></div>
       <div style="position:relative; width:100%; height:260px;">
         <canvas id="debtChart" role="img" aria-label="부채 구성 도넛 차트"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 부동산 시나리오 -->
+  <div class="section" id="realestate">
+    <div class="section-title">부동산 시나리오 — 무엇을 언제 하면 어떻게 바뀌나</div>
+
+    <div class="card">
+      <p class="note" style="margin-top:0;">아래 이벤트를 <b>켜고/끄고</b>, 각 이벤트의 <b>실행 시점(년차)</b>을 바꿔보세요. 자산·부채·현금흐름이 즉시 재계산되고, 아래 타임라인 차트에 순자산 경로가 그려집니다. 모든 숫자는 <b>현황의 단일 데이터 모델</b>에서 파생됩니다.</p>
+      <div id="re-events" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>적용 후 자산·부채</h3>
+        <div id="re-balance"></div>
+      </div>
+      <div class="card">
+        <h3>적용 후 월 현금흐름</h3>
+        <div id="re-cashflow"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>일시 현금 흐름 (매도 회수 · 매수 투입)</h3>
+      <div id="re-cash"></div>
+    </div>
+
+    <div class="card">
+      <h3>순자산 타임라인 (이벤트 반영)</h3>
+      <p class="note" style="margin-top:0;" id="re-timeline-note"></p>
+      <div style="position:relative; width:100%; height:320px;">
+        <canvas id="reChart" role="img" aria-label="부동산 이벤트 반영 순자산 타임라인"></canvas>
       </div>
     </div>
   </div>
@@ -1017,6 +1052,167 @@ function renderModel(){
   // 차트는 탭 진입 시 그려지므로 데이터만 최신화 (initXChart가 MODEL 직접 참조)
 }
 
+/* ============================================================
+   부동산 시나리오 엔진
+   이벤트(매도·매수·임대)를 MODEL에서 파생해 자산·부채·현금흐름·타임라인 재계산
+   거래는 장부가 중립(순자산 불변) — 가치는 '유동성 확보 → 복리'에서 나옴
+   ============================================================ */
+const RE_EVENTS = [
+  { id:'busan_lease', name:'부산 상가 임대 (공실 해소)', year:0, on:true, type:'lease',
+    addIncome:[{ id:'busan_rent', name:'부산 상가 월세', amount:100 }], deposit:2000,
+    effect:'월세 +100 · 보증금 +2,000(반환의무, 순자산 중립)' },
+  { id:'busan_sell', name:'부산 상가 매도', year:1, on:true, type:'sell',
+    removeProperty:['busan'], removeLoans:['busan_biz','yeji_credit'],
+    removeIncome:['busan_rent'], removeExpense:['busan_biz','busan_credit','busan_mgmt'],
+    effect:'상가 매도 → 사업자·신용대출 상환, 월 이자·관리비 소멸' },
+  { id:'mapo_sell', name:'마포 아파트 매도', year:7, on:false, type:'sell',
+    removeProperty:['mapo'], removeLoans:['mapo_mortgage'],
+    removeIncome:['mapo_rent'], removeExpense:['mapo_mortgage'],
+    effect:'마포 매도 → 주담대 상환, 자기자본 회수(거주처 별도 필요)' },
+  { id:'buy_apt', name:'신규 아파트 매수 (실거주)', year:7, on:false, type:'buy',
+    params:{ price:13, ltvPct:50, ratePct:4.5, termYears:30, rent:0 },
+    effect:'13억 매수(LTV 50%) → 자기자본 6.5억 투입 + 주담대 6.5억(원리금 발생)' },
+];
+
+/* 원리금균등 월상환액 (만원) */
+function annuityMonthly(principalMan, ratePct, termYears){
+  const r = ratePct/100/12, n = termYears*12;
+  if (r === 0) return principalMan/n;
+  return principalMan * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+}
+
+/* 활성 이벤트들을 연차 순으로 적용해 상태 계산. cashIn=일시 회수(+)/투입(−), 만원 */
+function reState(events){
+  const evs = [...events].sort((a,b)=>a.year-b.year);
+  let props = {...MODEL.property};
+  let loans = MODEL.loans.slice();
+  let income = MODEL.income.slice();
+  let expense = MODEL.expense.slice();
+  let cashIn = 0;
+  evs.forEach(ev=>{
+    if (ev.type==='lease'){
+      (ev.addIncome||[]).forEach(i=> income = income.concat([{...i}]));
+    } else if (ev.type==='sell'){
+      const propVal = (ev.removeProperty||[]).reduce((s,k)=> s + (props[k]? props[k].value*10000 : 0), 0);
+      const loanBal = (ev.removeLoans||[]).reduce((s,id)=> s + (loans.find(l=>l.id===id)?.balance || 0), 0);
+      cashIn += propVal - loanBal;
+      (ev.removeProperty||[]).forEach(k=> delete props[k]);
+      loans   = loans.filter(l=> !(ev.removeLoans||[]).includes(l.id));
+      income  = income.filter(i=> !(ev.removeIncome||[]).includes(i.id));
+      expense = expense.filter(e=> !(ev.removeExpense||[]).includes(e.id));
+    } else if (ev.type==='buy'){
+      const p = ev.params;
+      const loanBal = p.price*10000 * p.ltvPct/100;
+      cashIn -= p.price*10000 * (1 - p.ltvPct/100);          // 자기자본 투입
+      props[ev.id] = { name:ev.name, value:p.price };
+      loans = loans.concat([{ id:ev.id, name:ev.name+' 주담대', balance:loanBal, rate:p.ratePct, monthly:Math.round(annuityMonthly(loanBal,p.ratePct,p.termYears)), type:'원리금', color:'#7C5CD0' }]);
+      expense = expense.concat([{ id:ev.id, name:ev.name+' 원리금', amount:Math.round(annuityMonthly(loanBal,p.ratePct,p.termYears)), kind:'원리금' }]);
+      if (p.rent>0) income = income.concat([{ id:ev.id+'_rent', name:ev.name+' 월세', amount:p.rent }]);
+    }
+  });
+  return { props, loans, income, expense, cashIn };
+}
+
+function reDerive(st){
+  const propEok = Object.values(st.props).reduce((s,p)=>s+p.value,0);
+  const assetsEok = propEok + D.financialMan/10000 + st.cashIn/10000;
+  const loansEok  = st.loans.reduce((s,l)=>s+l.balance,0)/10000;
+  const income    = st.income.reduce((s,i)=>s+i.amount,0);
+  const expense   = st.expense.reduce((s,e)=>s+e.amount,0);
+  return { assetsEok, loansEok, netEok:assetsEok-loansEok, income, expense, surplus:income-expense };
+}
+
+let reChartInst = null;
+function reRender(){
+  // 1) 이벤트 토글 UI
+  _set('re-events', RE_EVENTS.map(ev=>{
+    return '<div style="display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:0.5px solid var(--border-tertiary);">'
+      + '<input type="checkbox" id="re-on-'+ev.id+'" '+(ev.on?'checked':'')+' onchange="reToggle(\''+ev.id+'\')" style="width:16px;height:16px;flex:none;">'
+      + '<div style="flex:1; min-width:0;"><div style="font-size:13px; color:var(--text-primary); font-weight:500;">'+ev.name+'</div>'
+      + '<div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">'+ev.effect+'</div></div>'
+      + '<div style="flex:none; display:flex; align-items:center; gap:4px;"><span style="font-size:11px;color:var(--text-tertiary);">시점</span>'
+      + '<input type="number" id="re-yr-'+ev.id+'" value="'+ev.year+'" min="0" max="15" step="1" onchange="reSetYear(\''+ev.id+'\')" style="width:48px; text-align:right; padding:4px 6px; font-size:12px; border:0.5px solid var(--border-secondary); border-radius:6px; background:var(--bg-primary); color:var(--text-primary);"><span style="font-size:11px;color:var(--text-tertiary);">년차</span></div>'
+      + '</div>';
+  }).join(''));
+
+  const active = RE_EVENTS.filter(e=>e.on);
+  const base = reDerive(reState([]));
+  const after = reDerive(reState(active));
+
+  // 2) 자산·부채
+  const dEok=(b,a)=>{ const d=a-b; const c=d>0?'grn':(d<0?'red':''); const sign=d>0?'+':''; return d===0?'':' <span class="val '+c+'" style="font-size:11px">('+sign+eok(d)+')</span>'; };
+  _set('re-balance',
+      _row('총 자산', eok(after.assetsEok)+dEok(base.assetsEok,after.assetsEok), '')
+    + _row('총 부채', eok(after.loansEok)+dEok(base.loansEok,after.loansEok), 'red')
+    + _div()
+    + '<div class="row"><span class="lbl" style="font-weight:500">순자산</span><span class="val blue" style="font-size:15px">'+eok(after.netEok)+'</span></div>'
+    + '<p class="note" style="padding-top:6px">* 매도/매수는 장부가 중립 → 순자산은 거의 불변. 핵심은 아래 현금흐름·유동성 변화입니다.</p>');
+
+  // 3) 월 현금흐름
+  const dMan=(b,a)=>{ const d=a-b; const c=d>0?'grn':(d<0?'red':''); const sign=d>0?'+':''; return d===0?'':' <span class="val '+c+'" style="font-size:11px">('+sign+man(d)+')</span>'; };
+  _set('re-cashflow',
+      _row('월 수입', man(after.income)+dMan(base.income,after.income), 'grn')
+    + _row('월 고정지출', man(after.expense)+dMan(base.expense,after.expense), 'red')
+    + _div()
+    + '<div class="row"><span class="lbl" style="font-weight:500">생활비 전 잉여</span><span class="val blue" style="font-size:15px">'+man(after.surplus)+dMan(base.surplus,after.surplus)+'</span></div>'
+    + '<p class="note" style="padding-top:6px">생활비 300만 차감 시 월 투자여력 약 '+man(Math.max(0,after.surplus-MODEL.living.high))+'</p>');
+
+  // 4) 일시 현금
+  let cashRows = active.map(ev=>{
+    if (ev.type==='sell'){ const ci=reState([ev]).cashIn; return _row(ev.name+' 회수현금', '+'+eok(ci/10000), 'grn'); }
+    if (ev.type==='buy'){ const ci=reState([ev]).cashIn; return _row(ev.name+' 자기자본 투입', eok(ci/10000), 'red'); }
+    if (ev.type==='lease' && ev.deposit){ return _row(ev.name+' 보증금', '+'+man(ev.deposit)+' (반환의무)', 'amb'); }
+    return '';
+  }).filter(Boolean).join('');
+  const netCash = active.reduce((s,ev)=> s + (ev.type==='sell'||ev.type==='buy'? reState([ev]).cashIn : 0), 0);
+  cashRows += _div() + '<div class="row"><span class="lbl" style="font-weight:500">순 일시현금 (투자 가능)</span><span class="val blue" style="font-size:15px">'+(netCash>=0?'+':'')+eok(netCash/10000)+'</span></div>';
+  _set('re-cash', cashRows || '<p class="note" style="margin:0;">활성 이벤트가 없습니다.</p>');
+
+  // 5) 타임라인 차트
+  reDrawTimeline(active);
+}
+
+function reDrawTimeline(active){
+  const MAXY = 15, mR = SCEN_RATE/100/12, living = MODEL.living.high;
+  let liquid = D.financialMan;                       // 만원
+  let reEquity = D.netWorthEok*10000 - liquid;       // 만원 (부동산 순자본 등)
+  function investableAt(yr){
+    const fired = active.filter(e=>e.year<=yr);
+    return Math.max(0, reDerive(reState(fired)).surplus - living);
+  }
+  let monthlyInvest = investableAt(0);
+  const labels=['0년'], nw=[Math.round(liquid+reEquity)], liq=[Math.round(liquid)];
+  for (let m=1; m<=MAXY*12; m++){
+    liquid = liquid*(1+mR) + monthlyInvest;
+    if (m%12===0){
+      const yr = m/12;
+      active.filter(e=>e.year===yr).forEach(e=>{
+        const ci = (e.type==='sell'||e.type==='buy') ? reState([e]).cashIn : 0;
+        liquid += ci; reEquity -= ci;
+      });
+      monthlyInvest = investableAt(yr);
+      labels.push(yr+'년'); nw.push(Math.round(liquid+reEquity)); liq.push(Math.round(liquid));
+    }
+  }
+  _set('re-timeline-note', '연 '+SCEN_RATE+'% 복리 · 월 투자 = (잉여−생활비 300만) · 부동산 미매도분 시세 보합 가정. 유동자산 = 금융자산 + 매도 회수현금이 복리로 성장.');
+  if (reChartInst) reChartInst.destroy();
+  reChartInst = new Chart(document.getElementById('reChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'총 순자산', data:nw, borderColor:'#185FA5', backgroundColor:'rgba(55,138,221,0.06)', tension:0.3, fill:true, pointRadius:2 },
+      { label:'유동자산(투자)', data:liq, borderColor:'#3B6D11', backgroundColor:'rgba(59,109,17,0.06)', tension:0.3, fill:true, pointRadius:2 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{size:11}, boxWidth:12 } },
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+fmtMan(ctx.raw) } } },
+      scales:{ y:{ ticks:{ callback:v=> v>=10000?(v/10000).toFixed(1)+'억':v.toLocaleString()+'만', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.08)' } },
+        x:{ ticks:{ font:{size:10} }, grid:{ display:false } } } }
+  });
+}
+
+function reToggle(id){ const e=RE_EVENTS.find(x=>x.id===id); e.on=document.getElementById('re-on-'+id).checked; reRender(); }
+function reSetYear(id){ const e=RE_EVENTS.find(x=>x.id===id); e.year=Math.max(0,parseInt(document.getElementById('re-yr-'+id).value)||0); reRender(); }
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1024,6 +1220,7 @@ function show(id, el) {
   el.classList.add('active');
   if (id === 'cashflow') initCashflowChart();
   if (id === 'debt') initDebtChart();
+  if (id === 'realestate') reRender();
   if (id === 'freedom' || id === 'simulator') setScenario(curScen);
 }
 
