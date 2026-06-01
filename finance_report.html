@@ -585,6 +585,15 @@ https://yezee0420.github.io/dev/finance_report.html
   <div class="section" id="freedom">
     <div class="section-title">경제적 자유 설계 — 재무설계사 상세 리포트</div>
 
+    <div class="seg" id="seg-freedom">
+      <button data-scen="combined" onclick="setScenario('combined')">합산 (부부)</button>
+      <button data-scen="yeji" onclick="setScenario('yeji')">예지 단독</button>
+      <button data-scen="seungmo" onclick="setScenario('seungmo')">승모 단독</button>
+    </div>
+
+    <!-- 결론 (동적) -->
+    <div class="card" id="fs-headline" style="border-color:var(--border-primary); background:var(--bg-secondary);"></div>
+
     <div class="card">
       <p class="note" style="margin-top:0; font-size:12.5px; color:var(--text-secondary);">
         안녕하세요, 두 분의 재무설계를 맡은 플래너입니다. 두 분은 이미 <b style="color:var(--text-primary)">순자산 약 10.8억 + 월 잉여현금 900만원대</b>라는, 또래 대비 매우 앞선 출발선에 계십니다.
@@ -593,11 +602,7 @@ https://yezee0420.github.io/dev/finance_report.html
       </p>
     </div>
 
-    <div class="seg" id="seg-freedom">
-      <button data-scen="combined" onclick="setScenario('combined')">합산 (부부)</button>
-      <button data-scen="yeji" onclick="setScenario('yeji')">예지 단독</button>
-      <button data-scen="seungmo" onclick="setScenario('seungmo')">승모 단독</button>
-    </div>
+
 
     <!-- 0. 대전제 -->
     <div class="card" style="border-color:var(--border-primary);">
@@ -644,7 +649,56 @@ https://yezee0420.github.io/dev/finance_report.html
       <div id="fs-position"></div>
     </div>
 
-    <!-- 3. 절세 3층 -->
+    <!-- 6. 성장 경로 -->
+    <div class="card">
+      <h3>6. 자산 성장 경로 (시나리오별)</h3>
+      <p class="note" style="margin-top:0;" id="fs-growth-assume"></p>
+      <div class="table-wrap" id="fs-growth"></div>
+      <div class="callout" id="fs-growth-note"></div>
+    </div>
+
+    <!-- 8. 포트폴리오 시뮬레이터 -->
+    <div class="card">
+      <h3>8. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
+      <p class="note" style="margin-top:0;">비중·기대수익률·적립금·기간·목표 생활비를 바꾸면 블렌디드 수익률과 FIRE 도달 시점이 실시간 재계산됩니다.</p>
+
+      <div style="margin-top:14px; font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; padding:0 6px 4px;">
+        <span style="flex:1">자산</span><span style="width:62px; text-align:right">비중%</span><span style="width:62px; text-align:right">수익%</span>
+      </div>
+      <div class="alloc-row"><span class="nm"><b>VOO</b> S&P500</span><input type="number" id="a-voo" value="45" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-voo" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>QQQM</b> 나스닥100</span><input type="number" id="a-qqq" value="20" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-qqq" value="10.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>SCHD</b> 배당성장</span><input type="number" id="a-schd" value="25" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-schd" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>JEPQ</b> 커버드콜</span><input type="number" id="a-jepq" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-jepq" value="7.5" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+      <div class="alloc-row"><span class="nm"><b>SGOV</b> 초단기채</span><input type="number" id="a-cash" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-cash" value="4.3" min="0" max="30" step="0.5"><span class="unit">%</span></div>
+
+      <div style="margin-top:14px;">
+        <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50"></div>
+        <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500"></div>
+        <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1"></div>
+        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10"></div>
+      </div>
+      <button class="btn" onclick="calcPortfolio()">시뮬레이션 계산 →</button>
+    </div>
+
+    <div class="card" id="pf-result" style="display:none">
+      <h3>시뮬레이션 결과</h3>
+      <div class="grid2" style="margin-bottom:4px;">
+        <div class="metric"><div class="label">블렌디드 기대수익률</div><div class="value" id="pf-blended" style="color:#185FA5">-</div><div class="sub" id="pf-allocnote">비중 합계 100%</div></div>
+        <div class="metric"><div class="label">FIRE 목표 / 도달 시점</div><div class="value" id="pf-fire" style="color:#3B6D11">-</div><div class="sub" id="pf-firesub">-</div></div>
+      </div>
+      <div class="row"><span class="lbl">투자 원금 합계 (시드+적립)</span><span class="val" id="pf-principal">-</span></div>
+      <div class="row"><span class="lbl">예상 최종 자산</span><span class="val grn" id="pf-total">-</span></div>
+      <div class="row"><span class="lbl">수익금</span><span class="val blue" id="pf-profit">-</span></div>
+      <div class="row"><span class="lbl">최종 시점 연 배당 인컴 (배당률 가중)</span><span class="val grn" id="pf-divincome">-</span></div>
+      <div class="row"><span class="lbl">4% 인출 시 월 패시브 소득</span><span class="val grn" id="pf-passive">-</span></div>
+      <div class="divider"></div>
+      <div id="pf-comment" class="note" style="padding:8px 0;"></div>
+      <div style="position:relative; width:100%; height:300px; margin-top:1rem;">
+        <canvas id="pfChart" role="img" aria-label="포트폴리오 자산 성장 및 FIRE 목표 그래프"></canvas>
+      </div>
+    </div>
+
+<!-- 3. 절세 3층 -->
     <div class="card">
       <h3>3. 절세 계좌 3층 구조 — 같은 수익도 세금이 다르다</h3>
       <p class="note" style="margin-top:0;">같은 ETF를 사도 <b style="color:var(--text-primary)">어느 계좌</b>에서 사느냐로 세후 수익이 갈립니다. 아래 순서대로 그릇을 채우세요.</p>
@@ -749,14 +803,6 @@ https://yezee0420.github.io/dev/finance_report.html
       <div class="callout">연금저축/IRP·ISA = <b>국내상장 ETF</b> 사용 / 일반 직투 계좌 = <b>미국 상장 ETF</b> 사용. 그릇에 맞는 상품을 담는 게 핵심입니다.</div>
     </div>
 
-    <!-- 6. 성장 경로 -->
-    <div class="card">
-      <h3>6. 자산 성장 경로 (시나리오별)</h3>
-      <p class="note" style="margin-top:0;" id="fs-growth-assume"></p>
-      <div class="table-wrap" id="fs-growth"></div>
-      <div class="callout" id="fs-growth-note"></div>
-    </div>
-
     <!-- 7. 실행 체크리스트 -->
     <div class="card">
       <h3>7. 90일 실행 체크리스트</h3>
@@ -769,48 +815,7 @@ https://yezee0420.github.io/dev/finance_report.html
       <p class="note" style="padding-top:8px;">핵심 원칙: <b style="color:var(--text-primary)">자동화(타이밍 예측 금지) · 절세그릇 우선 · 고금리빚 선상환 · 분산 · 장기보유.</b></p>
     </div>
 
-    <!-- 8. 포트폴리오 시뮬레이터 -->
-    <div class="card">
-      <h3>8. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
-      <p class="note" style="margin-top:0;">비중·기대수익률·적립금·기간·목표 생활비를 바꾸면 블렌디드 수익률과 FIRE 도달 시점이 실시간 재계산됩니다.</p>
-
-      <div style="margin-top:14px; font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; padding:0 6px 4px;">
-        <span style="flex:1">자산</span><span style="width:62px; text-align:right">비중%</span><span style="width:62px; text-align:right">수익%</span>
-      </div>
-      <div class="alloc-row"><span class="nm"><b>VOO</b> S&P500</span><input type="number" id="a-voo" value="45" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-voo" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
-      <div class="alloc-row"><span class="nm"><b>QQQM</b> 나스닥100</span><input type="number" id="a-qqq" value="20" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-qqq" value="10.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
-      <div class="alloc-row"><span class="nm"><b>SCHD</b> 배당성장</span><input type="number" id="a-schd" value="25" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-schd" value="8.0" min="0" max="30" step="0.5"><span class="unit">%</span></div>
-      <div class="alloc-row"><span class="nm"><b>JEPQ</b> 커버드콜</span><input type="number" id="a-jepq" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-jepq" value="7.5" min="0" max="30" step="0.5"><span class="unit">%</span></div>
-      <div class="alloc-row"><span class="nm"><b>SGOV</b> 초단기채</span><input type="number" id="a-cash" value="5" min="0" max="100" step="5"><span class="unit">%</span><input type="number" id="r-cash" value="4.3" min="0" max="30" step="0.5"><span class="unit">%</span></div>
-
-      <div style="margin-top:14px;">
-        <div class="input-row"><label>월 적립금 (만원)</label><input type="number" id="pf-monthly" value="700" min="0" max="3000" step="50"></div>
-        <div class="input-row"><label>초기 시드 (신규 현금, 만원)</label><input type="number" id="pf-seed" value="3200" min="0" max="100000" step="500"></div>
-        <div class="input-row"><label>투자 기간 (년)</label><input type="number" id="pf-years" value="12" min="1" max="40" step="1"></div>
-        <div class="input-row"><label>목표 월 생활비 (만원) — FIRE 기준</label><input type="number" id="pf-living" value="300" min="100" max="1000" step="10"></div>
-      </div>
-      <button class="btn" onclick="calcPortfolio()">시뮬레이션 계산 →</button>
-    </div>
-
-    <div class="card" id="pf-result" style="display:none">
-      <h3>시뮬레이션 결과</h3>
-      <div class="grid2" style="margin-bottom:4px;">
-        <div class="metric"><div class="label">블렌디드 기대수익률</div><div class="value" id="pf-blended" style="color:#185FA5">-</div><div class="sub" id="pf-allocnote">비중 합계 100%</div></div>
-        <div class="metric"><div class="label">FIRE 목표 / 도달 시점</div><div class="value" id="pf-fire" style="color:#3B6D11">-</div><div class="sub" id="pf-firesub">-</div></div>
-      </div>
-      <div class="row"><span class="lbl">투자 원금 합계 (시드+적립)</span><span class="val" id="pf-principal">-</span></div>
-      <div class="row"><span class="lbl">예상 최종 자산</span><span class="val grn" id="pf-total">-</span></div>
-      <div class="row"><span class="lbl">수익금</span><span class="val blue" id="pf-profit">-</span></div>
-      <div class="row"><span class="lbl">최종 시점 연 배당 인컴 (배당률 가중)</span><span class="val grn" id="pf-divincome">-</span></div>
-      <div class="row"><span class="lbl">4% 인출 시 월 패시브 소득</span><span class="val grn" id="pf-passive">-</span></div>
-      <div class="divider"></div>
-      <div id="pf-comment" class="note" style="padding:8px 0;"></div>
-      <div style="position:relative; width:100%; height:300px; margin-top:1rem;">
-        <canvas id="pfChart" role="img" aria-label="포트폴리오 자산 성장 및 FIRE 목표 그래프"></canvas>
-      </div>
-    </div>
-
-    <p class="note" style="text-align:center; padding:8px 0 4px;">
+        <p class="note" style="text-align:center; padding:8px 0 4px;">
       ※ 본 리포트는 교육·참고용 시뮬레이션이며 특정 종목의 매수 권유나 수익 보장이 아닙니다. 모든 투자는 원금 손실 위험이 있으며,
       기대수익률·환율·세율은 가정치입니다. 실제 실행 전 세무·투자 전문가와 본인 상황을 확인하세요.
     </p>
@@ -1181,6 +1186,21 @@ function setScenario(key) {
 
   document.querySelectorAll('[data-scen]').forEach(b =>
     b.classList.toggle('active', b.getAttribute('data-scen') === key));
+
+  /* 🎯 결론 (가장 위) — 파이어 언제·어떤 조건 */
+  document.getElementById('fs-headline').innerHTML =
+    '<div style="font-size:11px;color:var(--text-tertiary);margin-bottom:6px;">결론 — ' + s.label + '</div>'
+    + '<div style="font-size:23px;font-weight:600;color:#185FA5;line-height:1.25;">경제적 자유 달성 <span style="color:var(--text-primary)">약 ' + fireWhen + '</span></div>'
+    + '<div style="font-size:13px;color:var(--text-secondary);margin:5px 0 12px;">목표 ' + fmtMan(target) + ' · 월 ' + s.living + '만 패시브 소득 자급 (4% 룰)</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'
+    + '<span class="pill">시드(현금) ' + s.seed.toLocaleString() + '만</span>'
+    + '<span class="pill">월 적립 ' + investable.toLocaleString() + '만</span>'
+    + (s.annualExtra ? '<span class="pill">연말 ' + s.annualExtra.toLocaleString() + '만</span>' : '')
+    + '<span class="pill">수익률 8.2%</span>'
+    + (s.stocks ? '<span class="pill">보유주식 ' + s.stocks.toLocaleString() + '만(별도)</span>' : '')
+    + '</div>'
+    + '<p class="note" style="margin:0;"><b>어떤 조건으로?</b> 현금 ' + s.seed.toLocaleString() + '만으로 시작해 매월 ' + investable.toLocaleString() + '만'
+    + (s.annualExtra ? ' + 연말 ' + s.annualExtra.toLocaleString() + '만' : '') + '씩 연 8.2% 복리로 굴리면, <b>약 ' + fireWhen + '</b> 뒤 월 ' + s.living + '만 패시브(목표 ' + fmtMan(target) + ')에 도달합니다. 자세한 가정·경로는 아래.</p>';
 
   /* 대전제 표 */
   const tr = (a, b, c) => '<tr><td><b>' + a + '</b></td><td class="num">' + b + '</td><td>' + c + '</td></tr>';
