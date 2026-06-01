@@ -1,0 +1,334 @@
+<!--
+https://yezee0420.github.io/dev/invest_sim.html
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S&P500 · 나스닥100(QQQ) 적립식 백테스트 시뮬레이터</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171c24; --panel2:#1f2630; --line:#2a323d;
+    --txt:#e6edf3; --sub:#9aa7b5; --accent:#4f9dff; --spy:#4f9dff; --qqq:#a06bff;
+    --green:#3fb950; --red:#f85149; --gold:#e3b341;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",Segoe UI,Roboto,sans-serif;
+    line-height:1.55;}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 16px 80px;}
+  h1{font-size:22px;margin:0 0 4px;font-weight:700;}
+  .meta{color:var(--sub);font-size:13px;margin-bottom:20px;}
+  .meta b{color:var(--txt);}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px;margin-bottom:16px;}
+  .panel h2{font-size:14px;margin:0 0 14px;color:var(--sub);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:18px 22px;}
+  @media(max-width:680px){.controls{grid-template-columns:1fr;}}
+  label{display:block;font-size:13px;color:var(--sub);margin-bottom:6px;}
+  .row{display:flex;align-items:center;gap:10px;}
+  input[type=range]{flex:1;accent-color:var(--accent);}
+  input[type=number],select{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+    border-radius:9px;padding:8px 10px;font-size:14px;width:100%;}
+  .amt{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;min-width:96px;text-align:right;}
+  .seg{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg button{background:var(--panel2);border:1px solid var(--line);color:var(--sub);
+    border-radius:9px;padding:8px 12px;font-size:13px;cursor:pointer;transition:.12s;}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .seg.small button{padding:6px 10px;font-size:12px;}
+  .toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:13px;color:var(--txt);}
+  .toggle input{width:auto;}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+  @media(max-width:680px){.cards{grid-template-columns:repeat(2,1fr);}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 15px;}
+  .card .k{font-size:12px;color:var(--sub);margin-bottom:6px;}
+  .card .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+  .card .s{font-size:12px;color:var(--sub);margin-top:3px;}
+  .pos{color:var(--green);} .neg{color:var(--red);}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:820px){.twocol{grid-template-columns:1fr;}}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;}
+  th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+  th{color:var(--sub);font-weight:600;text-align:right;position:sticky;top:0;background:var(--panel);}
+  th:first-child,td:first-child{text-align:left;}
+  .scroll{max-height:340px;overflow:auto;}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin:4px 2px 12px;}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+  .note{font-size:12px;color:var(--sub);margin-top:10px;}
+  .note code{background:var(--panel2);padding:1px 6px;border-radius:5px;}
+  canvas{max-height:320px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📈 S&P500 · 나스닥100(QQQ) 적립식 백테스트</h1>
+  <div class="meta">
+    실제 가격 데이터 기반 · <b id="periodLabel">2022-01 ~ 2026-05</b> · 매월 <b>22일</b>(직후 거래일) 매수 가정 · 배당 매월 재투자 ·
+    종가/배당조정종가 출처: Yahoo Finance
+  </div>
+
+  <!-- 컨트롤 -->
+  <div class="panel">
+    <h2>시뮬레이션 변수</h2>
+    <div class="controls">
+      <div>
+        <label>월 납입금 (USD)</label>
+        <div class="row">
+          <input type="range" id="contribRange" min="50" max="5000" step="50" value="1000">
+          <span class="amt" id="contribLabel">$1,000</span>
+        </div>
+        <div class="seg small" style="margin-top:8px">
+          <button data-c="300">$300</button>
+          <button data-c="500">$500</button>
+          <button data-c="1000" class="on">$1,000</button>
+          <button data-c="2000">$2,000</button>
+        </div>
+      </div>
+
+      <div>
+        <label>투자 종목</label>
+        <div class="seg" id="tickerSeg">
+          <button data-t="SPY" class="on">S&P500 (SPY)</button>
+          <button data-t="QQQ" class="on">나스닥100 (QQQ)</button>
+        </div>
+        <label class="toggle" style="margin-top:12px">
+          <input type="checkbox" id="divToggle" checked> 배당 매월 재투자 (체크 해제 시 가격 변동만)
+        </label>
+      </div>
+
+      <div>
+        <label>시작 월</label>
+        <select id="startSel"></select>
+      </div>
+
+      <div>
+        <label>투자 기간</label>
+        <div class="seg small" id="lenSeg">
+          <button data-l="36">36개월</button>
+          <button data-l="all" class="on">전체</button>
+        </div>
+        <div class="note" id="lenNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 요약 카드 (종목별로 동적 생성) -->
+  <div id="cardArea"></div>
+
+  <!-- 차트 -->
+  <div class="panel">
+    <h2>누적 납입금 vs 평가액</h2>
+    <div class="legend">
+      <span><span class="dot" style="background:#6b7684"></span>누적 납입금</span>
+      <span><span class="dot" style="background:var(--spy)"></span>S&P500 평가액</span>
+      <span><span class="dot" style="background:var(--qqq)"></span>QQQ 평가액</span>
+    </div>
+    <canvas id="valueChart"></canvas>
+    <div class="note">선이 회색(납입금) 아래로 내려간 구간 = <b style="color:var(--red)">평가손실(원금 깨진) 구간</b>. 2022년 하락장에서 한동안 마이너스였다가 회복한 흐름을 볼 수 있어요.</div>
+  </div>
+
+  <!-- 월별 손익 테이블 -->
+  <div class="twocol">
+    <div class="panel">
+      <h2>월별 평가손익 추이</h2>
+      <div class="scroll">
+        <table id="monthTable">
+          <thead><tr><th>월</th><th>누적납입</th><th>평가액</th><th>손익</th><th>수익률</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>매수 회차별 현재 손익 (lot별)</h2>
+      <div class="scroll">
+        <table id="lotTable">
+          <thead><tr><th>매수월</th><th>매수가</th><th>현재 손익률</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:6px">
+    📌 계산법 — 매월 납입금으로 그 달 22일 종가에 매수. <b>배당 재투자 ON</b>: 배당조정종가(adjusted close) 기준 = 받은 배당을 같은 종목에 즉시 재매수한 총수익.
+    <b>OFF</b>: 순수 종가 기준 = 배당 무시한 가격 손익. 손익 = 평가액 − 누적 납입금. 환율·세금·수수료 미반영(USD 기준).
+  </div>
+</div>
+
+<script>
+const DATA = {"SPY":[["2022-01",439.84,414.92],["2022-02",429.57,405.2319],["2022-03",449.59,425.4352],["2022-04",426.04,403.1505],["2022-05",396.92,375.595],["2022-06",374.39,355.8058],["2022-07",395.09,375.4783],["2022-08",413.35,392.8318],["2022-09",374.22,357.1052],["2022-10",378.87,361.5425],["2022-11",399.9,381.6106],["2022-12",380.72,364.9762],["2023-01",400.63,384.0629],["2023-02",398.54,382.0593],["2023-03",392.11,377.3298],["2023-04",412.63,397.0763],["2023-05",418.79,403.0042],["2023-06",436.51,421.6165],["2023-07",454.2,438.7029],["2023-08",438.15,423.2006],["2023-09",430.42,417.2007],["2023-10",420.46,407.5466],["2023-11",455.02,441.0452],["2023-12",473.65,460.9645],["2024-01",483.45,470.502],["2024-02",507.5,493.9078],["2024-03",521.21,508.8267],["2024-04",499.72,487.8473],["2024-05",529.83,517.2419],["2024-06",542.74,531.5545],["2024-07",554.65,543.2191],["2024-08",556.22,544.7568],["2024-09",569.67,559.6409],["2024-10",583.32,573.0505],["2024-11",595.51,585.0259],["2024-12",594.69,586.1867],["2025-01",606.44,597.7686],["2025-02",597.21,588.6707],["2025-03",574.08,567.5736],["2025-04",527.25,521.2744],["2025-05",583.09,576.4815],["2025-06",600.15,595.1022],["2025-07",628.86,623.5707],["2025-08",645.31,639.8823],["2025-09",666.84,663.0646],["2025-10",667.8,664.0191],["2025-11",668.73,664.9438],["2025-12",684.83,682.9648],["2026-01",688.98,687.1035],["2026-02",682.39,680.5315],["2026-03",655.38,655.38],["2026-04",711.21,711.21],["2026-05",745.64,745.64]],"QQQ":[["2022-01",353.3,344.0702],["2022-02",338.08,329.2478],["2022-03",356.96,348.0642],["2022-04",325.4,317.2908],["2022-05",293.48,286.1663],["2022-06",280.67,274.2016],["2022-07",301.99,295.0302],["2022-08",314.36,307.1151],["2022-09",280.07,274.1071],["2022-10",278.45,272.5216],["2022-11",285.95,279.8619],["2022-12",266.76,261.7055],["2023-01",288.96,283.4849],["2023-02",294.25,288.6746],["2023-03",306.12,300.7846],["2023-04",315.95,310.4434],["2023-05",337.64,331.7553],["2023-06",366.17,360.2816],["2023-07",376.23,370.1798],["2023-08",363.38,357.5365],["2023-09",357.91,352.6642],["2023-10",355.67,350.457],["2023-11",390.06,384.343],["2023-12",408.38,403.1982],["2024-01",421.73,416.5979],["2024-02",438.07,432.739],["2024-03",446.38,441.5309],["2024-04",418.82,414.2703],["2024-05",455.71,450.7596],["2024-06",473.96,469.5565],["2024-07",482.32,477.8388],["2024-08",474.85,470.4382],["2024-09",483.04,479.2246],["2024-10",495.96,492.0425],["2024-11",505.79,501.7949],["2024-12",522.87,519.5764],["2025-01",531.51,528.162],["2025-02",519.87,516.5953],["2025-03",490.66,488.2964],["2025-04",444.48,442.3389],["2025-05",514.0,511.524],["2025-06",531.65,529.6832],["2025-07",561.25,559.1736],["2025-08",571.97,569.854],["2025-09",602.2,600.6677],["2025-10",605.49,603.9493],["2025-11",605.16,603.6202],["2025-12",619.21,618.4302],["2026-01",620.76,619.9783],["2026-02",601.41,600.6526],["2026-03",588.0,588.0],["2026-04",655.11,655.11],["2026-05",717.54,717.54]]};
+const months = DATA.SPY.map(r=>r[0]);          // 'YYYY-MM' 공통
+const TICK = {SPY:{name:'S&P500 (SPY)',color:'#4f9dff'}, QQQ:{name:'나스닥100 (QQQ)',color:'#a06bff'}};
+
+const $ = s=>document.querySelector(s);
+const fmt = n=>'$'+Math.round(n).toLocaleString('en-US');
+const pct = n=>(n>=0?'+':'')+n.toFixed(1)+'%';
+
+// ---- state ----
+const state = {contrib:1000, tickers:['SPY','QQQ'], div:true, start:0, len:'all'};
+
+// start 셀렉트 채우기
+const startSel = $('#startSel');
+months.forEach((m,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=m; startSel.appendChild(o); });
+
+let chart;
+
+function windowIdx(){
+  const start = state.start;
+  let end = months.length-1;
+  if(state.len!=='all') end = Math.min(start + parseInt(state.len) - 1, months.length-1);
+  return {start, end};
+}
+
+// 한 종목 시뮬레이션. 윈도우 내 각 월에 대해 누적 납입/평가액 시계열 + lot 손익 반환
+function simulate(t){
+  const {start,end} = windowIdx();
+  const rows = DATA[t];
+  const useAdj = state.div;
+  const priceOf = r => useAdj ? r[2] : r[1];   // adj or close
+  const series=[], lots=[];
+  for(let i=start;i<=end;i++){
+    // i 시점 평가: start..i 까지 매수한 lot들의 i 시점 가치 합
+    const pNow = priceOf(rows[i]);
+    let val=0;
+    for(let j=start;j<=i;j++){
+      val += state.contrib * pNow / priceOf(rows[j]);
+    }
+    const invested = state.contrib * (i-start+1);
+    series.push({m:months[i], invested, val});
+  }
+  // lot별 현재(end) 손익
+  const pEnd = priceOf(rows[end]);
+  for(let j=start;j<=end;j++){
+    const r = (pEnd/priceOf(rows[j]) - 1)*100;
+    lots.push({m:months[j], buy:rows[j][1], ret:r});
+  }
+  const last = series[series.length-1];
+  return {series, lots, invested:last.invested, value:last.val,
+          // 가격만(배당제외) 평가액도 같이 계산 — 배당 기여분 표시용
+          };
+}
+
+// 배당 기여분 = (adj기준 평가) - (close기준 평가)
+function dividendContribution(t){
+  const {start,end}=windowIdx();
+  const rows=DATA[t];
+  const calc = useAdj=>{
+    const p=rows[end][useAdj?2:1];
+    let v=0; for(let j=start;j<=end;j++){ v+=state.contrib*p/rows[j][useAdj?2:1]; }
+    return v;
+  };
+  return calc(true)-calc(false);
+}
+
+function render(){
+  const {start,end}=windowIdx();
+  $('#periodLabel').textContent = months[start]+' ~ '+months[end];
+  $('#contribLabel').textContent = fmt(state.contrib);
+  const n = end-start+1;
+  $('#lenNote').textContent = `선택 구간: ${n}개월 (전체 ${months.length}개월 중)`;
+
+  // 카드
+  const area = $('#cardArea');
+  area.innerHTML='';
+  const sims={};
+  state.tickers.forEach(t=>{
+    const s = simulate(t); sims[t]=s;
+    const pl = s.value - s.invested;
+    const plPct = pl/s.invested*100;
+    // 최대 낙폭(원금대비 최저)
+    let worst=0; s.series.forEach(p=>{ const u=(p.val-p.invested)/p.invested*100; if(u<worst)worst=u; });
+    const divc = state.div ? dividendContribution(t) : 0;
+
+    const cards = document.createElement('div');
+    cards.innerHTML = `<h2 style="margin:6px 2px 8px;color:${TICK[t].color};font-size:14px;font-weight:700">${TICK[t].name}</h2>
+    <div class="cards">
+      <div class="card"><div class="k">누적 납입금</div><div class="v">${fmt(s.invested)}</div><div class="s">${n}회 × ${fmt(state.contrib)}</div></div>
+      <div class="card"><div class="k">현재 평가액</div><div class="v">${fmt(s.value)}</div><div class="s">${months[end]} 기준</div></div>
+      <div class="card"><div class="k">평가손익</div><div class="v ${pl>=0?'pos':'neg'}">${pl>=0?'+':''}${fmt(pl)}</div><div class="s ${pl>=0?'pos':'neg'}">${pct(plPct)}</div></div>
+      <div class="card"><div class="k">최대 원금손실 구간</div><div class="v ${worst<0?'neg':''}">${pct(worst)}</div><div class="s">${state.div?'재투자 배당 기여 '+fmt(divc):'배당 제외'}</div></div>
+    </div>`;
+    area.appendChild(cards);
+  });
+
+  // 차트
+  const labels = sims[state.tickers[0]] ? sims[state.tickers[0]].series.map(p=>p.m)
+               : (state.tickers.length? sims[state.tickers[0]].series.map(p=>p.m):[]);
+  const baseT = state.tickers[0] || 'SPY';
+  const investedSeries = (sims[baseT]||simulate('SPY')).series.map(p=>p.invested);
+  const ds=[{label:'누적 납입금',data:investedSeries,borderColor:'#6b7684',backgroundColor:'transparent',
+             borderDash:[6,4],borderWidth:2,pointRadius:0,tension:.1,fill:false}];
+  state.tickers.forEach(t=>{
+    ds.push({label:TICK[t].name,data:sims[t].series.map(p=>p.val),borderColor:TICK[t].color,
+      backgroundColor:TICK[t].color+'18',borderWidth:2.5,pointRadius:0,tension:.25,fill:true});
+  });
+  const cfg={type:'line',data:{labels,datasets:ds},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},
+      scales:{x:{grid:{color:'#222'},ticks:{color:'#9aa7b5',maxTicksLimit:12,font:{size:10}}},
+              y:{grid:{color:'#222'},ticks:{color:'#9aa7b5',callback:v=>'$'+(v/1000)+'k'}}}}};
+  if(chart)chart.destroy();
+  chart=new Chart($('#valueChart'),cfg);
+
+  // 월별 테이블 (대표 종목 = 첫 선택)
+  const tb=$('#monthTable tbody'); tb.innerHTML='';
+  const rep = sims[baseT] || simulate('SPY');
+  rep.series.forEach(p=>{
+    const pl=p.val-p.invested, plp=pl/p.invested*100;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${p.m}</td><td>${fmt(p.invested)}</td><td>${fmt(p.val)}</td>
+      <td class="${pl>=0?'pos':'neg'}">${pl>=0?'+':''}${fmt(pl)}</td>
+      <td class="${pl>=0?'pos':'neg'}">${pct(plp)}</td>`;
+    tb.appendChild(tr);
+  });
+  $('#monthTable').previousElementSibling; // noop
+  document.querySelector('.twocol .panel h2').textContent = `월별 평가손익 추이 — ${TICK[baseT]?TICK[baseT].name:''}`;
+
+  // lot 테이블
+  const lt=$('#lotTable tbody'); lt.innerHTML='';
+  rep.lots.forEach(l=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${l.m}</td><td>$${l.buy.toFixed(2)}</td>
+      <td class="${l.ret>=0?'pos':'neg'}">${pct(l.ret)}</td>`;
+    lt.appendChild(tr);
+  });
+}
+
+// ---- 이벤트 바인딩 ----
+$('#contribRange').addEventListener('input',e=>{
+  state.contrib=+e.target.value;
+  document.querySelectorAll('.seg.small [data-c]').forEach(b=>b.classList.toggle('on',+b.dataset.c===state.contrib));
+  render();
+});
+document.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
+  state.contrib=+b.dataset.c; $('#contribRange').value=state.contrib;
+  document.querySelectorAll('[data-c]').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+}));
+$('#tickerSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-t]'); if(!b)return;
+  const t=b.dataset.t;
+  if(state.tickers.includes(t)){ if(state.tickers.length>1) state.tickers=state.tickers.filter(x=>x!==t); }
+  else state.tickers.push(t);
+  // 원래 순서 유지
+  state.tickers = ['SPY','QQQ'].filter(x=>state.tickers.includes(x));
+  document.querySelectorAll('#tickerSeg [data-t]').forEach(x=>x.classList.toggle('on',state.tickers.includes(x.dataset.t)));
+  render();
+});
+$('#divToggle').addEventListener('change',e=>{state.div=e.target.checked;render();});
+$('#startSel').addEventListener('change',e=>{state.start=+e.target.value;render();});
+$('#lenSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-l]'); if(!b)return;
+  state.len=b.dataset.l;
+  document.querySelectorAll('#lenSeg [data-l]').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
