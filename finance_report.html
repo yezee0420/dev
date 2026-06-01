@@ -263,6 +263,12 @@ https://yezee0420.github.io/dev/finance_report.html
   #ac-matrix input { width:56px; text-align:right; padding:3px 4px; font-size:11px; border:0.5px solid var(--border-secondary); border-radius:5px; background:var(--bg-primary); color:var(--text-primary); font-family:var(--font-sans); }
   #ac-matrix input::placeholder { color:var(--text-tertiary); opacity:0.55; }
   #ac-matrix td.ac-cur input, #ac-matrix td.ac-cur { outline:1.5px solid #185FA5; outline-offset:-2px; border-radius:5px; }
+  #pen-alloc table { width:100%; border-collapse:collapse; font-size:11.5px; }
+  #pen-alloc th, #pen-alloc td { padding:6px 6px; border-bottom:0.5px solid var(--border-tertiary); text-align:right; white-space:nowrap; }
+  #pen-alloc th { color:var(--text-secondary); font-weight:500; font-size:10.5px; }
+  #pen-alloc td.nm { text-align:left; }
+  #pen-alloc input { width:52px; text-align:right; padding:3px 4px; font-size:11px; border:0.5px solid var(--border-secondary); border-radius:5px; background:var(--bg-primary); color:var(--text-primary); font-family:var(--font-sans); }
+  #pen-alloc .calc { color:var(--text-tertiary); }
   .btn {
     margin-top: 12px;
     width: 100%;
@@ -297,6 +303,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <button class="tab" onclick="show('strategy', this)">전략 로드맵</button>
     <button class="tab" onclick="show('freedom', this)">경제적 자유 설계</button>
     <button class="tab" onclick="show('simulator', this)">시뮬레이터</button>
+    <button class="tab" onclick="show('pension', this)">연금 시뮬레이터</button>
     <button class="tab" onclick="show('actual', this)">실적 추적</button>
   </div>
 
@@ -951,6 +958,40 @@ https://yezee0420.github.io/dev/finance_report.html
     </div>
   </div>
 
+  <!-- 연금 시뮬레이터 -->
+  <div class="section" id="pension">
+    <div class="section-title">연금 시뮬레이터 — 종목별 비중 → 평가금·배당금</div>
+
+    <div class="card">
+      <p class="note" style="margin-top:0;">연금저축펀드 기준(국내상장 ETF · 배당 전액 재투자·과세이연). 프리셋을 고르거나 <b>종목별 비중·수익률·배당률을 직접</b> 바꿔보세요. 각 종목에 <b>실제로 얼마</b>가 들어가는지(시작/월 투입)와 미래 평가금·배당금이 바로 계산됩니다.</p>
+      <div class="grid3" style="margin-top:12px;">
+        <div class="input-row" style="border:none;padding:6px 0;"><label>시작 잔액 (만원)</label><input type="number" id="pen-start" value="110" min="0" step="10" onchange="penCalc()"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>월 납입금 (만원)</label><input type="number" id="pen-monthly" value="50" min="0" step="10" onchange="penCalc()"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>투자 기간 (년)</label><input type="number" id="pen-years" value="20" min="1" max="40" step="1" onchange="penCalc()"></div>
+      </div>
+      <div class="seg" id="pen-preset" style="margin-top:6px;">
+        <button onclick="penPreset('balanced',this)">균형 (배당 27%)</button>
+        <button onclick="penPreset('mid',this)">중간 (배당 14%)</button>
+        <button onclick="penPreset('growth',this)">성장 (배당 0%)</button>
+      </div>
+      <div id="pen-alloc" style="margin-top:8px; overflow-x:auto;"></div>
+      <div class="callout" id="pen-blend"></div>
+    </div>
+
+    <div class="card">
+      <h3>시뮬레이션 결과</h3>
+      <div class="grid3" id="pen-summary" style="margin-bottom:14px;"></div>
+      <h3 style="font-size:13px;">종목별 최종 (만기 시점)</h3>
+      <div id="pen-byetf" style="overflow-x:auto; margin-bottom:8px;"></div>
+      <div style="position:relative; width:100%; height:300px;">
+        <canvas id="penChart" role="img" aria-label="연금 평가금 종목별 누적 성장"></canvas>
+      </div>
+      <div style="margin-top:1.25rem; overflow-x:auto;">
+        <table id="pen-table" style="width:100%; font-size:12px; border-collapse:collapse;"></table>
+      </div>
+    </div>
+  </div>
+
   <!-- 실적 추적 (Actual) -->
   <div class="section" id="actual">
     <div class="section-title">실적 추적 (Actual) — 계획(TARGET) vs 실제(ACTUAL)</div>
@@ -1488,6 +1529,132 @@ function acExport(){
   catch(e){ acFlash('아래 JSON을 복사해 채팅에 붙여넣으세요'); }
 }
 
+/* ============================================================
+   연금 시뮬레이터 — 종목별 비중 → 평가금·배당금 (배당 재투자·과세이연)
+   ============================================================ */
+const PEN = [
+  { id:'sp', name:'TIGER 미국S&P500',          w:55, r:8.0,  y:1.3, c:'#378ADD' },
+  { id:'nq', name:'TIGER 미국나스닥100',        w:18, r:10.0, y:0.6, c:'#7C5CD0' },
+  { id:'dv', name:'SOL 미국배당다우존스',       w:27, r:8.0,  y:3.7, c:'#3B6D11' },
+  { id:'cc', name:'TIGER 미국나스닥100커버드콜', w:0,  r:7.5,  y:10.0, c:'#BA7517' },
+  { id:'cd', name:'TIGER CD금리투자KIS',        w:0,  r:4.3,  y:0.0, c:'#888780' },
+];
+const PEN_PRESETS = { balanced:[55,18,27,0,0], mid:[59,27,14,0,0], growth:[64,36,0,0,0] };
+let penInited = false, penChartInst = null;
+function penNum(id){ const el=document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; }
+
+function penInit(){
+  if(penInited){ penCalc(); return; }
+  let h = '<table><thead><tr>'
+    + ['종목','비중%','수익%','배당%','시작 투입','월 투입'].map((t,i)=>'<th'+(i===0?' style="text-align:left"':'')+'>'+t+'</th>').join('')
+    + '</tr></thead><tbody>';
+  PEN.forEach(e=>{
+    h += '<tr>'
+      + '<td class="nm"><b style="color:'+e.c+'">●</b> '+e.name+'</td>'
+      + '<td><input id="pen-w-'+e.id+'" type="number" value="'+e.w+'" min="0" max="100" step="1" onchange="penCalc()"></td>'
+      + '<td><input id="pen-r-'+e.id+'" type="number" value="'+e.r+'" min="0" max="30" step="0.5" onchange="penCalc()"></td>'
+      + '<td><input id="pen-y-'+e.id+'" type="number" value="'+e.y+'" min="0" max="30" step="0.1" onchange="penCalc()"></td>'
+      + '<td class="calc" id="pen-in-'+e.id+'">-</td><td class="calc" id="pen-min-'+e.id+'">-</td></tr>';
+  });
+  h += '</tbody></table>';
+  _set('pen-alloc', h);
+  const pb = document.querySelector('#pen-preset button'); if(pb) pb.classList.add('active');  // 기본=균형
+  penInited = true;
+  penCalc();
+}
+
+function penPreset(name, btn){
+  const p = PEN_PRESETS[name]; if(!p) return;
+  PEN.forEach((e,i)=>{ const el=document.getElementById('pen-w-'+e.id); if(el) el.value = p[i]; });
+  document.querySelectorAll('#pen-preset button').forEach(b=> b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  penCalc();
+}
+
+function penCalc(){
+  if(!penInited) return;
+  const start = penNum('pen-start'), monthly = penNum('pen-monthly'), years = Math.max(1, Math.round(penNum('pen-years')));
+  let wsum = 0; PEN.forEach(e=> wsum += penNum('pen-w-'+e.id));
+  const norm = wsum>0 ? wsum : 100;
+
+  // 종목별 가중·시작/월 투입 표시 + 블렌디드
+  let blendR=0, blendY=0;
+  const wt={}, rt={}, yl={};
+  PEN.forEach(e=>{
+    const w = penNum('pen-w-'+e.id)/norm; wt[e.id]=w; rt[e.id]=penNum('pen-r-'+e.id); yl[e.id]=penNum('pen-y-'+e.id);
+    blendR += w*rt[e.id]; blendY += w*yl[e.id];
+    _set('pen-in-'+e.id, fmtMan(start*w)); _set('pen-min-'+e.id, fmtMan(monthly*w));
+  });
+  _set('pen-blend', '<b>블렌디드 기대수익률 '+(Math.round(blendR*100)/100)+'%</b> · 배당률 '+(Math.round(blendY*100)/100)+'%'
+    + (Math.round(wsum)!==100 ? ' · 비중합 '+Math.round(wsum)+'% → 100%로 정규화' : ' · 비중합 100%'));
+
+  // 종목별 월별 시뮬
+  const vals={}; PEN.forEach(e=> vals[e.id] = start*wt[e.id]);
+  const yearRows=[];
+  for(let m=1; m<=years*12; m++){
+    PEN.forEach(e=>{ vals[e.id] = vals[e.id]*(1+rt[e.id]/100/12) + monthly*wt[e.id]; });
+    if(m%12===0){
+      const y=m/12, per={}; let tot=0, div=0;
+      PEN.forEach(e=>{ per[e.id]=vals[e.id]; tot+=vals[e.id]; div += vals[e.id]*yl[e.id]/100; });
+      yearRows.push({ y, per, tot, div, paid:start+monthly*12*y });
+    }
+  }
+  const last = yearRows[yearRows.length-1];
+  const profit = last.tot - last.paid;
+
+  // 요약
+  _set('pen-summary',
+      '<div class="metric"><div class="label">'+years+'년 후 평가금</div><div class="value" style="color:#185FA5;font-size:17px">'+fmtMan(last.tot)+'</div><div class="sub">납입 '+fmtMan(last.paid)+' · 수익 +'+fmtMan(profit)+'</div></div>'
+    + '<div class="metric"><div class="label">'+years+'년 후 연 배당금</div><div class="value" style="color:#3B6D11;font-size:17px">'+fmtMan(last.div)+'</div><div class="sub">월 '+fmtMan(last.div/12)+' (배당 재투자 중)</div></div>'
+    + '<div class="metric"><div class="label">블렌디드 수익 / 배당</div><div class="value" style="font-size:17px">'+(Math.round(blendR*10)/10)+'%</div><div class="sub">배당률 '+(Math.round(blendY*100)/100)+'%</div></div>');
+
+  // 종목별 최종
+  let be = '<table style="width:100%;font-size:11.5px;border-collapse:collapse;"><thead><tr>'
+    + ['종목','비중','최종 평가금','연 배당금'].map((t,i)=>'<th style="padding:5px 6px;text-align:'+(i===0?'left':'right')+';font-weight:500;color:var(--text-secondary);font-size:10.5px;">'+t+'</th>').join('')
+    + '</tr></thead><tbody>';
+  PEN.forEach(e=>{ if(wt[e.id]<=0) return;
+    be += '<tr style="border-bottom:0.5px solid var(--border-tertiary);">'
+      + '<td style="padding:5px 6px;"><b style="color:'+e.c+'">●</b> '+e.name+'</td>'
+      + '<td style="padding:5px 6px;text-align:right;">'+Math.round(wt[e.id]*100)+'%</td>'
+      + '<td style="padding:5px 6px;text-align:right;font-weight:500;">'+fmtMan(last.per[e.id])+'</td>'
+      + '<td style="padding:5px 6px;text-align:right;color:#3B6D11;">'+fmtMan(last.per[e.id]*yl[e.id]/100)+'/년</td></tr>';
+  });
+  be += '</tbody></table>';
+  _set('pen-byetf', be);
+
+  // 연도별 표
+  const snapYrs = [1,3,5,10,15,20,25,30].filter(y=>y<=years);
+  if(!snapYrs.includes(years)) snapYrs.push(years);
+  let th = '<thead><tr>'+['연차','누적 납입','평가금','연 배당금','월 배당'].map(t=>'<th style="padding:6px 8px;text-align:right;font-weight:500;color:var(--text-secondary);white-space:nowrap;">'+t+'</th>').join('')+'</tr></thead><tbody>';
+  snapYrs.forEach(y=>{ const r=yearRows[y-1]; if(!r) return;
+    th += '<tr style="border-bottom:0.5px solid var(--border-tertiary);">'
+      + '<td style="padding:7px 8px;color:var(--text-secondary);">'+y+'년</td>'
+      + '<td style="padding:7px 8px;text-align:right;">'+fmtMan(r.paid)+'</td>'
+      + '<td style="padding:7px 8px;text-align:right;font-weight:500;">'+fmtMan(r.tot)+'</td>'
+      + '<td style="padding:7px 8px;text-align:right;color:#3B6D11;">'+fmtMan(r.div)+'</td>'
+      + '<td style="padding:7px 8px;text-align:right;color:#3B6D11;">'+fmtMan(r.div/12)+'</td></tr>';
+  });
+  th += '</tbody>';
+  document.getElementById('pen-table').innerHTML = th;
+
+  // 차트 — 종목별 스택 영역
+  const labels = yearRows.map(r=> r.y+'년');
+  const datasets = PEN.filter(e=> wt[e.id]>0).map(e=>({
+    label:e.name.replace(/^(TIGER|SOL)\s/,''), data:yearRows.map(r=> Math.round(r.per[e.id])),
+    backgroundColor:e.c+'cc', borderColor:e.c, borderWidth:1, fill:true, tension:0.25, pointRadius:0, stack:'pen'
+  }));
+  if(penChartInst) penChartInst.destroy();
+  penChartInst = new Chart(document.getElementById('penChart'), {
+    type:'line',
+    data:{ labels, datasets },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{size:10}, boxWidth:10 } },
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+fmtMan(ctx.raw) } } },
+      scales:{ y:{ stacked:true, ticks:{ callback:v=> v>=10000?(v/10000).toFixed(1)+'억':v.toLocaleString()+'만', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.08)' } },
+        x:{ stacked:true, ticks:{ font:{size:10}, autoSkip:true, maxTicksLimit:12 }, grid:{ display:false } } } }
+  });
+}
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1497,6 +1664,7 @@ function show(id, el) {
   if (id === 'debt') initDebtChart();
   if (id === 'realestate') reRender();
   if (id === 'actual') { if (!acInited) acInit(); else acRender(); }
+  if (id === 'pension') penInit();
   if (id === 'freedom' || id === 'simulator') setScenario(curScen);
 }
 
