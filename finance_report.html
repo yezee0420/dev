@@ -1325,14 +1325,19 @@ function acSetMetric(m){ ACTUAL.metric=m; document.querySelectorAll('#ac-metric 
 function acEditFlow(key, v){ if(v===''||v==null) delete ACTUAL.flow[key]; else ACTUAL.flow[key]=acNum(v); acSave(); acRender(); }
 function acEditValue(key, v){ if(v===''||v==null) delete ACTUAL.value[key]; else ACTUAL.value[key]=acNum(v); acSave(); acRender(); }
 
-/* 실제 경로 계산 (시드부터 월별 누적) */
+/* 계획 기본 현금흐름 (빈 칸 기본값) */
+function acPlan(){ const s=SCEN.combined; return { monthly:Math.max(0, s.income - s.fixed - s.living), annualExtra:s.annualExtra, reserve:s.annualReserve||0 }; }
+function acDefaultFlow(m){ const p=acPlan(); return Math.round(p.monthly + (m===12 ? p.annualExtra - p.reserve : 0)); }
+
+/* 실제 경로 계산 (시드부터 월별 누적). 빈 칸은 계획 기본값 사용 */
 function acCompute(){
   const mR = (ACTUAL.rate/100)/12;
   let cumP = ACTUAL.seed, val = ACTUAL.seed;
   const cells = {};
   acYears().forEach(y=>{ for(let m=1;m<=12;m++){
     const key = y+'-'+m;
-    const flow = acNum(ACTUAL.flow[key]);
+    const hasFlow = ACTUAL.flow[key]!=null && ACTUAL.flow[key]!=='';
+    const flow = hasFlow ? acNum(ACTUAL.flow[key]) : acDefaultFlow(m);
     cumP += flow;
     let v, estimated=false;
     if(ACTUAL.value[key]!=null && ACTUAL.value[key]!==''){ v = acNum(ACTUAL.value[key]); }
@@ -1377,8 +1382,8 @@ function acRender(){
       const td = '<td'+(isCur?' class="ac-cur"':'')+'>';
       if(metric==='flow'){
         yearSum += c.flow;
-        const raw = (ACTUAL.flow[key]!=null) ? ACTUAL.flow[key] : '';
-        h += td+'<input type="number" step="50" value="'+raw+'" placeholder="0" onchange="acEditFlow(\''+key+'\', this.value)"></td>';
+        const raw = (ACTUAL.flow[key]!=null && ACTUAL.flow[key]!=='') ? ACTUAL.flow[key] : '';
+        h += td+'<input type="number" step="50" value="'+raw+'" placeholder="'+acDefaultFlow(m).toLocaleString()+'" onchange="acEditFlow(\''+key+'\', this.value)"></td>';
       } else if(metric==='value'){
         const raw = (ACTUAL.value[key]!=null) ? ACTUAL.value[key] : '';
         h += td+'<input type="number" step="100" value="'+raw+'" placeholder="'+Math.round(c.val).toLocaleString()+'" onchange="acEditValue(\''+key+'\', this.value)"></td>';
@@ -1399,7 +1404,7 @@ function acRender(){
   h += '</tbody>';
   document.getElementById('ac-matrix').innerHTML = h;
   const noteMap = {
-    flow:'각 칸에 그달 실제 입금(+)·출금(−)을 만원 단위로. 파란 테두리=이번 달.',
+    flow:'빈 칸은 계획 기본값(매월 '+acPlan().monthly.toLocaleString()+'만, 12월 +연말 '+acPlan().annualExtra.toLocaleString()+'만)을 따릅니다 — 회색 숫자. 실제로 다르게 넣은 달만 덮어쓰세요. 파란 테두리=이번 달.',
     value:'각 칸에 그달 실제 평가액을 입력(비우면 추정치 회색으로 표시). 입력하면 그 시점부터 실제값 기준으로 수익이 재계산됩니다.',
     principal:'누적 원금 = 시드 + 그때까지 넣은 현금흐름 합계(읽기 전용).',
     profit:'누적 수익 = 평가액 − 누적 원금(읽기 전용).'
