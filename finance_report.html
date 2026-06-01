@@ -606,7 +606,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 0. 대전제 -->
     <div class="card" style="border-color:var(--border-primary);">
-      <h3>0. 이 시뮬레이션의 대전제 (가장 먼저 확인) <span class="badge danger">핵심</span></h3>
+      <h3>1. 이 시뮬레이션의 대전제 (가장 먼저 확인) <span class="badge danger">핵심</span></h3>
       <p class="note" style="margin-top:0;">아래 가정이 틀리면 모든 그래프가 무의미합니다. 위 토글로 <b>합산 / 예지 / 승모</b>를 전환하면 시드·수입·지출·목표가 모두 바뀝니다.</p>
       <div class="table-wrap" id="fs-premise"></div>
       <div class="callout" id="fs-networth"></div>
@@ -614,7 +614,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 1. FIRE 정의 -->
     <div class="card">
-      <h3>1. 목표 정의 — 얼마면 경제적 자유인가 (4% 법칙)</h3>
+      <h3>2. 목표 정의 — 얼마면 경제적 자유인가 (4% 법칙)</h3>
       <p class="note" style="margin-top:0;">
         경제적 자유의 글로벌 표준 공식은 <b style="color:var(--text-primary)">"연 생활비 × 25 = 필요 투자자산"</b> 입니다.
         (= 자산의 4%만 매년 인출하면 원금이 평생 줄지 않는다는 트리니티 연구 기반. 4% = 1/25)
@@ -645,13 +645,13 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 2. 현재 좌표 -->
     <div class="card">
-      <h3>2. 두 분의 현재 좌표</h3>
+      <h3>3. 현재 좌표 (시나리오별)</h3>
       <div id="fs-position"></div>
     </div>
 
     <!-- 6. 성장 경로 -->
     <div class="card">
-      <h3>6. 자산 성장 경로 (시나리오별)</h3>
+      <h3>4. 자산 성장 경로 (시나리오별)</h3>
       <p class="note" style="margin-top:0;" id="fs-growth-assume"></p>
       <div class="table-wrap" id="fs-growth"></div>
       <div class="callout" id="fs-growth-note"></div>
@@ -659,7 +659,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 8. 포트폴리오 시뮬레이터 -->
     <div class="card">
-      <h3>8. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
+      <h3>5. 포트폴리오 시뮬레이터 — 변수를 직접 바꿔보세요</h3>
       <p class="note" style="margin-top:0;">비중·기대수익률·적립금·기간·목표 생활비를 바꾸면 블렌디드 수익률과 FIRE 도달 시점이 실시간 재계산됩니다.</p>
 
       <div style="margin-top:14px; font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; padding:0 6px 4px;">
@@ -700,7 +700,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
 <!-- 3. 절세 3층 -->
     <div class="card">
-      <h3>3. 절세 계좌 3층 구조 — 같은 수익도 세금이 다르다</h3>
+      <h3>6. 절세 계좌 3층 구조 — 같은 수익도 세금이 다르다</h3>
       <p class="note" style="margin-top:0;">같은 ETF를 사도 <b style="color:var(--text-primary)">어느 계좌</b>에서 사느냐로 세후 수익이 갈립니다. 아래 순서대로 그릇을 채우세요.</p>
       <div style="margin:12px 0; padding-bottom:12px; border-bottom:0.5px solid var(--border-tertiary);">
         <div class="tl-title" style="color:#3B6D11; margin-bottom:6px"><span class="pill">1층</span> 연금저축펀드 + IRP (세액공제)</div>
@@ -728,7 +728,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 4. 핵심 포트폴리오 -->
     <div class="card">
-      <h3>4. 핵심 포트폴리오 — 구체적 종목과 기대수익률</h3>
+      <h3>7. 핵심 포트폴리오 — 구체적 종목과 기대수익률</h3>
       <p class="note" style="margin-top:0;">미국 상장 ETF 기준 글로벌 표준 코어-위성 구성입니다. 기대수익률은 <b style="color:var(--text-primary)">과거 실적이 아닌, 보수적 장기 가정치</b>입니다.</p>
       <div class="table-wrap">
         <table class="ptable">
@@ -786,7 +786,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 5. 국내상장 대체 -->
     <div class="card">
-      <h3>5. 연금·ISA 계좌용 — 국내상장 동일전략 ETF</h3>
+      <h3>8. 연금·ISA 계좌용 — 국내상장 동일전략 ETF</h3>
       <p class="note" style="margin-top:0;">절세 계좌(1·2층) 안에서는 미국 직투 대신 <b style="color:var(--text-primary)">국내상장 해외ETF(원화)</b>가 과세이연·저율과세로 더 유리합니다. 1:1로 갈아끼우세요.</p>
       <div class="table-wrap">
         <table class="ptable">
@@ -805,7 +805,7 @@ https://yezee0420.github.io/dev/finance_report.html
 
     <!-- 7. 실행 체크리스트 -->
     <div class="card">
-      <h3>7. 90일 실행 체크리스트</h3>
+      <h3>9. 90일 실행 체크리스트</h3>
       <div class="row"><span class="lbl">① 부부 각자 연금저축펀드 + IRP 계좌 개설 (증권사 앱)</span><span class="val blue">D+7</span></div>
       <div class="row"><span class="lbl">② ISA 중개형 계좌 개설 (서민형 자격 확인)</span><span class="val blue">D+7</span></div>
       <div class="row"><span class="lbl">③ 자동이체 세팅 — 연금 월 150만(부부합산), ISA 월 나머지</span><span class="val blue">D+14</span></div>
