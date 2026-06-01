@@ -256,6 +256,13 @@ https://yezee0420.github.io/dev/finance_report.html
   .seg { display:inline-flex; gap:4px; background:var(--bg-primary); border:0.5px solid var(--border-tertiary); border-radius:var(--radius-md); padding:4px; margin-bottom:1rem; flex-wrap:wrap; }
   .seg button { padding:6px 14px; font-size:12.5px; border:0.5px solid transparent; border-radius:6px; background:transparent; color:var(--text-secondary); cursor:pointer; font-family:var(--font-sans); }
   .seg button.active { background:var(--bg-secondary); color:var(--text-primary); font-weight:500; border-color:var(--border-primary); }
+  #ac-matrix th, #ac-matrix td { padding:5px 6px; text-align:right; border-bottom:0.5px solid var(--border-tertiary); white-space:nowrap; }
+  #ac-matrix th { color:var(--text-secondary); font-weight:500; position:sticky; top:0; background:var(--bg-primary); font-size:10.5px; }
+  #ac-matrix .acy { text-align:left; color:var(--text-secondary); font-weight:500; }
+  #ac-matrix .acsum { font-weight:600; border-left:0.5px solid var(--border-secondary); }
+  #ac-matrix input { width:56px; text-align:right; padding:3px 4px; font-size:11px; border:0.5px solid var(--border-secondary); border-radius:5px; background:var(--bg-primary); color:var(--text-primary); font-family:var(--font-sans); }
+  #ac-matrix input::placeholder { color:var(--text-tertiary); opacity:0.55; }
+  #ac-matrix td.ac-cur input, #ac-matrix td.ac-cur { outline:1.5px solid #185FA5; outline-offset:-2px; border-radius:5px; }
   .btn {
     margin-top: 12px;
     width: 100%;
@@ -290,6 +297,7 @@ https://yezee0420.github.io/dev/finance_report.html
     <button class="tab" onclick="show('strategy', this)">전략 로드맵</button>
     <button class="tab" onclick="show('freedom', this)">경제적 자유 설계</button>
     <button class="tab" onclick="show('simulator', this)">시뮬레이터</button>
+    <button class="tab" onclick="show('actual', this)">실적 추적</button>
   </div>
 
   <!-- 현황 요약 -->
@@ -943,6 +951,49 @@ https://yezee0420.github.io/dev/finance_report.html
     </div>
   </div>
 
+  <!-- 실적 추적 (Actual) -->
+  <div class="section" id="actual">
+    <div class="section-title">실적 추적 (Actual) — 계획(TARGET) vs 실제(ACTUAL)</div>
+
+    <div class="card">
+      <p class="note" style="margin-top:0;">매월 <b>실제로 넣거나 뺀 돈(현금흐름 +/−)</b>을 입력하세요. 가능하면 그달 <b>실제 평가액</b>도 입력 — 비우면 추정 수익률로 자동 계산합니다. 입력값은 이 브라우저에 자동 저장되고, <b>“깃 저장용 JSON”</b>으로 내보내 영구 보관·기기 공유할 수 있습니다.</p>
+      <div class="grid3" style="margin-top:12px;">
+        <div class="input-row" style="border:none;padding:6px 0;"><label>시작 연도</label><input type="number" id="ac-startyear" value="2026" min="2000" max="2100" step="1" onchange="acCfg()"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>시작 시드 (만원)</label><input type="number" id="ac-seed" value="3200" min="0" step="100" onchange="acCfg()"></div>
+        <div class="input-row" style="border:none;padding:6px 0;"><label>추정 수익률 (%)</label><input type="number" id="ac-rate" value="8.2" min="0" max="30" step="0.1" onchange="acCfg()"></div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+        <button class="btn" style="margin:0;" onclick="acAddYear()">+ 연도 추가</button>
+        <button class="btn" style="margin:0;" onclick="acExport()">📋 깃 저장용 JSON</button>
+        <button class="btn" style="margin:0;" onclick="acReset()">↺ 깃 기준 불러오기</button>
+        <span id="ac-saved" style="font-size:11px; color:var(--text-tertiary);"></span>
+      </div>
+      <textarea id="ac-json" readonly style="display:none; width:100%; height:120px; margin-top:10px; font-family:monospace; font-size:11px; padding:8px; border:0.5px solid var(--border-secondary); border-radius:var(--radius-md); background:var(--bg-secondary); color:var(--text-primary);"></textarea>
+    </div>
+
+    <div class="card">
+      <h3>월별 매트릭스 (가로 12개월 · 세로 연도)</h3>
+      <div class="seg" id="ac-metric">
+        <button data-m="flow" class="active" onclick="acSetMetric('flow')">현금흐름 (입력)</button>
+        <button data-m="value" onclick="acSetMetric('value')">평가액 (입력)</button>
+        <button data-m="principal" onclick="acSetMetric('principal')">누적 원금</button>
+        <button data-m="profit" onclick="acSetMetric('profit')">누적 수익</button>
+      </div>
+      <p class="note" style="margin-top:0;" id="ac-matrix-note"></p>
+      <div style="overflow-x:auto;">
+        <table id="ac-matrix" style="width:100%; min-width:760px; font-size:11.5px; border-collapse:collapse;"></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>계획 vs 실제</h3>
+      <div class="grid3" id="ac-summary" style="margin-bottom:14px;"></div>
+      <div style="position:relative; width:100%; height:320px;">
+        <canvas id="acChart" role="img" aria-label="계획 대비 실제 평가액 추이"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1236,6 +1287,179 @@ function reDrawTimeline(active){
 function reToggle(id){ const e=RE_EVENTS.find(x=>x.id===id); e.on=document.getElementById('re-on-'+id).checked; reRender(); }
 function reSetYear(id){ const e=RE_EVENTS.find(x=>x.id===id); e.year=Math.max(0,parseInt(document.getElementById('re-yr-'+id).value)||0); reRender(); }
 
+/* ============================================================
+   실적 추적 (Actual) — TARGET(계획) vs ACTUAL(실제)
+   매월 실제 현금흐름(+/-) 입력 + 선택적 실제 평가액. 평가액 빈칸은 추정 수익률로 계산.
+   저장: localStorage(즉시) + "깃 저장용 JSON" 내보내기로 ACTUAL_SEED에 커밋.
+   ============================================================ */
+const ACTUAL_SEED = { startYear:2026, endYear:2026, seed:3200, rate:8.2, metric:'flow', flow:{}, value:{} };
+let ACTUAL = JSON.parse(JSON.stringify(ACTUAL_SEED));
+let acChartInst = null;
+let acInited = false;
+
+function acNum(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function acYears(){ const sy=ACTUAL.startYear, ey=Math.max(sy, ACTUAL.endYear); const a=[]; for(let y=sy;y<=ey;y++) a.push(y); return a; }
+function acSave(){ try{ localStorage.setItem('fr_actual', JSON.stringify(ACTUAL)); acFlash('자동 저장됨 (이 브라우저)'); }catch(e){} }
+function acFlash(msg){ const el=document.getElementById('ac-saved'); if(el){ el.textContent=msg; } }
+
+function acInit(){
+  try{ const raw = localStorage.getItem('fr_actual'); if(raw) ACTUAL = Object.assign(JSON.parse(JSON.stringify(ACTUAL_SEED)), JSON.parse(raw)); }catch(e){}
+  const now = new Date(); if(ACTUAL.endYear < now.getFullYear()) ACTUAL.endYear = now.getFullYear();
+  document.getElementById('ac-startyear').value = ACTUAL.startYear;
+  document.getElementById('ac-seed').value = ACTUAL.seed;
+  document.getElementById('ac-rate').value = ACTUAL.rate;
+  document.querySelectorAll('#ac-metric button').forEach(b=> b.classList.toggle('active', b.getAttribute('data-m')===(ACTUAL.metric||'flow')));
+  acInited = true;
+  acRender();
+}
+function acCfg(){
+  ACTUAL.startYear = parseInt(document.getElementById('ac-startyear').value)||2026;
+  ACTUAL.seed = acNum(document.getElementById('ac-seed').value);
+  ACTUAL.rate = acNum(document.getElementById('ac-rate').value);
+  if(ACTUAL.endYear < ACTUAL.startYear) ACTUAL.endYear = ACTUAL.startYear;
+  acSave(); acRender();
+}
+function acAddYear(){ ACTUAL.endYear = Math.max(ACTUAL.startYear, ACTUAL.endYear) + 1; acSave(); acRender(); }
+function acReset(){ ACTUAL = JSON.parse(JSON.stringify(ACTUAL_SEED)); const now=new Date(); if(ACTUAL.endYear<now.getFullYear())ACTUAL.endYear=now.getFullYear(); document.getElementById('ac-json').style.display='none'; acInit(); acFlash('깃 기준값으로 초기화됨'); }
+function acSetMetric(m){ ACTUAL.metric=m; document.querySelectorAll('#ac-metric button').forEach(b=> b.classList.toggle('active', b.getAttribute('data-m')===m)); acSave(); acRender(); }
+function acEditFlow(key, v){ if(v===''||v==null) delete ACTUAL.flow[key]; else ACTUAL.flow[key]=acNum(v); acSave(); acRender(); }
+function acEditValue(key, v){ if(v===''||v==null) delete ACTUAL.value[key]; else ACTUAL.value[key]=acNum(v); acSave(); acRender(); }
+
+/* 실제 경로 계산 (시드부터 월별 누적) */
+function acCompute(){
+  const mR = (ACTUAL.rate/100)/12;
+  let cumP = ACTUAL.seed, val = ACTUAL.seed;
+  const cells = {};
+  acYears().forEach(y=>{ for(let m=1;m<=12;m++){
+    const key = y+'-'+m;
+    const flow = acNum(ACTUAL.flow[key]);
+    cumP += flow;
+    let v, estimated=false;
+    if(ACTUAL.value[key]!=null && ACTUAL.value[key]!==''){ v = acNum(ACTUAL.value[key]); }
+    else { v = val*(1+mR) + flow; estimated=true; }
+    val = v;
+    cells[key] = { flow, val:v, cumP, profit:v-cumP, estimated };
+  }});
+  return cells;
+}
+/* 계획(TARGET) 경로 — 합산 시나리오 기준, 같은 시드에서 출발 */
+function acTarget(){
+  const mR = SCEN_RATE/100/12;
+  const s = SCEN.combined;
+  const monthly = Math.max(0, s.income - s.fixed - s.living);
+  const reserve = s.annualReserve||0;
+  let t = ACTUAL.seed; const tv = {};
+  acYears().forEach(y=>{ for(let m=1;m<=12;m++){
+    t = t*(1+mR) + monthly;
+    if(m===12){ t += s.annualExtra; t = Math.max(0, t - reserve); }
+    tv[y+'-'+m] = t;
+  }});
+  return { tv, monthly, reserve, annualExtra:s.annualExtra };
+}
+
+function acRender(){
+  if(!acInited) return;
+  const cells = acCompute();
+  const tgt = acTarget();
+  const metric = ACTUAL.metric || 'flow';
+  const years = acYears();
+  const months = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const now = new Date(), curY = now.getFullYear(), curM = now.getMonth()+1;
+
+  /* 매트릭스 */
+  let h = '<thead><tr><th class="acy">연도</th>' + months.map(m=>'<th>'+m+'월</th>').join('') + '<th>'+(metric==='flow'?'연 합계':'연말')+'</th></tr></thead><tbody>';
+  years.forEach(y=>{
+    h += '<tr><td class="acy">'+y+'</td>';
+    let yearSum = 0;
+    months.forEach(m=>{
+      const key=y+'-'+m, c=cells[key];
+      const isCur = (y===curY && m===curM);
+      const td = '<td'+(isCur?' class="ac-cur"':'')+'>';
+      if(metric==='flow'){
+        yearSum += c.flow;
+        const raw = (ACTUAL.flow[key]!=null) ? ACTUAL.flow[key] : '';
+        h += td+'<input type="number" step="50" value="'+raw+'" placeholder="0" onchange="acEditFlow(\''+key+'\', this.value)"></td>';
+      } else if(metric==='value'){
+        const raw = (ACTUAL.value[key]!=null) ? ACTUAL.value[key] : '';
+        h += td+'<input type="number" step="100" value="'+raw+'" placeholder="'+Math.round(c.val).toLocaleString()+'" onchange="acEditValue(\''+key+'\', this.value)"></td>';
+      } else if(metric==='principal'){
+        h += td+'<span style="color:#185FA5">'+fmtMan(c.cumP)+'</span></td>';
+      } else {
+        h += td+'<span style="color:'+(c.profit>=0?'#3B6D11':'#A32D2D')+'">'+(c.profit>=0?'+':'')+fmtMan(c.profit)+'</span></td>';
+      }
+    });
+    const dc = cells[y+'-12'];
+    let last;
+    if(metric==='flow') last = (yearSum>=0?'+':'')+yearSum.toLocaleString()+'만';
+    else if(metric==='value') last = fmtMan(dc.val);
+    else if(metric==='principal') last = fmtMan(dc.cumP);
+    else last = (dc.profit>=0?'+':'')+fmtMan(dc.profit);
+    h += '<td class="acsum">'+last+'</td></tr>';
+  });
+  h += '</tbody>';
+  document.getElementById('ac-matrix').innerHTML = h;
+  const noteMap = {
+    flow:'각 칸에 그달 실제 입금(+)·출금(−)을 만원 단위로. 파란 테두리=이번 달.',
+    value:'각 칸에 그달 실제 평가액을 입력(비우면 추정치 회색으로 표시). 입력하면 그 시점부터 실제값 기준으로 수익이 재계산됩니다.',
+    principal:'누적 원금 = 시드 + 그때까지 넣은 현금흐름 합계(읽기 전용).',
+    profit:'누적 수익 = 평가액 − 누적 원금(읽기 전용).'
+  };
+  document.getElementById('ac-matrix-note').textContent = noteMap[metric];
+
+  /* 차트 + 요약 (현재월까지 실제, 계획은 전체) */
+  const labels=[], actVal=[], actPrin=[], tgtVal=[];
+  let lastActualKey=null;
+  years.forEach(y=> months.forEach(m=>{
+    const key=y+'-'+m;
+    labels.push(("'"+String(y).slice(2))+'.'+m);
+    const past = (y<curY) || (y===curY && m<=curM);
+    actVal.push(past ? Math.round(cells[key].val) : null);
+    actPrin.push(past ? Math.round(cells[key].cumP) : null);
+    tgtVal.push(Math.round(tgt.tv[key]));
+    if(past) lastActualKey=key;
+  }));
+
+  // 요약 (현재 시점)
+  if(lastActualKey){
+    const c = cells[lastActualKey], tVal = Math.round(tgt.tv[lastActualKey]);
+    const gap = Math.round(c.val) - tVal;
+    const profitPct = c.cumP>0 ? Math.round(c.profit/c.cumP*100) : 0;
+    document.getElementById('ac-summary').innerHTML =
+        '<div class="metric"><div class="label">실제 평가액 (현재)</div><div class="value" style="color:#185FA5;font-size:17px">'+fmtMan(c.val)+'</div><div class="sub">누적원금 '+fmtMan(c.cumP)+'</div></div>'
+      + '<div class="metric"><div class="label">계획 대비</div><div class="value" style="color:'+(gap>=0?'#3B6D11':'#A32D2D')+';font-size:17px">'+(gap>=0?'+':'')+fmtMan(gap)+'</div><div class="sub">계획 '+fmtMan(tVal)+'</div></div>'
+      + '<div class="metric"><div class="label">실제 누적 수익</div><div class="value" style="color:'+(c.profit>=0?'#3B6D11':'#A32D2D')+';font-size:17px">'+(c.profit>=0?'+':'')+fmtMan(c.profit)+'</div><div class="sub">원금 대비 '+(profitPct>=0?'+':'')+profitPct+'%</div></div>';
+  } else {
+    document.getElementById('ac-summary').innerHTML = '<p class="note" style="grid-column:1/-1;margin:0;">아직 입력된 실적이 없습니다. 현금흐름 탭에서 지난 달까지의 실제 납입액을 입력해보세요.</p>';
+  }
+
+  if(acChartInst) acChartInst.destroy();
+  acChartInst = new Chart(document.getElementById('acChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:'계획 평가액(TARGET)', data:tgtVal, borderColor:'#3B6D11', borderDash:[6,5], borderWidth:1.5, pointRadius:0, fill:false, tension:0.25 },
+      { label:'실제 평가액(ACTUAL)', data:actVal, borderColor:'#185FA5', backgroundColor:'rgba(55,138,221,0.10)', borderWidth:2, pointRadius:2, fill:true, tension:0.25, spanGaps:false },
+      { label:'실제 누적원금', data:actPrin, borderColor:'#888780', borderWidth:1, borderDash:[2,3], pointRadius:0, fill:false, tension:0.25, spanGaps:false },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{size:11}, boxWidth:12 } },
+        tooltip:{ filter: ctx => ctx.raw != null, callbacks:{ label: ctx => ' '+ctx.dataset.label+': '+fmtMan(ctx.raw) } } },
+      scales:{ y:{ ticks:{ callback:v=> v>=10000?(v/10000).toFixed(1)+'억':v.toLocaleString()+'만', font:{size:11} }, grid:{ color:'rgba(128,128,128,0.08)' } },
+        x:{ ticks:{ font:{size:9}, autoSkip:true, maxTicksLimit:12 }, grid:{ display:false } } } }
+  });
+}
+
+function acExport(){
+  // 빈 항목 제거 후 JSON
+  const out = { startYear:ACTUAL.startYear, endYear:ACTUAL.endYear, seed:ACTUAL.seed, rate:ACTUAL.rate, metric:ACTUAL.metric, flow:{}, value:{} };
+  Object.keys(ACTUAL.flow).forEach(k=>{ if(ACTUAL.flow[k]!==''&&ACTUAL.flow[k]!=null) out.flow[k]=ACTUAL.flow[k]; });
+  Object.keys(ACTUAL.value).forEach(k=>{ if(ACTUAL.value[k]!==''&&ACTUAL.value[k]!=null) out.value[k]=ACTUAL.value[k]; });
+  const json = 'const ACTUAL_SEED = ' + JSON.stringify(out) + ';';
+  const ta = document.getElementById('ac-json');
+  ta.value = json; ta.style.display='block'; ta.focus(); ta.select();
+  try{ navigator.clipboard.writeText(json); acFlash('JSON 복사됨 — 채팅에 붙여넣으면 깃에 반영해 드립니다'); }
+  catch(e){ acFlash('아래 JSON을 복사해 채팅에 붙여넣으세요'); }
+}
+
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1244,6 +1468,7 @@ function show(id, el) {
   if (id === 'cashflow') initCashflowChart();
   if (id === 'debt') initDebtChart();
   if (id === 'realestate') reRender();
+  if (id === 'actual') { if (!acInited) acInit(); else acRender(); }
   if (id === 'freedom' || id === 'simulator') setScenario(curScen);
 }
 
