@@ -637,6 +637,10 @@ https://yezee0420.github.io/dev/finance_report.html
     <div class="card" style="border-color:var(--border-primary);">
       <h3>📈 월별 적립 여정 — 매월 통장이 차오르는 과정</h3>
       <p class="note" style="margin-top:0;" id="fs-journey-note"></p>
+      <div class="input-row" style="margin:10px 0 14px;">
+        <label>연간 예비비 (만원) <span class="input-hint">차·여행 등 매년 12월 인출</span></label>
+        <input type="number" id="fs-reserve" value="0" min="0" max="10000" step="100" onchange="fsSetReserve()">
+      </div>
       <div class="grid3" id="fs-journey-chips" style="margin-bottom:14px;"></div>
       <div style="position:relative; width:100%; height:300px;">
         <canvas id="fsJourneyChart" role="img" aria-label="월별 적립 여정: 원금과 복리수익이 쌓여 FIRE 목표에 도달하는 과정"></canvas>
@@ -1447,17 +1451,17 @@ function syncInvestable() {
 
 /* ---- 시나리오 (합산 / 예지 / 승모) ---- */
 const SCEN = {
-  combined: { label:'합산 (부부)', income:D.monthlyIncome, fixed:D.monthlyFixed, living:250, seed:MODEL.financial.cash, annualExtra:2000, stocks:MODEL.financial.stocks,
+  combined: { label:'합산 (부부)', income:D.monthlyIncome, fixed:D.monthlyFixed, living:250, seed:MODEL.financial.cash, annualExtra:2000, annualReserve:0, stocks:MODEL.financial.stocks,
     networth:'약 '+eok(D.netWorthEok), re:'마포 17억(임대) + 부산 상가 4.5억(처분 가정)',
     seedNote:'승모 현금 1,500 + 예지 현금 1,700 (결혼식 비용 0 전제)',
     incomeNote:'예지 814 + 승모 713 + 마포 월세 155',
     diag:'유동 투자자산이 8,860만(개별 해외주식 위주)뿐 — 절세그릇으로 자동 적립 파이프라인 구축이 핵심.' },
-  yeji: { label:'예지 단독', income:914, fixed:232, living:180, seed:1700, annualExtra:0, stocks:5660,
+  yeji: { label:'예지 단독', income:914, fixed:232, living:180, seed:1700, annualExtra:0, annualReserve:0, stocks:5660,
     networth:'약 1.2억', re:'부산 상가 보유·임대(월세 +100), 정자 오피스텔 거주',
     seedNote:'예지 현금 1,700 (결혼식 비용 0 전제)',
     incomeNote:'월급 814 + 부산 상가 월세 100',
     diag:'소득이 높고(914) 이미 주식 5,660만 보유 → 출발이 유리하나, 부산 고금리 이자 166만이 매월 새는 구멍. 신용대출(6.23%) 우선 정리 권고.' },
-  seungmo: { label:'승모 단독', income:868, fixed:395, living:180, seed:1500, annualExtra:2000, stocks:0,
+  seungmo: { label:'승모 단독', income:868, fixed:395, living:180, seed:1500, annualExtra:2000, annualReserve:0, stocks:0,
     networth:'약 10.7억', re:'마포 임대(월세 +155) + 본인 별도 거주(월세 -80)',
     seedNote:'승모 현금 1,500 (보유 주식 없음)',
     incomeNote:'기본급 535 + 분기급 178 + 마포 월세 155',
@@ -1466,14 +1470,15 @@ const SCEN = {
 const SCEN_RATE = 8.2;
 let curScen = 'combined';
 
-function buildGrowth(seed, monthly, annualExtra, ratePct, target) {
+function buildGrowth(seed, monthly, annualExtra, ratePct, target, annualReserve) {
   const mR = ratePct / 100 / 12;
+  const reserve = annualReserve || 0;
   let t = seed;
   const yearVal = {};
   let fireMonth = null;
   for (let m = 1; m <= 360; m++) {
     t = t * (1 + mR) + monthly;
-    if (m % 12 === 0) t += annualExtra;
+    if (m % 12 === 0) { t += annualExtra; t = Math.max(0, t - reserve); }   // 연말: 특별납입 후 예비비 인출
     if (fireMonth === null && t >= target) fireMonth = m;
     if (m % 12 === 0) yearVal[m / 12] = t;
   }
@@ -1485,10 +1490,11 @@ let fsJourneyChartInst = null;
 let fsJourneyRows = [];
 function mLabel(m){ const y=Math.floor(m/12), mm=m%12; return ((y? y+'년':'')+(mm? ' '+mm+'개월':'')).trim() || '시작'; }
 
-function renderJourney(seed, monthly, annualExtra, ratePct, target, living, fireMonth){
+function renderJourney(seed, monthly, annualExtra, ratePct, target, living, fireMonth, annualReserve){
   const mR = ratePct/100/12;
+  const reserve = annualReserve || 0;
   const horizon = fireMonth ? Math.min(360, fireMonth + 6) : 120;   // 도달 후 6개월까지 (미도달이면 10년)
-  let total = seed, principal = seed;
+  let total = seed, principal = seed, withdrawn = 0;
   const labels=['시작'], totalPts=[Math.round(seed)], prinPts=[Math.round(seed)], firePt=[null];
   fsJourneyRows = [];
   for (let m=1; m<=horizon; m++){
@@ -1496,15 +1502,19 @@ function renderJourney(seed, monthly, annualExtra, ratePct, target, living, fire
     const interest = before * mR;
     total = total*(1+mR) + monthly;
     principal += monthly;
-    let extra = 0;
-    if (m%12===0){ total += annualExtra; principal += annualExtra; extra = annualExtra; }
-    const profit = total - principal;
+    let extra = 0, res = 0;
+    if (m%12===0){
+      total += annualExtra; principal += annualExtra; extra = annualExtra;
+      if (reserve > 0){ total = Math.max(0, total - reserve); withdrawn += reserve; res = reserve; }
+    }
+    const netPrin = principal - withdrawn;                 // 순투입 (납입−인출)
+    const profit = total - netPrin;
     const pct = Math.min(100, total/target*100);
     const isFire = fireMonth && m===fireMonth;
-    fsJourneyRows.push({ m, contrib:monthly, extra, interest:Math.round(interest), total:Math.round(total), principal:Math.round(principal), profit:Math.round(profit), pct, isFire, isYearEnd:(m%12===0) });
+    fsJourneyRows.push({ m, contrib:monthly, extra, reserve:res, interest:Math.round(interest), total:Math.round(total), principal:Math.round(netPrin), profit:Math.round(profit), pct, isFire, isYearEnd:(m%12===0) });
     labels.push(mLabel(m));
     totalPts.push(Math.round(total));
-    prinPts.push(Math.round(principal));
+    prinPts.push(Math.round(netPrin));
     firePt.push(isFire ? Math.round(total) : null);
   }
 
@@ -1515,11 +1525,11 @@ function renderJourney(seed, monthly, annualExtra, ratePct, target, living, fire
   const profitPct = fRow.principal>0 ? Math.round(fRow.profit/fRow.principal*100) : 0;
   document.getElementById('fs-journey-chips').innerHTML =
       '<div class="metric"><div class="label">목표 도달</div><div class="value" style="color:#3B6D11;font-size:16px">'+(fireMonth?mLabel(fireMonth):'미도달')+'</div><div class="sub">'+(fireMonth?fireMonth+'개월 째':'10년 내')+'</div></div>'
-    + '<div class="metric"><div class="label">그동안 넣은 내 돈(원금)</div><div class="value" style="color:#185FA5;font-size:16px">'+fmtMan(fRow.principal)+'</div><div class="sub">시드+월적립+연말</div></div>'
-    + '<div class="metric"><div class="label">시장이 불려준 돈(복리)</div><div class="value" style="color:#3B6D11;font-size:16px">+'+fmtMan(fRow.profit)+'</div><div class="sub">원금 대비 +'+profitPct+'%</div></div>';
+    + '<div class="metric"><div class="label">그동안 넣은 내 돈(순투입)</div><div class="value" style="color:#185FA5;font-size:16px">'+fmtMan(fRow.principal)+'</div><div class="sub">시드+월적립+연말'+(reserve>0?' −예비비':'')+'</div></div>'
+    + '<div class="metric"><div class="label">시장이 불려준 돈(복리)</div><div class="value" style="color:#3B6D11;font-size:16px">+'+fmtMan(fRow.profit)+'</div><div class="sub">순투입 대비 +'+profitPct+'%</div></div>';
 
   document.getElementById('fs-journey-note').innerHTML =
-    '현금 <b>'+fmtMan(seed)+'</b>로 시작 + 매월 <b>'+fmtMan(monthly)+'</b>'+(annualExtra?' (+연말 <b>'+fmtMan(annualExtra)+'</b>)':'')+'을 연 <b>'+ratePct+'%</b> 복리로. '
+    '현금 <b>'+fmtMan(seed)+'</b>로 시작 + 매월 <b>'+fmtMan(monthly)+'</b>'+(annualExtra?' (+연말 <b>'+fmtMan(annualExtra)+'</b>)':'')+(reserve>0?' (−연말 예비비 <b>'+fmtMan(reserve)+'</b>)':'')+'을 연 <b>'+ratePct+'%</b> 복리로. '
     + '<span style="color:#185FA5">■</span> 내가 넣은 원금 · <span style="color:#3B6D11">■</span> 복리로 불어난 수익 · <span style="color:#A32D2D">┄</span> 목표 '+fmtMan(target)+' · ★ 달성 지점';
 
   // 차트 (원금 area + 그 위 수익 band + 목표선 + 달성★)
@@ -1554,7 +1564,9 @@ function renderJourneyTable(target, living){
     + th('월 적립')+th('그달 복리')+th('누적 자산')+th('달성률')+'</tr></thead><tbody>';
   fsJourneyRows.forEach(r=>{
     const bg = r.isFire ? 'background:rgba(242,183,5,0.18);' : (r.isYearEnd ? 'background:rgba(59,109,17,0.08);' : '');
-    const contrib = r.contrib.toLocaleString()+'만' + (r.extra? ' <span style="color:#3B6D11">+'+r.extra.toLocaleString()+'(연말)</span>' : '');
+    const contrib = r.contrib.toLocaleString()+'만'
+      + (r.extra? ' <span style="color:#3B6D11">+'+r.extra.toLocaleString()+'(연말)</span>' : '')
+      + (r.reserve? ' <span style="color:#A32D2D">−'+r.reserve.toLocaleString()+'(예비비)</span>' : '');
     const pctTxt = r.pct.toFixed(0)+'%';
     const bar = '<div style="display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;">'
       + '<span style="width:54px;height:6px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden;display:inline-block;"><span style="display:block;height:100%;width:'+r.pct+'%;background:'+(r.pct>=100?'#3B6D11':'#378ADD')+';"></span></span>'
@@ -1569,6 +1581,12 @@ function renderJourneyTable(target, living){
   document.getElementById('fs-journey-table').innerHTML = h + '</tbody>';
 }
 
+function fsSetReserve(){
+  const v = Math.max(0, parseFloat(document.getElementById('fs-reserve').value) || 0);
+  SCEN[curScen].annualReserve = v;          // 시나리오 가정에 반영 → 결론·여정·시뮬레이터 동기화
+  setScenario(curScen);
+}
+
 function toggleJourney(){
   const w = document.getElementById('fs-journey-wrap');
   const b = document.getElementById('fs-journey-btn');
@@ -1581,9 +1599,11 @@ function setScenario(key) {
   curScen = key;
   const s = SCEN[key];
   const investable = Math.max(0, s.income - s.fixed - s.living);
+  const reserve = s.annualReserve || 0;
   const target = s.living * 300;            // 만원: 월생활비 × 12 × 25 (4% 룰)
-  const g = buildGrowth(s.seed, investable, s.annualExtra, SCEN_RATE, target);
-  renderJourney(s.seed, investable, s.annualExtra, SCEN_RATE, target, s.living, g.fireMonth);
+  const g = buildGrowth(s.seed, investable, s.annualExtra, SCEN_RATE, target, reserve);
+  if (document.getElementById('fs-reserve')) document.getElementById('fs-reserve').value = reserve;
+  renderJourney(s.seed, investable, s.annualExtra, SCEN_RATE, target, s.living, g.fireMonth, reserve);
   const fireWhen = g.fireMonth
     ? (Math.floor(g.fireMonth / 12) + '년 ' + (g.fireMonth % 12) + '개월')
     : '30년+ 미도달';
@@ -1600,11 +1620,12 @@ function setScenario(key) {
     + '<span class="pill">시드(현금) ' + s.seed.toLocaleString() + '만</span>'
     + '<span class="pill">월 적립 ' + investable.toLocaleString() + '만</span>'
     + (s.annualExtra ? '<span class="pill">연말 ' + s.annualExtra.toLocaleString() + '만</span>' : '')
+    + (reserve ? '<span class="pill" style="color:#A32D2D;">예비비 −' + reserve.toLocaleString() + '만/년</span>' : '')
     + '<span class="pill">수익률 8.2%</span>'
     + (s.stocks ? '<span class="pill">보유주식 ' + s.stocks.toLocaleString() + '만(별도)</span>' : '')
     + '</div>'
     + '<p class="note" style="margin:0;"><b>어떤 조건으로?</b> 현금 ' + s.seed.toLocaleString() + '만으로 시작해 매월 ' + investable.toLocaleString() + '만'
-    + (s.annualExtra ? ' + 연말 ' + s.annualExtra.toLocaleString() + '만' : '') + '씩 연 8.2% 복리로 굴리면, <b>약 ' + fireWhen + '</b> 뒤 월 ' + s.living + '만 패시브(목표 ' + fmtMan(target) + ')에 도달합니다. 자세한 가정·경로는 아래.</p>';
+    + (s.annualExtra ? ' + 연말 ' + s.annualExtra.toLocaleString() + '만' : '') + (reserve ? ' − 매년 예비비 ' + reserve.toLocaleString() + '만' : '') + '씩 연 8.2% 복리로 굴리면, <b>약 ' + fireWhen + '</b> 뒤 월 ' + s.living + '만 패시브(목표 ' + fmtMan(target) + ')에 도달합니다. 자세한 가정·경로는 아래.</p>';
 
   /* 대전제 표 */
   const tr = (a, b, c) => '<tr><td><b>' + a + '</b></td><td class="num">' + b + '</td><td>' + c + '</td></tr>';
@@ -1614,6 +1635,7 @@ function setScenario(key) {
     + tr('② 보유주식(별도)', s.stocks ? s.stocks.toLocaleString() + '만' : '없음', s.stocks ? '이미 투자된 별도 포지션 → 시드 제외 (손실 중, 코어 ETF 재편 권고)' : '보유 주식 없음')
     + tr('③ 월 적립', investable.toLocaleString() + '만', '수입 ' + s.income + ' − 고정 ' + s.fixed + ' − 생활비 ' + s.living + ' (' + s.incomeNote + ')')
     + tr('④ 연말 특별납입', s.annualExtra ? s.annualExtra.toLocaleString() + '만/년' : '없음', s.annualExtra ? '승모 연말 인센티브·연차보상' : '-')
+    + tr('④-1 연간 예비비', reserve ? '−' + reserve.toLocaleString() + '만/년' : '없음', reserve ? '차·여행 등 매년 12월 인출 (투자에서 제외)' : '-')
     + tr('⑤ 블렌디드 수익률', '8.2%', '미국 ETF 보수 가정 · 환율 고정·세금 0(절세계좌)·하락장 평균화')
     + tr('⑥ FIRE 목표', fmtMan(target), '월 생활비 ' + s.living + '만 × 12 × 25 (4% 룰)')
     + '</tbody></table>';
@@ -1664,6 +1686,7 @@ function setScenario(key) {
   document.getElementById('monthly').value = investable;
   document.getElementById('seed').value = s.seed;
   document.getElementById('annualExtra').value = s.annualExtra;
+  document.getElementById('annualReserve').value = reserve;
 
   if (document.getElementById('freedom').classList.contains('active')) calcPortfolio();
   if (document.getElementById('simulator').classList.contains('active')) calcSim();
