@@ -1151,8 +1151,9 @@ function renderModel(){
   _set('acc-fixed-total',  '-'+man(D.monthlyFixed));
   _set('cf-income-acc',  MODEL.income.map(i=>_row(i.name,'+'+man(i.amount),'grn')).join(''));
   _set('cf-fixed-acc',   MODEL.expense.map(e=>_row(e.name,'-'+man(e.amount),'red')).join(''));
-  _set('cf-living',      '-'+MODEL.living.low+'~'+MODEL.living.high+'만');
-  _set('cf-surplus',     '약 '+man(D.surplusLow)+'~'+man(D.surplusHigh)+'/월');
+  const L = (typeof SCEN!=='undefined' && SCEN.combined) ? SCEN.combined.living : MODEL.living.high;
+  _set('cf-living',      '-'+man(L));
+  _set('cf-surplus',     '약 '+man(D.surplusPreLiving - L)+'/월');
 
   // --- 부채 분석: 목록 ---
   const sorted = [...MODEL.loans].sort((a,b)=>b.rate-a.rate);
@@ -1289,7 +1290,7 @@ function reRender(){
 }
 
 function reDrawTimeline(active){
-  const MAXY = 15, mR = SCEN_RATE/100/12, living = MODEL.living.high;
+  const MAXY = 15, mR = SCEN_RATE/100/12, living = (SCEN.combined ? SCEN.combined.living : MODEL.living.high);
   let liquid = D.financialMan;                       // 만원
   let reEquity = D.netWorthEok*10000 - liquid;       // 만원 (부동산 순자본 등)
   function investableAt(yr){
@@ -1310,7 +1311,7 @@ function reDrawTimeline(active){
       labels.push(yr+'년'); nw.push(Math.round(liquid+reEquity)); liq.push(Math.round(liquid));
     }
   }
-  _set('re-timeline-note', '연 '+SCEN_RATE+'% 복리 · 월 투자 = (잉여−생활비 300만) · 부동산 미매도분 시세 보합 가정. 유동자산 = 금융자산 + 매도 회수현금이 복리로 성장.');
+  _set('re-timeline-note', '연 '+SCEN_RATE+'% 복리 · 월 투자 = (잉여−생활비 '+living+'만) · 부동산 미매도분 시세 보합 가정. 유동자산 = 금융자산 + 매도 회수현금이 복리로 성장.');
   if (reChartInst) reChartInst.destroy();
   reChartInst = new Chart(document.getElementById('reChart'), {
     type:'line',
@@ -1912,6 +1913,7 @@ function linkEdit(key, id){
 }
 function recalcAll(){
   setScenario(curScen);            // 공유값을 전 입력칸에 재푸시 + 경제자유/여정 재렌더
+  renderModel();                   // 현황요약·월현금흐름 탭의 생활비·잉여 등 갱신
   if (typeof calcSim === 'function')       calcSim();
   if (typeof calcPortfolio === 'function') calcPortfolio();
   if (acInited) acRender();
