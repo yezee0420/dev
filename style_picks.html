@@ -340,6 +340,28 @@
   }
   .card-link:hover { text-decoration: underline; }
 
+  /* ── MEMO ── */
+  .card-memo {
+    padding: 0 18px 12px;
+  }
+  .memo-input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--light-gray);
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: inherit;
+    color: var(--black);
+    background: #fff;
+    resize: none;
+    outline: none;
+    transition: border-color 0.15s;
+    min-height: 32px;
+    line-height: 1.5;
+  }
+  .memo-input:focus { border-color: var(--accent); }
+  .memo-input::placeholder { color: #bbb; }
+
   /* ── CATEGORY LABEL ── */
   .category-badge {
     font-size: 10px;
@@ -596,6 +618,7 @@
   <button class="filter-btn" onclick="setFilter('원피스')">원피스</button>
   <button class="filter-btn" onclick="setFilter('스커트')">스커트</button>
   <button class="filter-btn" onclick="setFilter('팬츠')">팬츠</button>
+  <button class="filter-btn" onclick="setFilter('신발')">신발</button>
   <button class="filter-btn" onclick="setFilter('즉시구매')">즉시구매만</button>
   <div class="toolbar-sep"></div>
   <button class="add-btn" onclick="openModal()">+ 새 상품 추가</button>
@@ -917,6 +940,76 @@ const DEFAULT_PICKS = [
     tags: ['머메이드', '아이보리', '여름용']
   },
   {
+    id: 's001',
+    date: '2026.06.08',
+    brand: '아비스파',
+    category: '신발',
+    name: 'Sharon 샤론 스틸레토 슬링백 펌프스 H563 (4colors / 5cm)',
+    origPrice: 99000,
+    salePrice: 57172,
+    score: 94,
+    verdict: '즉시구매',
+    reason: '스틸레토 + 슬링백 = 예지님 프로필 신발 1순위 조합. 뾰족코가 전체 실루엣 라인 살려줌. 4컬러 중 블랙·베이지 추천. 오늘 출발 가능.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%95%84%EB%B9%84%EC%8A%A4%ED%8C%8C+Sharon+%EC%8A%AC%EB%A7%81%EB%B0%B1',
+    tags: ['스틸레토', '슬링백', '뾰족코', '★42%↓']
+  },
+  {
+    id: 's002',
+    date: '2026.06.08',
+    brand: '세스띠',
+    category: '신발',
+    name: '엣지라인 스틸레토 슬링백힐 (2color)',
+    origPrice: 109000,
+    salePrice: 59209,
+    score: 88,
+    verdict: '즉시구매',
+    reason: '스틸레토 라인이 다리를 길어 보이게. 엣지라인 디테일이 심플하면서 구조적. 블랙/베이지 2컬러 모두 예지님 베스트 컬러.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%84%B8%EC%8A%A4%EB%9D%BC+%EC%97%A3%EC%A7%80%EB%9D%BC%EC%9D%B8+%EC%8A%A4%ED%8B%B8%EB%A0%88%ED%86%A0+%EC%8A%AC%EB%A7%81%EB%B0%B1',
+    tags: ['스틸레토', '슬링백', '블랙/베이지', '45%↓']
+  },
+  {
+    id: 's003',
+    date: '2026.06.08',
+    brand: '에퓨레',
+    category: '신발',
+    name: 'VERT Square Slingbacks (2color)',
+    origPrice: 99000,
+    salePrice: 67221,
+    score: 87,
+    verdict: '즉시구매',
+    reason: '스퀘어토 = 요즘 트렌드 + 구조적 실루엣. 군더더기 없는 깔끔한 디자인이 예지님 "얼굴보다 옷/신발 안 튀어야" 원칙 충족.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%97%90%ED%93%A8%EB%A0%88+VERT+Square+Slingbacks',
+    tags: ['스퀘어토', '슬링백', '미니멀', '32%↓']
+  },
+  {
+    id: 's004',
+    date: '2026.06.08',
+    brand: '샘디마쉬',
+    category: '신발',
+    name: '프론트 레이어 슬링백 SM033 (매쉬버전 포함)',
+    origPrice: 108000,
+    salePrice: 62332,
+    score: 86,
+    verdict: '즉시구매',
+    reason: '레이어드 구조가 단조롭지 않고 세련된 포인트. 매쉬버전은 여름 착용감 UP. 발등 라인이 예뻐 보이는 구조.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%83%98%EB%94%94%EB%A7%88%EC%89%AC+SM033+%EC%8A%AC%EB%A7%81%EB%B0%B1',
+    tags: ['슬링백', '레이어드', '매쉬', '42%↓']
+  },
+  {
+    id: 's005',
+    date: '2026.06.08',
+    brand: '에퓨레',
+    category: '신발',
+    name: 'SOHO Suede Slingbacks (2color)',
+    origPrice: 99000,
+    salePrice: 67221,
+    score: 85,
+    verdict: '즉시구매',
+    reason: '스웨이드 소재가 고급스러운 질감. 클래식한 실루엣에 소재감으로 차별화. 오피스룩부터 캐주얼까지 범용성 높음.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%97%90%ED%93%A8%EB%A0%88+SOHO+Suede+Slingbacks',
+    tags: ['스웨이드', '슬링백', '클래식', '32%↓']
+  },
+  {
     id: 'p010',
     date: '2026.06.08',
     brand: '시야쥬',
@@ -937,6 +1030,7 @@ const DEFAULT_PICKS = [
 // ─────────────────────────────────────────
 let picks = [];
 let statuses = {}; // {id: 'none'|'관심'|'장바구니'|'완료'|'패스'}
+let memos = {}; // {id: 'memo text'}
 let activeFilter = '전체';
 
 function loadData() {
@@ -948,9 +1042,9 @@ function loadData() {
     saveData();
   }
   const savedStatus = localStorage.getItem('wc_statuses_v2');
-  if (savedStatus) {
-    statuses = JSON.parse(savedStatus);
-  }
+  if (savedStatus) { statuses = JSON.parse(savedStatus); }
+  const savedMemos = localStorage.getItem('wc_memos_v2');
+  if (savedMemos) { memos = JSON.parse(savedMemos); }
 }
 
 function saveData() {
@@ -959,6 +1053,11 @@ function saveData() {
 
 function saveStatuses() {
   localStorage.setItem('wc_statuses_v2', JSON.stringify(statuses));
+}
+
+function saveMemo(id, text) {
+  memos[id] = text;
+  localStorage.setItem('wc_memos_v2', JSON.stringify(memos));
 }
 
 // ─────────────────────────────────────────
@@ -1012,6 +1111,12 @@ function renderCard(item) {
     </div>
     ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
     <div class="card-reason">${item.reason}</div>
+    <div class="card-memo">
+      <textarea class="memo-input" placeholder="메모 (재고없음, 다음에 등...)" rows="1"
+        oninput="saveMemo('${item.id}', this.value)"
+        onfocus="this.rows=2"
+        onblur="this.rows=this.value?2:1">${memos[item.id] || ''}</textarea>
+    </div>
     <div class="card-footer">
       <button class="status-btn ${status === '관심' ? 'active-관심' : ''}" onclick="setStatus('${item.id}', '관심')">♥ 관심</button>
       <button class="status-btn ${status === '장바구니' ? 'active-장바구니' : ''}" onclick="setStatus('${item.id}', '장바구니')">🛒 담기</button>
@@ -1031,6 +1136,7 @@ function renderAll() {
   if (activeFilter === '원피스') filtered = filtered.filter(p => p.category === '원피스');
   else if (activeFilter === '스커트') filtered = filtered.filter(p => p.category === '스커트');
   else if (activeFilter === '팬츠') filtered = filtered.filter(p => p.category === '팬츠');
+  else if (activeFilter === '신발') filtered = filtered.filter(p => p.category === '신발');
   else if (activeFilter === '즉시구매') filtered = filtered.filter(p => p.verdict === '즉시구매');
 
   // Sort by score desc
