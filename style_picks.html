@@ -1034,30 +1034,30 @@ let memos = {}; // {id: 'memo text'}
 let activeFilter = '전체';
 
 function loadData() {
-  const saved = localStorage.getItem('wc_picks_v2');
+  const saved = localStorage.getItem('wc_picks_v3');
   if (saved) {
     picks = JSON.parse(saved);
   } else {
     picks = DEFAULT_PICKS;
     saveData();
   }
-  const savedStatus = localStorage.getItem('wc_statuses_v2');
+  const savedStatus = localStorage.getItem('wc_statuses_v3');
   if (savedStatus) { statuses = JSON.parse(savedStatus); }
-  const savedMemos = localStorage.getItem('wc_memos_v2');
+  const savedMemos = localStorage.getItem('wc_memos_v3');
   if (savedMemos) { memos = JSON.parse(savedMemos); }
 }
 
 function saveData() {
-  localStorage.setItem('wc_picks_v2', JSON.stringify(picks));
+  localStorage.setItem('wc_picks_v3', JSON.stringify(picks));
 }
 
 function saveStatuses() {
-  localStorage.setItem('wc_statuses_v2', JSON.stringify(statuses));
+  localStorage.setItem('wc_statuses_v3', JSON.stringify(statuses));
 }
 
 function saveMemo(id, text) {
   memos[id] = text;
-  localStorage.setItem('wc_memos_v2', JSON.stringify(memos));
+  localStorage.setItem('wc_memos_v3', JSON.stringify(memos));
 }
 
 // ─────────────────────────────────────────
