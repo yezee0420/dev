@@ -618,6 +618,7 @@
   <button class="filter-btn" onclick="setFilter('원피스')">원피스</button>
   <button class="filter-btn" onclick="setFilter('스커트')">스커트</button>
   <button class="filter-btn" onclick="setFilter('팬츠')">팬츠</button>
+  <button class="filter-btn" onclick="setFilter('블라우스')">블라우스</button>
   <button class="filter-btn" onclick="setFilter('신발')">신발</button>
   <button class="filter-btn" onclick="setFilter('즉시구매')">즉시구매만</button>
   <div class="toolbar-sep"></div>
@@ -755,7 +756,7 @@
           <option value="원피스">원피스</option>
           <option value="스커트">스커트</option>
           <option value="팬츠">팬츠</option>
-          <option value="블라우스">블라우스</option>
+          <option value="블라우스" selected>블라우스</option>
           <option value="자켓">자켓</option>
           <option value="기타">기타</option>
         </select>
@@ -938,6 +939,76 @@ const DEFAULT_PICKS = [
     reason: '위 네이비/블랙 컬러 대신 아이보리 버전. 봄/여름 시즌 착용에 적합. 아이보리도 프로필 베스트 컬러. 단, 같은 드레스 중복 구매는 비추.',
     url: 'https://www.wconcept.co.kr/Product/308353411',
     tags: ['머메이드', '아이보리', '여름용']
+  },
+  {
+    id: 'b001',
+    date: '2026.06.08',
+    brand: '프론트로우',
+    category: '블라우스',
+    name: '[Drama Signature] Tie-Collar Silky Blouse 6color',
+    origPrice: 149000,
+    salePrice: 108108,
+    score: 92,
+    verdict: '즉시구매',
+    reason: '타이 칼라 = 목선 정돈, 실루엣 세련. 실키 소재로 청바지에 넣어 입으면 캐주얼+고급 균형 완벽. 6컬러 중 블랙·아이보리·네이비 추천. 9999+ 리뷰로 품질 검증. 슬랙스에도 최상.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%ED%94%84%EB%A1%A0%ED%8A%B8%EB%A1%9C%EC%9A%B0+Tie-Collar+Silky+Blouse',
+    tags: ['타이칼라', '실키', '6컬러', '★9999+리뷰']
+  },
+  {
+    id: 'b002',
+    date: '2026.06.08',
+    brand: '무니드',
+    category: '블라우스',
+    name: 'GLOW OPEN COLLAR SHIRT (IVORY/BLUE)',
+    origPrice: 129000,
+    salePrice: 95099,
+    score: 90,
+    verdict: '즉시구매',
+    reason: '오픈 칼라 = 가장 단정하면서도 세련된 셔츠 폼. 광택감 있는 실키 소재로 청바지와 매치 시 "아무거나 입은 것 같은데 왜 이렇게 세련돼?" 연출. 아이보리·블루 모두 예지님 베스트 컬러.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EB%AC%B4%EB%8B%88%EB%93%9C+GLOW+OPEN+COLLAR+SHIRT',
+    tags: ['오픈칼라', '실키광택', '아이보리/블루', '단독']
+  },
+  {
+    id: 'b003',
+    date: '2026.06.08',
+    brand: '주르티',
+    category: '블라우스',
+    name: '실키 타이 블라우스 3컬러 j1556',
+    origPrice: 105000,
+    salePrice: 57036,
+    score: 87,
+    verdict: '즉시구매',
+    reason: '타이 칼라로 목선 정리 + 실키 소재 = 청바지 투입 시 즉시 세련됨. 45% 세일로 가성비 최강. 347개 리뷰 4.9점. 블랙 버전이 특히 직선 체형에 날씬해 보이는 효과.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%A3%BC%EB%A5%B4%ED%8B%B0+%EC%8B%A4%ED%82%A4+%ED%83%80%EC%9D%B4+%EB%B8%94%EB%9D%BC%EC%9A%B0%EC%8A%A4+j1556',
+    tags: ['타이칼라', '실키', '★가성비45%↓', '347리뷰']
+  },
+  {
+    id: 'b004',
+    date: '2026.06.08',
+    brand: '모멧',
+    category: '블라우스',
+    name: '아르케 카라 셔츠 블라우스 3colors',
+    origPrice: 96000,
+    salePrice: 58666,
+    score: 86,
+    verdict: '즉시구매',
+    reason: '깔끔한 카라 셔츠 실루엣 = 슬랙스·청바지 모두에 최상. 구조적인 카라가 얼굴 선 정리해줌. 블랙·아이보리·네이비 중 선택. 셔츠 안에 넣어 입거나 풀어 입어도 OK.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EB%AA%A8%EB%A9%A7+%EC%95%84%EB%A5%B4%EC%BC%80+%EC%B9%B4%EB%9D%BC+%EC%85%94%EC%B8%A0+%EB%B8%94%EB%9D%BC%EC%9A%B0%EC%8A%A4',
+    tags: ['카라셔츠', '구조적', '3컬러', '38%↓']
+  },
+  {
+    id: 'b005',
+    date: '2026.06.08',
+    brand: '슬로우롤리',
+    category: '블라우스',
+    name: 'Tuck detail blouse 2 Colors (5차)',
+    origPrice: 175000,
+    salePrice: 89119,
+    score: 85,
+    verdict: '즉시구매',
+    reason: '턱 디테일 = 프릴 없이 구조적 입체감. 직선 체형에 볼륨 없이 세련된 핏. 49% 세일. 5차 리오더로 검증된 아이템. 청바지 넣어 입기 딱 좋은 기장감.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%8A%AC%EB%A1%9C%EC%9A%B0%EB%A1%A4%EB%A6%AC+Tuck+detail+blouse',
+    tags: ['턱디테일', '구조적', '★49%↓', '5차리오더']
   },
   {
     id: 's001',
@@ -1136,6 +1207,7 @@ function renderAll() {
   if (activeFilter === '원피스') filtered = filtered.filter(p => p.category === '원피스');
   else if (activeFilter === '스커트') filtered = filtered.filter(p => p.category === '스커트');
   else if (activeFilter === '팬츠') filtered = filtered.filter(p => p.category === '팬츠');
+  else if (activeFilter === '블라우스') filtered = filtered.filter(p => p.category === '블라우스');
   else if (activeFilter === '신발') filtered = filtered.filter(p => p.category === '신발');
   else if (activeFilter === '즉시구매') filtered = filtered.filter(p => p.verdict === '즉시구매');
 
