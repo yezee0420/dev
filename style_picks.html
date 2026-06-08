@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>예지 스타일 대시보드</title>
+<style>
+  :root {
+    --black: #111;
+    --off-white: #f8f6f3;
+    --warm-gray: #8a8480;
+    --light-gray: #e8e5e0;
+    --accent: #c8a882;
+    --green: #4a7c59;
+    --orange: #c07d3a;
+    --red: #9e3a3a;
+    --purple: #5a4a7a;
+    --card-bg: #fff;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--off-white);
+    color: var(--black);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--black);
+    color: #fff;
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .header-left p {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+  .header-stats {
+    display: flex;
+    gap: 28px;
+    text-align: right;
+  }
+  .stat-item { }
+  .stat-val {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+
+  /* ── PROFILE STRIP ── */
+  .profile-strip {
+    background: #1c1a18;
+    color: #ccc;
+    padding: 12px 40px;
+    display: flex;
+    gap: 24px;
+    font-size: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .profile-strip span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .profile-strip .label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .profile-strip .sep { color: #444; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: #fff;
+    border-bottom: 2px solid var(--light-gray);
+    padding: 0 40px;
+  }
+  .tab-btn {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--warm-gray);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+  }
+  .tab-btn:hover { color: var(--black); }
+  .tab-btn.active {
+    color: var(--black);
+    border-bottom-color: var(--black);
+    font-weight: 700;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--off-white);
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--light-gray);
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--warm-gray);
+    font-weight: 500;
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--black);
+    border-color: var(--black);
+    color: #fff;
+  }
+  .toolbar-sep { flex: 1; }
+  .add-btn {
+    padding: 8px 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.15s;
+  }
+  .add-btn:hover { opacity: 0.85; }
+
+  /* ── CONTENT ── */
+  .content { padding: 24px 40px 60px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── SESSION HEADER ── */
+  .session-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .session-date {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--warm-gray);
+    text-transform: uppercase;
+  }
+  .session-divider {
+    flex: 1;
+    height: 1px;
+    background: var(--light-gray);
+  }
+  .session-count {
+    font-size: 11px;
+    color: var(--warm-gray);
+  }
+
+  /* ── CARD GRID ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 18px;
+  }
+
+  /* ── PRODUCT CARD ── */
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  }
+  .card.status-완료 { opacity: 0.65; }
+  .card.status-패스 { opacity: 0.4; filter: grayscale(0.5); }
+
+  .card-top {
+    padding: 16px 18px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .score-badge {
+    min-width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.1;
+    flex-shrink: 0;
+  }
+  .score-badge .score-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .badge-즉시 { background: #e8f4ec; color: var(--green); }
+  .badge-고려 { background: #fdf3e7; color: var(--orange); }
+  .badge-비추 { background: #fbeaea; color: var(--red); }
+  .badge-완료 { background: #ede8f4; color: var(--purple); }
+
+  .card-title-area { flex: 1; min-width: 0; }
+  .card-brand {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--warm-gray);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1.4;
+    word-break: keep-all;
+  }
+  .verdict-chip {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .verdict-즉시구매 { background: var(--green); color: #fff; }
+  .verdict-고려가능 { background: var(--orange); color: #fff; }
+  .verdict-비추천 { background: var(--red); color: #fff; }
+  .verdict-구매완료 { background: var(--purple); color: #fff; }
+  .verdict-패스 { background: #999; color: #fff; }
+
+  .card-price {
+    padding: 0 18px 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .price-sale {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--black);
+  }
+  .price-orig {
+    font-size: 12px;
+    color: #bbb;
+    text-decoration: line-through;
+  }
+  .discount-rate {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c0392b;
+  }
+
+  .card-reason {
+    padding: 10px 18px 14px;
+    background: #fafafa;
+    border-top: 1px solid #f0ede8;
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .card-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--light-gray);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-btn {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1.5px solid var(--light-gray);
+    background: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--warm-gray);
+    font-weight: 500;
+  }
+  .status-btn:hover { border-color: var(--black); color: var(--black); }
+  .status-btn.active-관심 { background: #fdeaea; border-color: #e88; color: #c44; }
+  .status-btn.active-장바구니 { background: #e8f0fd; border-color: #88b; color: #44c; }
+  .status-btn.active-완료 { background: #ede8f4; border-color: #aa8; color: var(--purple); }
+  .status-btn.active-패스 { background: #f0f0f0; border-color: #aaa; color: #888; }
+
+  .card-link {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .card-link:hover { text-decoration: underline; }
+
+  /* ── CATEGORY LABEL ── */
+  .category-badge {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 1px 6px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+
+  /* ── CHECKLIST PANEL ── */
+  .checklist-panel {
+    background: #1c1a18;
+    color: #ccc;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .checklist-panel h3 {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin-bottom: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .checklist-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .check-icon { color: var(--accent); font-size: 14px; }
+
+  /* ── HISTORY TAB ── */
+  .history-group { margin-bottom: 40px; }
+  .history-group-title {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--warm-gray);
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--light-gray);
+    margin-bottom: 16px;
+  }
+
+  /* ── WISHLIST TAB ── */
+  .wishlist-note {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--warm-gray);
+  }
+  .wishlist-note h3 { font-size: 18px; font-weight: 300; margin-bottom: 8px; }
+  .wishlist-note p { font-size: 13px; }
+
+  /* ── ADD MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    width: min(500px, 90vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--black);
+  }
+  .form-row { margin-bottom: 14px; }
+  .form-row label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warm-gray);
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .form-row input, .form-row select, .form-row textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--light-gray);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--black);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-row textarea { resize: vertical; min-height: 60px; }
+  .form-row-half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+  .btn-cancel {
+    padding: 9px 20px;
+    border: 1.5px solid var(--light-gray);
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--warm-gray);
+  }
+  .btn-save {
+    padding: 9px 20px;
+    background: var(--black);
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .header, .profile-strip, .tabs, .toolbar, .content { padding-left: 20px; padding-right: 20px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header-stats { width: 100%; justify-content: flex-start; }
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--warm-gray);
+  }
+  .empty-state h3 { font-size: 16px; font-weight: 300; margin-bottom: 8px; }
+
+  /* ── TOOLTIP ── */
+  .tooltip {
+    position: relative;
+    cursor: help;
+  }
+  .tooltip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .tooltip:hover::after { opacity: 1; }
+
+  /* ── TAGS ── */
+  .card-tags {
+    padding: 0 18px 10px;
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--light-gray);
+    color: var(--warm-gray);
+  }
+  .tag-warn { background: #fdeaea; color: #c44; }
+  .tag-good { background: #e8f4ec; color: var(--green); }
+  .tag-price { background: #fdf3e7; color: var(--orange); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>W CONCEPT STYLE PICKS</h1>
+    <p>예지 전담 스타일리스트 · 쇼핑 대시보드</p>
+  </div>
+  <div class="header-stats" id="header-stats">
+    <div class="stat-item">
+      <div class="stat-val" id="stat-picks">10</div>
+      <div class="stat-label">이번 세일 픽</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val" id="stat-saved">—</div>
+      <div class="stat-label">절약 예정액</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val" id="stat-done">0</div>
+      <div class="stat-label">구매 완료</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE STRIP -->
+<div class="profile-strip">
+  <span><span class="label">체형</span> 직선형 · 바스트 있음 · 어깨 존재감</span>
+  <span class="sep">|</span>
+  <span><span class="label">얼굴</span> 이목구비 선명 · 똑부러진 인상</span>
+  <span class="sep">|</span>
+  <span><span class="label">베스트</span> H라인 · 머메이드 · 칼라 드레스</span>
+  <span class="sep">|</span>
+  <span><span class="label">컬러</span> 블랙 · 네이비 · 아이보리</span>
+  <span class="sep">|</span>
+  <span><span class="label">키워드</span> 여성스러운 CEO</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('picks')">이번 픽</button>
+  <button class="tab-btn" onclick="showTab('history')">전체 기록</button>
+  <button class="tab-btn" onclick="showTab('wishlist')">위시리스트</button>
+  <button class="tab-btn" onclick="showTab('profile')">스타일 프로필</button>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <button class="filter-btn active" onclick="setFilter('전체')">전체</button>
+  <button class="filter-btn" onclick="setFilter('원피스')">원피스</button>
+  <button class="filter-btn" onclick="setFilter('스커트')">스커트</button>
+  <button class="filter-btn" onclick="setFilter('팬츠')">팬츠</button>
+  <button class="filter-btn" onclick="setFilter('즉시구매')">즉시구매만</button>
+  <div class="toolbar-sep"></div>
+  <button class="add-btn" onclick="openModal()">+ 새 상품 추가</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- TAB: 이번 픽 -->
+  <div class="tab-panel active" id="tab-picks">
+    <div class="checklist-panel">
+      <h3>구매 전 5초 체크리스트</h3>
+      <div class="checklist-items">
+        <div class="checklist-item"><span class="check-icon">◆</span> 어깨선이 살아있는가?</div>
+        <div class="checklist-item"><span class="check-icon">◆</span> 허리선이 정리되는가?</div>
+        <div class="checklist-item"><span class="check-icon">◆</span> 얼굴보다 옷이 안 튀는가?</div>
+        <div class="checklist-item"><span class="check-icon">◆</span> 직선적인 요소가 있는가?</div>
+        <div class="checklist-item"><span class="check-icon">◆</span> 회사 입고 가도 고급스러운가?</div>
+      </div>
+    </div>
+
+    <div class="session-header">
+      <span class="session-date" id="session-date-label">2026.06.08 세일 픽</span>
+      <div class="session-divider"></div>
+      <span class="session-count" id="session-count-label">10개</span>
+    </div>
+
+    <div class="cards" id="cards-container"></div>
+  </div>
+
+  <!-- TAB: 전체 기록 -->
+  <div class="tab-panel" id="tab-history">
+    <div id="history-container">
+      <div class="empty-state">
+        <h3>기록이 없어요</h3>
+        <p>구매완료 또는 패스 처리한 아이템이 여기 모입니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: 위시리스트 -->
+  <div class="tab-panel" id="tab-wishlist">
+    <div class="cards" id="wishlist-container">
+      <div class="empty-state">
+        <h3>위시리스트가 비어있어요</h3>
+        <p>♥ 관심 표시한 아이템이 여기 모입니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: 스타일 프로필 -->
+  <div class="tab-panel" id="tab-profile">
+    <div style="max-width: 700px;">
+      <h2 style="font-size:18px; font-weight:300; letter-spacing:0.05em; margin-bottom:24px;">예지 스타일 프로필 · 스타일리스트 레퍼런스</h2>
+
+      <div style="display:grid; gap:16px;">
+        <!-- Section -->
+        <div style="background:#fff; border-radius:10px; padding:20px 24px; box-shadow:var(--shadow);">
+          <h4 style="font-size:11px; letter-spacing:0.12em; color:var(--warm-gray); font-weight:700; text-transform:uppercase; margin-bottom:14px;">퍼스널 이미지</h4>
+          <p style="font-size:14px; font-weight:600; margin-bottom:8px;">여성스러운 CEO</p>
+          <p style="font-size:12px; color:#555;">첫인상 키워드: "일 잘하게 생겼다" · "세련됐다" · "관리 잘한다"<br>레퍼런스: 김지원, 박지현 계열</p>
+        </div>
+
+        <div style="background:#fff; border-radius:10px; padding:20px 24px; box-shadow:var(--shadow);">
+          <h4 style="font-size:11px; letter-spacing:0.12em; color:var(--warm-gray); font-weight:700; text-transform:uppercase; margin-bottom:14px;">최고점 실루엣</h4>
+          <table style="width:100%; font-size:13px; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid var(--light-gray);">
+              <td style="padding:8px 0; color:var(--accent); font-weight:700;">1순위 95점</td>
+              <td style="padding:8px 0;">재킷형 원피스, 테일러드 원피스, 카라 원피스</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--light-gray);">
+              <td style="padding:8px 0; color:var(--accent); font-weight:700;">2순위 90점</td>
+              <td style="padding:8px 0;">머메이드, 세미 머메이드 원피스</td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:var(--accent); font-weight:700;">3순위 85점</td>
+              <td style="padding:8px 0;">구조적인 블라우스, 실키 셔츠</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="background:#fff; border-radius:10px; padding:20px 24px; box-shadow:var(--shadow);">
+          <h4 style="font-size:11px; letter-spacing:0.12em; color:var(--warm-gray); font-weight:700; text-transform:uppercase; margin-bottom:14px;">절대 피해야 할 스타일</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px;">
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 프릴 — 얼굴이 이미 화려함</div>
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 셔링 — 상체 부해 보임</div>
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 벌룬/퍼프 소매 — 어깨 넓어 보임</div>
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 보헤미안 린넨 — 도시적 이미지 사라짐</div>
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 큰 리본 — 얼굴과 경쟁</div>
+            <div style="padding:8px 12px; background:#fbeaea; border-radius:6px; color:#c44;">❌ 풍성한 플레어 스커트 — 볼륨 과함</div>
+          </div>
+        </div>
+
+        <div style="background:#fff; border-radius:10px; padding:20px 24px; box-shadow:var(--shadow);">
+          <h4 style="font-size:11px; letter-spacing:0.12em; color:var(--warm-gray); font-weight:700; text-transform:uppercase; margin-bottom:14px;">컬러 & 소재</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:12px;">
+            <div>
+              <p style="font-weight:700; margin-bottom:8px; color:var(--green);">🥇 베스트 컬러</p>
+              <p>네이비 · 블랙 · 아이보리 · 크림</p>
+              <p style="margin-top:8px; font-weight:700; color:var(--orange);">👍 좋음</p>
+              <p>차콜 · 토프 · 웜그레이</p>
+            </div>
+            <div>
+              <p style="font-weight:700; margin-bottom:8px; color:var(--green);">잘 받는 소재</p>
+              <p>트위드 · 울 · 탄탄한 폴리 · 실키 블라우스</p>
+              <p style="margin-top:8px; font-weight:700; color:var(--red);">피해야 할 소재</p>
+              <p>흐물흐물 레이온 · 내추럴 린넨 · 과한 주름</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#1c1a18; border-radius:10px; padding:20px 24px; color:#ccc;">
+          <h4 style="font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:700; text-transform:uppercase; margin-bottom:10px;">쇼핑 판단 한 문장</h4>
+          <p style="font-size:16px; font-weight:300; font-style:italic; color:#fff; line-height:1.6;">"이거 입고 임원 보고할 때 멋있을까?"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>새 상품 추가</h3>
+    <div class="form-row-half">
+      <div class="form-row">
+        <label>브랜드</label>
+        <input type="text" id="f-brand" placeholder="예: 잇미샤">
+      </div>
+      <div class="form-row">
+        <label>카테고리</label>
+        <select id="f-category">
+          <option value="원피스">원피스</option>
+          <option value="스커트">스커트</option>
+          <option value="팬츠">팬츠</option>
+          <option value="블라우스">블라우스</option>
+          <option value="자켓">자켓</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>상품명</label>
+      <input type="text" id="f-name" placeholder="상품명 전체">
+    </div>
+    <div class="form-row-half">
+      <div class="form-row">
+        <label>원가 (원)</label>
+        <input type="number" id="f-orig" placeholder="149000">
+      </div>
+      <div class="form-row">
+        <label>세일가 (원)</label>
+        <input type="number" id="f-sale" placeholder="99300">
+      </div>
+    </div>
+    <div class="form-row-half">
+      <div class="form-row">
+        <label>점수 (0~100)</label>
+        <input type="number" id="f-score" min="0" max="100" placeholder="86">
+      </div>
+      <div class="form-row">
+        <label>판정</label>
+        <select id="f-verdict">
+          <option value="즉시구매">즉시구매</option>
+          <option value="고려가능">고려가능</option>
+          <option value="비추천">비추천</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>추천 이유</label>
+      <textarea id="f-reason" placeholder="왜 어울리는지 핵심 이유"></textarea>
+    </div>
+    <div class="form-row">
+      <label>상품 링크</label>
+      <input type="url" id="f-url" placeholder="https://www.wconcept.co.kr/Product/...">
+    </div>
+    <div class="form-row">
+      <label>날짜</label>
+      <input type="text" id="f-date" placeholder="2026.06.08">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveItem()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────
+const DEFAULT_PICKS = [
+  {
+    id: 'p001',
+    date: '2026.06.08',
+    brand: '그레이스유',
+    category: '원피스',
+    name: 'Daria Mermaid One-piece (3 Color)',
+    origPrice: 298000,
+    salePrice: 224096,
+    score: 96,
+    verdict: '즉시구매',
+    reason: '머메이드 실루엣 = 직선 체형 최강 무기. 어깨→허리→엉덩이 라인이 자연스럽게 잡힘. 이목구비 강한 얼굴에 심플한 드레스가 딱 맞는 역할 수행.',
+    url: 'https://www.wconcept.co.kr/Product/308353411',
+    tags: ['머메이드', '즉시구매', '네이비/아이보리']
+  },
+  {
+    id: 'p002',
+    date: '2026.06.08',
+    brand: '디아트레',
+    category: '원피스',
+    name: 'Adele Collar Button Dress [Black]',
+    origPrice: 315000,
+    salePrice: 249400,
+    score: 92,
+    verdict: '즉시구매',
+    reason: '카라+버튼 = 구조적 디테일이 강한 얼굴과 균형. 블랙 칼라 버튼업 드레스 = 임원 보고룩 그 자체. 직선 체형에 딱 맞는 H라인 유지.',
+    url: 'https://www.wconcept.co.kr/Product/308128927',
+    tags: ['카라드레스', '블랙', '구조적']
+  },
+  {
+    id: 'p003',
+    date: '2026.06.08',
+    brand: '레티켓스튜디오',
+    category: '스커트',
+    name: 'Portrait Suiting Midi Skirt_Black',
+    origPrice: 162000,
+    salePrice: 111640,
+    score: 91,
+    verdict: '즉시구매',
+    reason: '수트 소재 H라인 미디 스커트. 탄탄한 소재 + 구조적 실루엣. 프로필 "세미 피트, H라인" 직접 해당. 회사 착용 완벽.',
+    url: 'https://www.wconcept.co.kr/Product/305329771',
+    tags: ['H라인', '수트소재', '미디기장']
+  },
+  {
+    id: 'p004',
+    date: '2026.06.08',
+    brand: '티프오브',
+    category: '스커트',
+    name: 'tifof 앤더 쉬폰 배색 H라인 트위드 스커트',
+    origPrice: 135000,
+    salePrice: 89775,
+    score: 88,
+    verdict: '즉시구매',
+    reason: '트위드 소재 = 프로필 "잘 받는 소재" 직접 해당. 쉬폰 배색으로 딱딱하지 않고 세련됨. H라인 실루엣 유지. 8차 리오더로 검증된 아이템.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=tifof+%EC%95%A4%EB%8D%94+%EC%89%AC%ED%8F%B0+%EB%B0%B0%EC%83%89+H%EB%9D%BC%EC%9D%B8+%ED%8A%B8%EC%9C%84%EB%93%9C',
+    tags: ['트위드', 'H라인', '탄탄소재', '★리오더']
+  },
+  {
+    id: 'p005',
+    date: '2026.06.08',
+    brand: '토와브',
+    category: '원피스',
+    name: 'LOV BELTED DRESS_BLACK',
+    origPrice: 249000,
+    salePrice: 134440,
+    score: 88,
+    verdict: '즉시구매',
+    reason: '벨티드가 허리선을 자연스럽게 정리. 미니멀 블랙 단색. 46% 세일 중 최고 가성비 원피스. 단, 드레이프 과하면 직접 확인 필요.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%ED%86%A0%EC%99%80%EB%B8%8C+LOV+BELTED+DRESS',
+    tags: ['벨티드', '블랙', '★가성비46%']
+  },
+  {
+    id: 'p006',
+    date: '2026.06.08',
+    brand: '잇미샤',
+    category: '스커트',
+    name: 'H라인 슬릿 롱 스커트 ITQ4ZSK630 (2COLOR)',
+    origPrice: 149000,
+    salePrice: 99300,
+    score: 86,
+    verdict: '즉시구매',
+    reason: '슬릿 = 걸을 때 실루엣 살아남. H라인 유지. 단독 상품. 2컬러 중 블랙 우선 추천. 잇미샤 퀄리티 검증됨.',
+    url: 'https://www.wconcept.co.kr/Product/308300757',
+    tags: ['H라인', '슬릿', '단독', '블랙/베이지']
+  },
+  {
+    id: 'p007',
+    date: '2026.06.08',
+    brand: '티프오브',
+    category: '스커트',
+    name: 'tifof 이아나 시스루 H라인 롱 스커트_NAVY',
+    origPrice: 139000,
+    salePrice: 83191,
+    score: 86,
+    verdict: '즉시구매',
+    reason: '네이비 = 프로필 베스트 컬러 1순위. 시스루 레이어드가 롱 기장 지루함 제거. H라인 유지. 오늘 출발 가능.',
+    url: 'https://www.wconcept.co.kr/Product/308373160',
+    tags: ['H라인', '네이비', '시스루레이어드', '오늘출발']
+  },
+  {
+    id: 'p008',
+    date: '2026.06.08',
+    brand: '잇미샤',
+    category: '스커트',
+    name: 'H라인 셋업 스커트 ITQ4ZSK410 [Black]',
+    origPrice: 139000,
+    salePrice: 73948,
+    score: 87,
+    verdict: '즉시구매',
+    reason: '블랙 H라인 기본 중 기본. 셋업 활용 가능해 활용도 높음. 7만원대는 거의 공짜 수준. 46% 세일 + 30% 쿠폰 적용.',
+    url: 'https://www.wconcept.co.kr/Product/308294879',
+    tags: ['H라인', '블랙', '셋업가능', '★최고가성비']
+  },
+  {
+    id: 'p009',
+    date: '2026.06.08',
+    brand: '그레이스유',
+    category: '원피스',
+    name: 'Daria Mermaid One-piece — Ivory',
+    origPrice: 298000,
+    salePrice: 224096,
+    score: 84,
+    verdict: '고려가능',
+    reason: '위 네이비/블랙 컬러 대신 아이보리 버전. 봄/여름 시즌 착용에 적합. 아이보리도 프로필 베스트 컬러. 단, 같은 드레스 중복 구매는 비추.',
+    url: 'https://www.wconcept.co.kr/Product/308353411',
+    tags: ['머메이드', '아이보리', '여름용']
+  },
+  {
+    id: 'p010',
+    date: '2026.06.08',
+    brand: '시야쥬',
+    category: '팬츠',
+    name: 'SIPT7078 투턱 나일론 슬랙스 [Black]',
+    origPrice: 178000,
+    salePrice: 104648,
+    score: 83,
+    verdict: '고려가능',
+    reason: '투턱 = 직선 체형에 구조 추가. 나일론 소재 탄탄함. 2팩 구성으로 실용적. 단, 스커트보다는 활용도 낮음. 팬츠 필요할 때 추천.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%8B%9C%EC%95%BC%EC%A5%AC+SIPT7078+%ED%88%AC%ED%84%B1+%EB%82%98%EC%9D%BC%EB%A1%A0+%EC%8A%AC%EB%9E%99%EC%8A%A4',
+    tags: ['투턱', '팬츠', '나일론', '2팩']
+  }
+];
+
+// ─────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────
+let picks = [];
+let statuses = {}; // {id: 'none'|'관심'|'장바구니'|'완료'|'패스'}
+let activeFilter = '전체';
+
+function loadData() {
+  const saved = localStorage.getItem('wc_picks_v2');
+  if (saved) {
+    picks = JSON.parse(saved);
+  } else {
+    picks = DEFAULT_PICKS;
+    saveData();
+  }
+  const savedStatus = localStorage.getItem('wc_statuses_v2');
+  if (savedStatus) {
+    statuses = JSON.parse(savedStatus);
+  }
+}
+
+function saveData() {
+  localStorage.setItem('wc_picks_v2', JSON.stringify(picks));
+}
+
+function saveStatuses() {
+  localStorage.setItem('wc_statuses_v2', JSON.stringify(statuses));
+}
+
+// ─────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────
+function formatPrice(n) {
+  return n.toLocaleString('ko-KR') + '원';
+}
+
+function discountRate(orig, sale) {
+  return Math.round((1 - sale / orig) * 100);
+}
+
+function verdictClass(v) {
+  if (v === '즉시구매') return 'badge-즉시';
+  if (v === '고려가능') return 'badge-고려';
+  return 'badge-비추';
+}
+
+function renderCard(item) {
+  const status = statuses[item.id] || 'none';
+  const disc = discountRate(item.origPrice, item.salePrice);
+  const vClass = verdictClass(item.verdict);
+  const statusCardClass = status === '완료' ? 'status-완료' : status === '패스' ? 'status-패스' : '';
+
+  const tagsHtml = (item.tags || []).map(t => {
+    let cls = 'tag';
+    if (t.startsWith('★')) cls += ' tag-price';
+    if (t === '블랙' || t === '네이비' || t === '아이보리') cls += ' tag-good';
+    return `<span class="${cls}">${t}</span>`;
+  }).join('');
+
+  return `
+  <div class="card ${statusCardClass}" id="card-${item.id}">
+    <div class="card-top">
+      <div class="score-badge ${vClass}">
+        ${item.score}
+        <span class="score-label">점</span>
+      </div>
+      <div class="card-title-area">
+        <div class="card-brand">${item.brand}</div>
+        <div class="card-name">${item.name}</div>
+        <span class="category-badge">${item.category}</span>
+        <span class="verdict-chip verdict-${item.verdict}">${item.verdict}</span>
+      </div>
+    </div>
+    <div class="card-price">
+      <span class="price-sale">${formatPrice(item.salePrice)}</span>
+      <span class="price-orig">${formatPrice(item.origPrice)}</span>
+      <span class="discount-rate">${disc}%↓</span>
+    </div>
+    ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ''}
+    <div class="card-reason">${item.reason}</div>
+    <div class="card-footer">
+      <button class="status-btn ${status === '관심' ? 'active-관심' : ''}" onclick="setStatus('${item.id}', '관심')">♥ 관심</button>
+      <button class="status-btn ${status === '장바구니' ? 'active-장바구니' : ''}" onclick="setStatus('${item.id}', '장바구니')">🛒 담기</button>
+      <button class="status-btn ${status === '완료' ? 'active-완료' : ''}" onclick="setStatus('${item.id}', '완료')">✓ 구매</button>
+      <button class="status-btn ${status === '패스' ? 'active-패스' : ''}" onclick="setStatus('${item.id}', '패스')">✕ 패스</button>
+      ${item.url ? `<a class="card-link" href="${item.url}" target="_blank">→ 보러가기</a>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderAll() {
+  const container = document.getElementById('cards-container');
+  const today = picks.filter(p => p.date === getCurrentDate());
+
+  let filtered = today.length > 0 ? today : picks;
+
+  if (activeFilter === '원피스') filtered = filtered.filter(p => p.category === '원피스');
+  else if (activeFilter === '스커트') filtered = filtered.filter(p => p.category === '스커트');
+  else if (activeFilter === '팬츠') filtered = filtered.filter(p => p.category === '팬츠');
+  else if (activeFilter === '즉시구매') filtered = filtered.filter(p => p.verdict === '즉시구매');
+
+  // Sort by score desc
+  filtered = [...filtered].sort((a, b) => b.score - a.score);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>해당 카테고리 픽이 없어요</h3></div>';
+  } else {
+    container.innerHTML = filtered.map(renderCard).join('');
+  }
+
+  updateStats();
+}
+
+function updateStats() {
+  const total = picks.length;
+  const done = Object.values(statuses).filter(s => s === '완료').length;
+
+  const totalOrig = picks.reduce((s, p) => s + p.origPrice, 0);
+  const totalSale = picks.reduce((s, p) => s + p.salePrice, 0);
+  const saved = totalOrig - totalSale;
+
+  document.getElementById('stat-picks').textContent = total;
+  document.getElementById('stat-saved').textContent = (saved / 10000).toFixed(0) + '만↓';
+  document.getElementById('stat-done').textContent = done;
+
+  const date = picks[0]?.date || getCurrentDate();
+  document.getElementById('session-date-label').textContent = date + ' 세일 픽';
+  document.getElementById('session-count-label').textContent = total + '개';
+}
+
+// ─────────────────────────────────────────
+//  STATUS
+// ─────────────────────────────────────────
+function setStatus(id, newStatus) {
+  const current = statuses[id] || 'none';
+  if (current === newStatus) {
+    statuses[id] = 'none'; // toggle off
+  } else {
+    statuses[id] = newStatus;
+  }
+  saveStatuses();
+  renderAll();
+  renderWishlist();
+  renderHistory();
+}
+
+// ─────────────────────────────────────────
+//  TABS
+// ─────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['picks','history','wishlist','profile'][i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'wishlist') renderWishlist();
+  if (name === 'history') renderHistory();
+}
+
+function renderWishlist() {
+  const container = document.getElementById('wishlist-container');
+  const wishItems = picks.filter(p => statuses[p.id] === '관심');
+  if (wishItems.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>위시리스트가 비어있어요</h3><p>♥ 관심 표시한 아이템이 여기 모입니다.</p></div>';
+  } else {
+    container.innerHTML = wishItems.map(renderCard).join('');
+  }
+}
+
+function renderHistory() {
+  const container = document.getElementById('history-container');
+  const doneItems = picks.filter(p => statuses[p.id] === '완료' || statuses[p.id] === '패스');
+  if (doneItems.length === 0) {
+    container.innerHTML = '<div class="empty-state"><h3>기록이 없어요</h3><p>구매완료 또는 패스 처리한 아이템이 여기 모입니다.</p></div>';
+    return;
+  }
+
+  const byDate = {};
+  doneItems.forEach(p => {
+    if (!byDate[p.date]) byDate[p.date] = [];
+    byDate[p.date].push(p);
+  });
+
+  container.innerHTML = Object.keys(byDate).sort().reverse().map(date => `
+    <div class="history-group">
+      <div class="history-group-title">${date} 픽</div>
+      <div class="cards">${byDate[date].map(renderCard).join('')}</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────
+//  FILTER
+// ─────────────────────────────────────────
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().replace('만', '') === f || (f === '즉시구매' && b.textContent.includes('즉시구매')));
+  });
+  renderAll();
+}
+
+// ─────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('f-date').value = getCurrentDate();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  ['f-brand','f-name','f-reason','f-url','f-orig','f-sale','f-score'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+function saveItem() {
+  const brand = document.getElementById('f-brand').value.trim();
+  const name = document.getElementById('f-name').value.trim();
+  if (!brand || !name) { alert('브랜드와 상품명은 필수예요!'); return; }
+
+  const newItem = {
+    id: 'p' + Date.now(),
+    date: document.getElementById('f-date').value || getCurrentDate(),
+    brand,
+    category: document.getElementById('f-category').value,
+    name,
+    origPrice: parseInt(document.getElementById('f-orig').value) || 0,
+    salePrice: parseInt(document.getElementById('f-sale').value) || 0,
+    score: parseInt(document.getElementById('f-score').value) || 0,
+    verdict: document.getElementById('f-verdict').value,
+    reason: document.getElementById('f-reason').value.trim(),
+    url: document.getElementById('f-url').value.trim(),
+    tags: []
+  };
+
+  picks.unshift(newItem);
+  saveData();
+  closeModal();
+  renderAll();
+}
+
+function getCurrentDate() {
+  const now = new Date();
+  return `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+}
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ─────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────
+loadData();
+renderAll();
+</script>
+</body>
+</html>
