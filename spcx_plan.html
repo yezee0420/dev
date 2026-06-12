@@ -116,6 +116,14 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
   .rung.safe { background: rgba(43,108,176,0.12); } .rung.safe .px { color: var(--blue); }
   .rung.buy { background: rgba(46,125,82,0.12); } .rung.buy .px { color: var(--green); }
   .rung.buy2 { background: rgba(46,125,82,0.06); } .rung.buy2 .px { color: var(--green); }
+  /* 뉴스 */
+  .newsitem { padding: 9px 0; border-bottom: 0.5px solid var(--border-tertiary); }
+  .newsitem:last-child { border-bottom: none; }
+  .newsitem .meta { font-size: 11px; color: var(--text-tertiary); margin-bottom: 2px; }
+  .newsitem a.t { color: var(--blue); text-decoration: none; font-weight: 600; font-size: 13px; line-height: 1.4; }
+  .newsitem a.t:hover { text-decoration: underline; }
+  .newsitem .sum { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
+  .src { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--bg-tertiary); color: var(--text-secondary); margin-right: 6px; }
 </style>
 </head>
 <body>
@@ -140,6 +148,7 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
 
   <div class="tabs">
     <button class="tab active" data-s="overview">개요</button>
+    <button class="tab" data-s="news">📰 뉴스</button>
     <button class="tab" data-s="today">오늘 액션</button>
     <button class="tab" data-s="buy">매수 사다리</button>
     <button class="tab" data-s="sell">매도 전략</button>
@@ -171,6 +180,54 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
       </table>
       <p class="hint" style="margin-top:10px">★ <b>Wolfe의 18개월 목표 $175 ≈ 오늘 예상 시초가.</b> 시초가에 사면 2027 적정가를 오늘 내는 셈 = 안전마진 0 → <b>추격 금지</b>. "massive upside"($250+, 2030)는 Starship 성공 조건부 = <b>코어 장기 홀딩</b>으로 노림.</p>
     </div>
+  </div>
+
+  <!-- ============ 뉴스 ============ -->
+  <div class="section" id="news">
+    <p class="note" style="margin-bottom:12px">SpaceX(SPCX) IPO 관련 해외 언론·리서치 기사 모음. 카테고리별 요약 + 원문 링크. <span style="color:var(--text-tertiary)">(2026.6 기준)</span></p>
+
+    <div class="card">
+      <h3>🚨 상장 · 가격 발표</h3>
+      <div class="newsitem"><div class="meta"><span class="src">Bloomberg</span>6/11</div><a class="t" href="https://www.bloomberg.com/news/articles/2026-06-11/elon-musk-s-spacex-set-to-make-history-with-record-breaking-ipo" target="_blank">SpaceX Raises $75 Billion in Record-Breaking IPO, Valued at $1.8T</a><div class="sum">$135 공모가 확정, 555.6M주 매각, 시총 $1.77조. 사상 최대 IPO(아람코 $29.4B의 2배+). 머스크 지분 82% 유지.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Reuters/Yahoo</span>6/11</div><a class="t" href="https://finance.yahoo.com/markets/stocks/articles/musks-spacex-prices-record-75-192509385.html" target="_blank">Musk's SpaceX prices record $75 billion IPO at $135 a share</a><div class="sum">미국 상장사 7위 규모로 데뷔. SpaceX는 올해 머스크의 xAI 인수. OpenAI·Anthropic도 IPO 준비 중.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">NPR</span>6/11</div><a class="t" href="https://www.npr.org/2026/06/11/nx-s1-5853199/spacex-ipo-price-elon-musk" target="_blank">SpaceX blasts off with a record-breaking $75 billion IPO</a><div class="sum">기록적 규모와 의미 정리. 위성·로켓·AI 복합기업으로서의 베팅.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">CBS News</span>6/12</div><a class="t" href="https://www.cbsnews.com/news/spacex-stock-price-ipo-spcx-initial-public-offering/" target="_blank">SpaceX set to begin trading after raising $75 billion in record IPO</a><div class="sum">나스닥 SPCX 거래 개시. 머스크가 Starbase에서 개장벨.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">US News(Reuters)</span>6/11</div><a class="t" href="https://money.usnews.com/investing/news/articles/2026-06-11/musks-spacex-prices-record-75-billion-ipo-at-135-a-share" target="_blank">Musk's SpaceX Prices Record $75 Billion IPO at $135 a Share</a><div class="sum">통신사 원문. 가격·규모·일정 팩트.</div></div>
+    </div>
+
+    <div class="card">
+      <h3>📈 첫날 거래</h3>
+      <div class="newsitem"><div class="meta"><span class="src">CNBC Live</span>6/12</div><a class="t" href="https://www.cnbc.com/2026/06/12/spacex-ipo-spcx-live-updates.html" target="_blank">SpaceX's first trade indicated around $175 per share ahead of opening</a><div class="sum">시초가 ~$175 지시(공모가 +30%). 개장 30분 지연. 선물(Hyperliquid) ~$176.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">CNBC</span>6/12</div><a class="t" href="https://www.cnbc.com/2026/06/12/small-investors-scrambled-to-get-in-on-the-spacex-ipo-even-as-some-believe-the-valuation-is-stupid.html" target="_blank">Small investors scrambled to get in… even as some believe the valuation is 'stupid'</a><div class="sum">리테일 광기 + 일부는 밸류 "멍청하다". 리테일 배정 20%+(통상 5~10%보다 큼).</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">NBC News</span>6/12</div><a class="t" href="https://www.nbcnews.com/business/markets/spacex-ipo-stock-price-rcna349760" target="_blank">SpaceX, largest IPO ever, set to begin trading</a><div class="sum">거래 개시 종합 브리핑.</div></div>
+    </div>
+
+    <div class="card">
+      <h3>🎯 주가 예상 · 목표가</h3>
+      <div class="newsitem"><div class="meta"><span class="src">TipRanks</span>강세</div><a class="t" href="https://www.tipranks.com/news/spacex-stock-forecast-wolfe-sees-massive-upside-if-starship-and-starlink-deliver" target="_blank">Wolfe Sees Massive Upside if 'Starship and Starlink Deliver'</a><div class="sum">Wolfe 목표 <b>$175(2027말, +30%)</b>. Starship 발사 성공 조건부. "massive upside"는 2030 정성적 스토리.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">moomoo</span>밸류 분열</div><a class="t" href="https://www.moomoo.com/community/feed/spacex-ipo-valuation-split-oppenheimer-sees-the-tam-morningstar-sees-116689395974150" target="_blank">Valuation Split: Oppenheimer $190 vs Morningstar $780B</a><div class="sum"><b>Oppenheimer $190</b>(Starlink 가입 2030년 1,500만) vs <b>Morningstar $63~75</b>(현금흐름 회의). 기관 시각 양극.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">TradingKey</span>90일</div><a class="t" href="https://www.tradingkey.com/analysis/stocks/us-stocks/261960721-spacex-ipo-is-live-at-135-bull-base-and-bear-cases-for-the-first-90-days-tradingkey" target="_blank">Bull/Base/Bear Cases for the First 90 Days</a><div class="sum">1주 $140~180, 1개월 $130~165, 3개월 $120~200. 2~4주 평균회귀 $130~140 예상.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">TradingKey</span>예측시장</div><a class="t" href="https://www.tradingkey.com/analysis/stocks/us-stocks/261964145-spacex-spcx-price-ipo-binance-polymarket-tradingkey" target="_blank">Prediction Markets Bet on $150–$200 Opening</a><div class="sum">예측시장·코인 선물이 시초가 $150~200 베팅.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Yahoo Finance</span>전망</div><a class="t" href="https://finance.yahoo.com/markets/stocks/articles/spacex-price-prediction-bubble-euphoria-061154109.html" target="_blank">SpaceX Price Prediction: Bubble Euphoria or $4 Trillion Breakout?</a><div class="sum">버블 vs 장기 폭발 양 시나리오. 강세 시 $4조 시총론.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">24/7 WallSt</span>Goldman</div><a class="t" href="https://247wallst.com/investing/2026/06/04/goldman-sachs-predicts-spacex-revenue-will-surge-100x-by-2030/" target="_blank">Goldman Predicts SpaceX Revenue Will Surge 100X By 2030</a><div class="sum">2030 매출 $474B 전망(Starlink $144B). AI 부문 100배. 전부 장기·조건부.</div></div>
+    </div>
+
+    <div class="card">
+      <h3>⚠️ 약세 · 밸류 경고</h3>
+      <div class="newsitem"><div class="meta"><span class="src">CNBC</span>6/3</div><a class="t" href="https://www.cnbc.com/2026/06/03/morningstar-spacex-ipo-target-price-nasdaq.html" target="_blank">SpaceX worth less than half its $1.75T target, Morningstar says</a><div class="sum">Morningstar 적정가 <b>$780B($63~75/주, 공모가 대비 −53%)</b>. Starlink 외(xAI·궤도컴퓨팅) 가치 회의적.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Fortune</span>6/3</div><a class="t" href="https://fortune.com/2026/06/03/spacex-ipo-stocks-elon-musk-morningstar-overvalued-half-smart-investors-wait-buy/" target="_blank">Morningstar: overvalued by half, smart investors wait and buy later</a><div class="sum">"현명한 투자자는 광기 지나고 나중에 산다." → 우리 추격금지·눌림대기 전략과 일치.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Motley Fool</span>6/9</div><a class="t" href="https://www.fool.com/investing/2026/06/09/dont-invest-in-spacex-on-its-first-day-of-trading/" target="_blank">Don't Invest in SpaceX on Its First Day. Wait for This First</a><div class="sum">IPO 90%↑가 결국 첫날 저가 아래로. IPO 베이스 형성 or 락업 해제까지 대기 권고.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Motley Fool</span>5/26</div><a class="t" href="https://www.fool.com/investing/2026/05/26/the-spacex-ipo-has-an-unusual-lockup-policy-for-in/" target="_blank">The SpaceX IPO Has an Unusual Lockup Policy</a><div class="sum">계단식 락업(8~12월). 머스크 366일. 최대물량은 Q3 실적 후(+28%).</div></div>
+    </div>
+
+    <div class="card">
+      <h3>🇬🇧 영국 · 정치 · 기타</h3>
+      <div class="newsitem"><div class="meta"><span class="src">IBTimes UK</span>영국</div><a class="t" href="https://www.ibtimes.co.uk/spacex-record-breaking-ipo-2023-1802289" target="_blank">SpaceX Raises Record $75B Despite $5B Loss: 'A Leap of Faith'</a><div class="sum">2025년 매출 ~$190억에 순손실 ~$50억(흑자 전 단계). Warren 상원의원 SEC에 연기 촉구.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Sunday Guardian(UK)</span>영국</div><a class="t" href="https://sundayguardianlive.com/business/spacex-ipo-2026-news-how-uk-investors-can-buy-spacex-ipo-shares-via-xtb-hargreaves-lansdown-aj-bell-price-timeline-what-investors-should-know-205583/" target="_blank">How UK Investors Can Buy SpaceX Shares via XTB, Hargreaves Lansdown & AJ Bell</a><div class="sum">영국 리테일 매수 경로·일정 가이드.</div></div>
+      <div class="newsitem"><div class="meta"><span class="src">Trefis</span>락업</div><a class="t" href="https://www.trefis.com/stock/spcx/articles/601883/spacex-stocks-lockup-youve-been-warned/2026-06-08" target="_blank">SpaceX Stock's Lockup: You've Been Warned</a><div class="sum">락업 해제발 공급 압력 경고 — 8~12월 하락 위험 = 우리의 재진입 기회.</div></div>
+    </div>
+
+    <div class="info" style="margin-top:4px"><b>한 줄 종합:</b> 강세(Oppenheimer $190·Wolfe $175·Goldman 2030)와 약세(Morningstar $63~75·"overvalued by half")가 극단으로 갈림. 공통 조언은 <b>"첫날 광기 추격 말고 기다려라"</b> — 우리 플랜과 정확히 일치.</div>
   </div>
 
   <!-- ============ 오늘 액션 ============ -->
