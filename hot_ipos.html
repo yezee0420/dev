@@ -1,0 +1,170 @@
+<!--
+https://yezee0420.github.io/dev/hot_ipos.html
+역사적 핫 IPO 첫 7일 차트 (4x2) · SPCX 참고자료
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>역사적 핫 IPO 첫 주 차트</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-primary: #ffffff; --bg-secondary: #f5f5f0; --bg-tertiary: #eeede8;
+    --text-primary: #1a1a18; --text-secondary: #5f5e5a; --text-tertiary: #888780;
+    --border-tertiary: rgba(0,0,0,0.1); --border-secondary: rgba(0,0,0,0.18);
+    --green: #2e7d52; --red: #c0392b; --amber: #b7791f; --blue: #2b6cb0;
+    --radius-md: 8px; --radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c; --bg-secondary: #2a2a28; --bg-tertiary: #222220;
+      --text-primary: #f0efeb; --text-secondary: #b4b2a9; --text-tertiary: #888780;
+      --border-tertiary: rgba(255,255,255,0.1); --border-secondary: rgba(255,255,255,0.18);
+      --green: #5fbf8a; --red: #e57368; --amber: #e0a93f; --blue: #6fa8dc;
+    }
+  }
+  body { font-family: var(--font-sans); background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; }
+  .page-header { background: var(--bg-primary); border-bottom: 0.5px solid var(--border-tertiary); padding: 1.5rem 2rem; position: sticky; top: 0; z-index: 100; }
+  .page-header h1 { font-size: 18px; font-weight: 600; }
+  .page-header p { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
+  .page-header a { color: var(--text-tertiary); text-decoration: none; border-bottom: 0.5px dotted var(--text-tertiary); }
+  .container { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+  .lead { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem; }
+  .lead b { color: var(--text-primary); }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 0.9rem 1rem; }
+  .card .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .card .nm { font-size: 14px; font-weight: 700; }
+  .card .yr { font-size: 11px; color: var(--text-tertiary); }
+  .card .offer { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+  svg.spark { width: 100%; height: 56px; display: block; margin: 8px 0; }
+  .stats { display: flex; gap: 10px; font-size: 11px; }
+  .stats .s { flex: 1; }
+  .stats .sl { color: var(--text-tertiary); }
+  .stats .sv { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .up { color: var(--green); } .down { color: var(--red); }
+  .note { font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-top: 8px; border-top: 0.5px solid var(--border-tertiary); padding-top: 7px; }
+
+  .feature { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-top: 1.25rem; }
+  .feature h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .feature .sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.55; }
+  .feature .sub b { color: var(--text-primary); }
+  svg.big { width: 100%; height: auto; display: block; }
+  .mcap { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .mcap td, .mcap th { text-align: left; padding: 8px 6px; border-bottom: 0.5px solid var(--border-tertiary); }
+  .mcap td.n, .mcap th.n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .mcap th { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+  .mcap tr:last-child td { border-bottom: none; }
+  .takeaway { background: linear-gradient(135deg, rgba(43,108,176,0.1), rgba(46,125,82,0.08)); border: 1px solid var(--blue); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-top: 1.5rem; }
+  .takeaway h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--blue); }
+  .takeaway ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }
+  .takeaway b { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page-header">
+  <h1>역사적 핫 IPO · 첫 7거래일 차트</h1>
+  <p>공모가 대비 % 흐름 (기준선 = 공모가) · <a href="https://yezee0420.github.io/dev/spcx_plan.html">← SPCX 플랜</a></p>
+</div>
+
+<div class="container">
+  <p class="lead">유명한 대형 IPO 8종의 <b>상장 첫 주 실측 흐름</b>. 점선 = 공모가(100). 위로 가면 초록, 아래/하락이면 빨강. <b>패턴: 첫날 팝 → 둘째날 전후 고점 → 이후 흘러내림이 가장 흔함.</b> 폭등 지속(Rivian·Beyond)은 희귀하고 대개 나중에 되돌림.</p>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="feature">
+    <h3>🚀 보너스 — 로켓랩(RKLB): "상장 후 3년 고생 → 폭발"</h3>
+    <div class="sub">SPCX와 가장 비교할 우주주. 2021년 $10 상장 → 2024년 <b>$3.47까지 추락</b>(약 3년 물림) → 2026년 <b>$151</b>. 좋은 우주기업도 초기엔 한참 밑돌았다 = <b>인내 게임.</b></div>
+    <svg class="big" viewBox="0 0 800 280" preserveAspectRatio="xMidYMid meet">
+      <line x1="50" y1="226" x2="780" y2="226" stroke="var(--text-tertiary)" stroke-width="0.7" stroke-dasharray="4 4" opacity="0.6"/>
+      <text x="8" y="24" font-size="10" fill="var(--text-tertiary)">$160</text>
+      <text x="8" y="116" font-size="10" fill="var(--text-tertiary)">$80</text>
+      <text x="8" y="229" font-size="10" fill="var(--text-tertiary)">$10</text>
+      <polyline points="50,226 130,233 230,234 310,235 420,203 520,164 620,109 720,32 780,47" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="50" cy="226" r="4" fill="var(--text-secondary)"/><text x="40" y="216" font-size="10" fill="var(--text-secondary)">$10 상장</text>
+      <circle cx="310" cy="235" r="4.5" fill="var(--red)"/><text x="296" y="252" font-size="10" fill="var(--red)" font-weight="700">$3.47 저점</text>
+      <circle cx="720" cy="32" r="4.5" fill="var(--green)"/><text x="688" y="26" font-size="10" fill="var(--green)" font-weight="700">$151 고점</text>
+      <text x="40" y="272" font-size="10" fill="var(--text-tertiary)">2021</text>
+      <text x="285" y="272" font-size="10" fill="var(--text-tertiary)">2024</text>
+      <text x="700" y="272" font-size="10" fill="var(--text-tertiary)">2026</text>
+    </svg>
+  </div>
+
+  <div class="feature">
+    <h3>우주섹터 시가총액 (2026.6)</h3>
+    <table class="mcap">
+      <tr><th>종목</th><th class="n">시총</th><th>비고</th></tr>
+      <tr><td><b>SPCX</b> (SpaceX)</td><td class="n">$1.77조</td><td>로켓랩의 약 27배</td></tr>
+      <tr><td>Rocket Lab</td><td class="n">~$66B</td><td>실적주 · 백로그 $2.2B</td></tr>
+      <tr><td>AST SpaceMobile</td><td class="n">$41B</td><td>위성–스마트폰 직접연결</td></tr>
+      <tr><td>Virgin Galactic</td><td class="n">$0.4B</td><td>매출 ~$0 · 희석 위험</td></tr>
+      <tr><td>NASA</td><td class="n">—</td><td>정부기관 · 주식 없음(못 삼)</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;line-height:1.5">SPCX가 압도적으로 큼 → "몇 배 폭등"은 어렵지만 작은 우주주(Virgin 등)보다 변동·테마성은 작고 안정적.</p>
+  </div>
+
+  <div class="takeaway">
+    <h3>SPCX에 주는 교훈</h3>
+    <ul>
+      <li><b>"첫날·둘째날이 고점"</b>인 경우가 다수 (Snap·Alibaba·Airbnb·Coinbase). → 시초 추격 ❌, <b>$170 위 안 산다</b>는 규칙이 맞다.</li>
+      <li><b>대형주일수록 폭등 어렵다</b> — Facebook($380억)·Uber·Coinbase는 첫주 하락. SPCX는 $1.75조라 "두배 세배"는 비현실적.</li>
+      <li><b>공모가 근처/아래로 자주 회귀</b> (FB·Uber). → <b>$135 지정가 대기 매수</b>가 합리적.</li>
+      <li>폭등 케이스(Rivian +120%)도 <b>직후 폭락</b>으로 되돌림. → 단타 익절 + 코어 소량 전략이 균형.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const IPOS = [
+    {nm:'Facebook', tk:'FB', yr:2012, offer:'$38', d1:'+0.6%', dend:'−16%', up:false, pts:[100.6,89.6,81.6,84.2,86.9,84.0], note:'대형주 첫주 실패 — 공모가 아래로 미끄러짐'},
+    {nm:'Alibaba', tk:'BABA', yr:2014, offer:'$68', d1:'+38%', dend:'+33%', up:true, pts:[138,132,128,133,131,133], note:'+38% 팝 후 소폭 조정하며 유지'},
+    {nm:'Snap', tk:'SNAP', yr:2017, offer:'$17', d1:'+44%', dend:'+34%', up:true, pts:[144,159,140,126,134], note:'둘째날 고점 → 하락 (이후 공모가 깨짐)'},
+    {nm:'Uber', tk:'UBER', yr:2019, offer:'$45', d1:'−7.6%', dend:'−2%', up:false, pts:[92.4,82.4,88.8,91.8,97.8], note:'공모가 깨고 시작한 broken IPO'},
+    {nm:'Beyond Meat', tk:'BYND', yr:2019, offer:'$25', d1:'+163%', dend:'+244%', up:true, pts:[263,272,317,336,344], note:'첫주 폭등 — 매우 희귀한 사례'},
+    {nm:'Airbnb', tk:'ABNB', yr:2020, offer:'$68', d1:'+112%', dend:'+88%', up:true, pts:[213,205,191,182,188], note:'첫날 2배 → 첫주 소폭 되돌림'},
+    {nm:'Coinbase', tk:'COIN', yr:2021, offer:'$250*', d1:'시초+52%', dend:'−23%†', up:false, pts:[152,131,129,137,133,118], note:'직상장 — 시초 고점($381)→첫주 하락. *기준가 †시초대비'},
+    {nm:'Rivian', tk:'RIVN', yr:2021, offer:'$78', d1:'+29%', dend:'+120%', up:true, pts:[129,158,167,187,220], note:'첫주 +120% 폭등 → 이후 폭락'},
+  ];
+
+  function spark(pts, up) {
+    const W = 120, H = 56, padX = 6, padTop = 5, padBot = 6;
+    const all = [...pts, 100];
+    const min = Math.min(...all), max = Math.max(...all);
+    const span = (max - min) || 1, mrg = span * 0.12;
+    const lo = min - mrg, hi = max + mrg;
+    const X = i => padX + i * ((W - 2*padX) / (pts.length - 1));
+    const Y = v => padTop + (1 - (v - lo) / (hi - lo)) * (H - padTop - padBot);
+    const line = pts.map((v,i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+    const col = up ? 'var(--green)' : 'var(--red)';
+    const baseY = Y(100).toFixed(1);
+    const area = `${X(0).toFixed(1)},${(H-padBot)} ` + line + ` ${X(pts.length-1).toFixed(1)},${(H-padBot)}`;
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <polygon points="${area}" fill="${col}" opacity="0.08"/>
+      <line x1="${padX}" y1="${baseY}" x2="${W-padX}" y2="${baseY}" stroke="var(--text-tertiary)" stroke-width="0.7" stroke-dasharray="3 3" opacity="0.7"/>
+      <polyline points="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${X(pts.length-1)}" cy="${Y(pts[pts.length-1])}" r="2.6" fill="${col}"/>
+    </svg>`;
+  }
+
+  document.getElementById('grid').innerHTML = IPOS.map(o => `
+    <div class="card">
+      <div class="top"><span class="nm">${o.nm}</span><span class="yr">${o.yr}</span></div>
+      <div class="offer">${o.tk} · 공모가 ${o.offer}</div>
+      ${spark(o.pts, o.up)}
+      <div class="stats">
+        <div class="s"><div class="sl">첫날</div><div class="sv ${o.d1.includes('−')?'down':'up'}">${o.d1}</div></div>
+        <div class="s"><div class="sl">첫주 끝</div><div class="sv ${o.dend.includes('−')?'down':'up'}">${o.dend}</div></div>
+      </div>
+      <div class="note">${o.note}</div>
+    </div>
+  `).join('');
+</script>
+</body>
+</html>
