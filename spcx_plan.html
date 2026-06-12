@@ -322,15 +322,16 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
 
   <!-- ============ 물타기 계산기 ============ -->
   <div class="section" id="dca">
+    <div class="info"><b>프리셋 = 바닥 가중 물타기 플랜 ($63 시나리오).</b> 수량이 아래로 갈수록 커짐(2→4→…→18). <b>체결</b> 칸 체크한 행만 평단에 반영 — 주문 체결될 때마다 체크하면 평단 실시간 갱신. 전부 체결 시 <b>87주 · 평단 $98</b>.</div>
     <div class="card">
       <h3>💧 물타기 계산기 — 평단가 계산</h3>
-      <p class="hint">매수·매도 내역을 행으로 추가하면 평단가·보유주수·손익 자동 계산. (평균단가법 · 행 순서 = 시간 순)</p>
+      <p class="hint">행마다 <b>체결</b> 체크 → 그 행만 계산에 포함. 가격·수량 수정·행 추가/삭제 가능. (평균단가법 · 위→아래 시간순)</p>
       <div class="controls">
         <label>현재가 $<input type="number" id="dcaCur" value="156" style="width:80px"></label>
         <label>환율 ₩<input type="number" id="dcaFx" value="1380" style="width:80px"></label>
       </div>
       <table>
-        <thead><tr><th>날짜/#</th><th>구분</th><th class="num">가격$</th><th class="num">수량</th><th class="num">금액</th><th></th></tr></thead>
+        <thead><tr><th>체결</th><th>날짜/#</th><th>구분</th><th class="num">가격$</th><th class="num">수량</th><th class="num">금액</th><th></th></tr></thead>
         <tbody id="dcabody"></tbody>
       </table>
       <button class="addbtn" id="dcaAdd">+ 행 추가</button>
@@ -559,10 +560,11 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
 <script>
   (function(){
     const body = document.getElementById('dcabody');
-    function addRow(label, type, price, qty) {
+    function addRow(checked, label, type, price, qty) {
       const tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><input type="text" class="lbl" value="'+label+'" style="width:64px;text-align:left"></td>'+
+        '<td><input type="checkbox" class="fl"'+(checked?' checked':'')+'></td>'+
+        '<td><input type="text" class="lbl" value="'+label+'" style="width:54px;text-align:left"></td>'+
         '<td><select class="ty"><option value="buy"'+(type==='buy'?' selected':'')+'>매수</option><option value="sell"'+(type==='sell'?' selected':'')+'>매도</option></select></td>'+
         '<td class="num"><input type="number" class="pr" value="'+price+'" step="0.01"></td>'+
         '<td class="num"><input type="number" class="qt" value="'+qty+'"></td>'+
@@ -575,9 +577,10 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
     function calc() {
       let sh = 0, basis = 0, real = 0;
       body.querySelectorAll('tr').forEach(tr => {
-        const ty = tr.querySelector('.ty').value;
         const p = +tr.querySelector('.pr').value || 0, q = +tr.querySelector('.qt').value || 0;
         tr.querySelector('.amt').textContent = '$' + Math.round(p*q).toLocaleString();
+        if (!tr.querySelector('.fl').checked) return;   // 체결된 행만 반영
+        const ty = tr.querySelector('.ty').value;
         if (ty === 'buy') { sh += q; basis += p*q; }
         else { const avg = sh>0 ? basis/sh : 0; const qs = Math.min(q, sh); real += (p-avg)*qs; basis -= avg*qs; sh -= qs; }
       });
@@ -591,11 +594,20 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
       const setPL = (id, v) => { const el = document.getElementById(id); el.textContent = f(v)+fk(v); el.style.color = v>=0 ? 'var(--green)' : 'var(--red)'; };
       setPL('dca-real', real); setPL('dca-unreal', unreal); setPL('dca-total', tot);
     }
-    document.getElementById('dcaAdd').onclick = () => { addRow('', 'buy', 135, 1); calc(); };
+    document.getElementById('dcaAdd').onclick = () => { addRow(true, '', 'buy', 100, 1); calc(); };
     document.getElementById('dcaCur').oninput = calc;
     document.getElementById('dcaFx').oninput = calc;
-    addRow('1 첫진입', 'buy', '150.30', 8);
-    addRow('2', 'buy', '135.11', 0);
+    // 프리셋: 바닥 가중 물타기 플랜 — 체결된 것만 ✓ (현재는 8주만 체결)
+    addRow(true,  '체결',   'buy', '150.30', 8);
+    addRow(false, '$140.5', 'buy', '140.5',  2);
+    addRow(false, '$135',   'buy', '135',    4);
+    addRow(false, '$122',   'buy', '122',    5);
+    addRow(false, '$115',   'buy', '115',    6);
+    addRow(false, '$110',   'buy', '110',    8);
+    addRow(false, '$105',   'buy', '105',    9);
+    addRow(false, '$90',    'buy', '90',     12);
+    addRow(false, '$75',    'buy', '75',     15);
+    addRow(false, '$65',    'buy', '65',     18);
     calc();
   })();
 </script>
