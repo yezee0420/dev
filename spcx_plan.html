@@ -124,6 +124,11 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
   .newsitem a.t:hover { text-decoration: underline; }
   .newsitem .sum { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
   .src { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--bg-tertiary); color: var(--text-secondary); margin-right: 6px; }
+  /* 물타기 계산기 */
+  select { font-size: 13px; padding: 4px 6px; border: 0.5px solid var(--border-secondary); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-family: var(--font-sans); }
+  .del { background: transparent; border: none; color: var(--red); cursor: pointer; font-size: 14px; padding: 2px 6px; }
+  .addbtn { margin-top: 10px; padding: 7px 14px; font-size: 13px; border-radius: var(--radius-md); border: 0.5px solid var(--border-secondary); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; font-family: var(--font-sans); }
+  .addbtn:hover { border-color: var(--border-primary); }
 </style>
 </head>
 <body>
@@ -151,6 +156,7 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
     <button class="tab" data-s="news">📰 뉴스</button>
     <button class="tab" data-s="today">오늘 액션</button>
     <button class="tab" data-s="buy">매수 사다리</button>
+    <button class="tab" data-s="dca">💧 물타기</button>
     <button class="tab" data-s="sell">매도 전략</button>
     <button class="tab" data-s="timeline">시간 흐름</button>
     <button class="tab" data-s="lockup">락업 캘린더</button>
@@ -312,6 +318,36 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
         <p class="note">• 호가 올려 <b>추격 금지</b> — 데이터상 꼭지<br>• <b style="color:var(--red)">$170 천장</b> — 위는 트림<br>• 안 채워져도 조급함 ❌ → 눌림 또 옴<br>• 떡상($250+)은 <b>코어 홀딩</b>으로, 단타 주문 X</p>
       </div>
     </div>
+  </div>
+
+  <!-- ============ 물타기 계산기 ============ -->
+  <div class="section" id="dca">
+    <div class="card">
+      <h3>💧 물타기 계산기 — 평단가 계산</h3>
+      <p class="hint">매수·매도 내역을 행으로 추가하면 평단가·보유주수·손익 자동 계산. (평균단가법 · 행 순서 = 시간 순)</p>
+      <div class="controls">
+        <label>현재가 $<input type="number" id="dcaCur" value="156" style="width:80px"></label>
+        <label>환율 ₩<input type="number" id="dcaFx" value="1380" style="width:80px"></label>
+      </div>
+      <table>
+        <thead><tr><th>날짜/#</th><th>구분</th><th class="num">가격$</th><th class="num">수량</th><th class="num">금액</th><th></th></tr></thead>
+        <tbody id="dcabody"></tbody>
+      </table>
+      <button class="addbtn" id="dcaAdd">+ 행 추가</button>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>포지션</h3>
+        <div class="row"><span class="k">보유 주수</span><span class="v" id="dca-sh">—</span></div>
+        <div class="row"><span class="k">평단가</span><span class="v" id="dca-avg">—</span></div>
+        <div class="row"><span class="k">보유분 투입금</span><span class="v" id="dca-cost">—</span></div>
+      </div>
+      <div class="card"><h3>손익 (현재가 기준)</h3>
+        <div class="row"><span class="k">실현손익(매도분)</span><span class="v" id="dca-real">—</span></div>
+        <div class="row"><span class="k">평가손익(보유분)</span><span class="v" id="dca-unreal">—</span></div>
+        <div class="row"><span class="k">총손익</span><span class="v" id="dca-total">—</span></div>
+      </div>
+    </div>
+    <p class="hint"><b>평단가 = 보유분 투입금 ÷ 보유 주수.</b> 떨어질 때 추가매수(물타기)하면 평단↓ → 손익분기점도 낮아짐. 매도는 평균단가법으로 실현손익 계산(평단 불변).</p>
   </div>
 
   <!-- ============ 매도 ============ -->
@@ -518,6 +554,50 @@ SPCX(SpaceX) 진입 계획 종합판 · finance_report.html 흐름 연결 · hot
   document.getElementById('fx').oninput = recalcSim;
   document.getElementById('m-krw').textContent = '≈ ' + Math.round(CASH*1380/10000).toLocaleString() + '만원';
   recalcSim();
+</script>
+
+<script>
+  (function(){
+    const body = document.getElementById('dcabody');
+    function addRow(label, type, price, qty) {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><input type="text" class="lbl" value="'+label+'" style="width:64px;text-align:left"></td>'+
+        '<td><select class="ty"><option value="buy"'+(type==='buy'?' selected':'')+'>매수</option><option value="sell"'+(type==='sell'?' selected':'')+'>매도</option></select></td>'+
+        '<td class="num"><input type="number" class="pr" value="'+price+'" step="0.01"></td>'+
+        '<td class="num"><input type="number" class="qt" value="'+qty+'"></td>'+
+        '<td class="num amt">—</td>'+
+        '<td><button class="del" title="삭제">✕</button></td>';
+      body.appendChild(tr);
+      tr.querySelectorAll('input,select').forEach(e => { e.oninput = calc; e.onchange = calc; });
+      tr.querySelector('.del').onclick = () => { tr.remove(); calc(); };
+    }
+    function calc() {
+      let sh = 0, basis = 0, real = 0;
+      body.querySelectorAll('tr').forEach(tr => {
+        const ty = tr.querySelector('.ty').value;
+        const p = +tr.querySelector('.pr').value || 0, q = +tr.querySelector('.qt').value || 0;
+        tr.querySelector('.amt').textContent = '$' + Math.round(p*q).toLocaleString();
+        if (ty === 'buy') { sh += q; basis += p*q; }
+        else { const avg = sh>0 ? basis/sh : 0; const qs = Math.min(q, sh); real += (p-avg)*qs; basis -= avg*qs; sh -= qs; }
+      });
+      const cur = +document.getElementById('dcaCur').value || 0, fx = +document.getElementById('dcaFx').value || 1380;
+      const avg = sh>0 ? basis/sh : 0, unreal = sh>0 ? (cur-avg)*sh : 0, tot = real + unreal;
+      const f = u => (u>=0?'+$':'-$') + Math.abs(Math.round(u)).toLocaleString();
+      const fk = u => ' (' + (u>=0?'+':'-') + Math.abs(Math.round(u*fx/10000)).toLocaleString() + '만)';
+      document.getElementById('dca-sh').textContent = sh + '주';
+      document.getElementById('dca-avg').textContent = sh>0 ? '$'+avg.toFixed(2) : '—';
+      document.getElementById('dca-cost').textContent = '$' + Math.round(basis).toLocaleString();
+      const setPL = (id, v) => { const el = document.getElementById(id); el.textContent = f(v)+fk(v); el.style.color = v>=0 ? 'var(--green)' : 'var(--red)'; };
+      setPL('dca-real', real); setPL('dca-unreal', unreal); setPL('dca-total', tot);
+    }
+    document.getElementById('dcaAdd').onclick = () => { addRow('', 'buy', 135, 1); calc(); };
+    document.getElementById('dcaCur').oninput = calc;
+    document.getElementById('dcaFx').oninput = calc;
+    addRow('1 첫진입', 'buy', '150.30', 8);
+    addRow('2', 'buy', '135.11', 0);
+    calc();
+  })();
 </script>
 </body>
 </html>
