@@ -1,48 +1,29 @@
 <!--
 https://yezee0420.github.io/dev/spcx_plan.html
-SPCX(SpaceX) 진입 계획 트래커 · finance_report.html 흐름 연결
+SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
 -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPCX 진입 계획</title>
+<title>SPCX 단타 플랜</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f0;
-    --bg-tertiary: #eeede8;
-    --text-primary: #1a1a18;
-    --text-secondary: #5f5e5a;
-    --text-tertiary: #888780;
-    --border-tertiary: rgba(0,0,0,0.1);
-    --border-secondary: rgba(0,0,0,0.18);
-    --border-primary: rgba(0,0,0,0.28);
-    --green: #2e7d52;
-    --red: #c0392b;
-    --amber: #b7791f;
-    --blue: #2b6cb0;
-    --radius-md: 8px;
-    --radius-lg: 12px;
+    --bg-primary: #ffffff; --bg-secondary: #f5f5f0; --bg-tertiary: #eeede8;
+    --text-primary: #1a1a18; --text-secondary: #5f5e5a; --text-tertiary: #888780;
+    --border-tertiary: rgba(0,0,0,0.1); --border-secondary: rgba(0,0,0,0.18); --border-primary: rgba(0,0,0,0.28);
+    --green: #2e7d52; --red: #c0392b; --amber: #b7791f; --blue: #2b6cb0;
+    --radius-md: 8px; --radius-lg: 12px;
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-primary: #1e1e1c;
-      --bg-secondary: #2a2a28;
-      --bg-tertiary: #222220;
-      --text-primary: #f0efeb;
-      --text-secondary: #b4b2a9;
-      --text-tertiary: #888780;
-      --border-tertiary: rgba(255,255,255,0.1);
-      --border-secondary: rgba(255,255,255,0.18);
-      --border-primary: rgba(255,255,255,0.28);
-      --green: #5fbf8a;
-      --red: #e57368;
-      --amber: #e0a93f;
-      --blue: #6fa8dc;
+      --bg-primary: #1e1e1c; --bg-secondary: #2a2a28; --bg-tertiary: #222220;
+      --text-primary: #f0efeb; --text-secondary: #b4b2a9; --text-tertiary: #888780;
+      --border-tertiary: rgba(255,255,255,0.1); --border-secondary: rgba(255,255,255,0.18); --border-primary: rgba(255,255,255,0.28);
+      --green: #5fbf8a; --red: #e57368; --amber: #e0a93f; --blue: #6fa8dc;
     }
   }
   body { font-family: var(--font-sans); background: var(--bg-tertiary); color: var(--text-primary); min-height: 100vh; }
@@ -51,334 +32,168 @@ SPCX(SpaceX) 진입 계획 트래커 · finance_report.html 흐름 연결
   .page-header h1 .tk { color: var(--blue); }
   .page-header p { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
   .page-header a { color: var(--text-tertiary); text-decoration: none; border-bottom: 0.5px dotted var(--text-tertiary); }
-  .container { max-width: 900px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
+  .container { max-width: 720px; margin: 0 auto; padding: 1.25rem 1.25rem 4rem; }
 
-  /* 핵심 한 줄 배너 */
   .creed { background: linear-gradient(135deg, rgba(43,108,176,0.12), rgba(46,125,82,0.1)); border: 1px solid var(--blue); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
   .creed .tag { font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 0.05em; margin-bottom: 8px; }
-  .creed p { font-size: 15px; line-height: 1.7; font-weight: 600; }
-  .creed .hl { color: var(--red); }
-  .creed .hl2 { color: var(--green); }
+  .creed p { font-size: 14px; line-height: 1.75; font-weight: 600; }
+  .creed .hl { color: var(--red); } .creed .hl2 { color: var(--green); }
 
-  .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; flex-wrap: wrap; background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 8px; }
-  .tab { padding: 7px 13px; font-size: 13px; border: 0.5px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); transition: all 0.15s; }
-  .tab:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  @media (max-width: 560px) { .grid4 { grid-template-columns: 1fr 1fr; } }
+  .metric { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 0.85rem 0.9rem; }
+  .metric .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; }
+  .metric .value { font-size: 18px; font-weight: 700; }
+  .metric .sub { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 8px; }
+  .tab { flex: 1; padding: 8px 12px; font-size: 13px; border: 0.5px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
   .tab.active { background: var(--bg-secondary); color: var(--text-primary); font-weight: 600; border-color: var(--border-primary); }
   .section { display: none; } .section.active { display: block; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
-  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1rem; }
-  @media (max-width: 600px) { .grid4 { grid-template-columns: 1fr 1fr; } .grid2 { grid-template-columns: 1fr; } }
-  .metric { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 0.9rem 1rem; }
-  .metric .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
-  .metric .value { font-size: 19px; font-weight: 600; }
-  .metric .sub { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
-  .card { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
-  .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .card .hint { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; line-height: 1.5; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 0.5px solid var(--border-tertiary); }
-  th { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tr:last-child td { border-bottom: none; }
-  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
-  .pill.buy { background: rgba(46,125,82,0.15); color: var(--green); }
-  .pill.sell { background: rgba(192,57,43,0.15); color: var(--red); }
-  .pill.wait { background: rgba(183,121,31,0.15); color: var(--amber); }
-  .pill.key { background: rgba(43,108,176,0.15); color: var(--blue); }
-  .pill.now { background: rgba(46,125,82,0.22); color: var(--green); }
-  input[type=number] { width: 64px; font-family: var(--font-sans); font-size: 13px; padding: 4px 6px; border: 0.5px solid var(--border-secondary); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); text-align: right; }
-  input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--green); }
-  .note { font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
-  .note b { color: var(--text-primary); }
-  .warn { background: rgba(183,121,31,0.1); border: 0.5px solid rgba(183,121,31,0.35); border-radius: var(--radius-md); padding: 10px 12px; font-size: 12px; line-height: 1.6; color: var(--text-primary); margin-bottom: 1rem; }
-  .warn b { color: var(--amber); }
-  .gauge-track { height: 14px; background: var(--bg-tertiary); border-radius: 20px; overflow: hidden; border: 0.5px solid var(--border-tertiary); }
-  .gauge-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--green)); width: 0%; transition: width 0.3s; }
-  .dday { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .dday.soon { color: var(--red); } .dday.past { color: var(--text-tertiary); }
-  .scbtn { display: flex; gap: 6px; margin-bottom: 12px; }
-  .scbtn button { flex: 1; padding: 8px; font-size: 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-secondary); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
-  .scbtn button.on { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
-  .row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid var(--border-tertiary); font-size: 13px; gap: 8px; }
-  .row:last-child { border-bottom: none; }
-  .row .k { color: var(--text-secondary); } .row .v { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
 
-  /* 오늘 할일 체크리스트 */
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+  .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .note { font-size: 12.5px; line-height: 1.65; color: var(--text-secondary); }
+  .note b { color: var(--text-primary); }
+
+  /* 가격 사다리 */
+  .ladder { display: flex; flex-direction: column; gap: 0; }
+  .rung { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: var(--radius-md); margin-bottom: 6px; }
+  .rung .px { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; width: 64px; }
+  .rung .lb { font-size: 13px; font-weight: 600; }
+  .rung .ds { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+  .rung.ceil { background: rgba(192,57,43,0.1); }
+  .rung.ceil .px { color: var(--red); }
+  .rung.sell { background: rgba(183,121,31,0.12); }
+  .rung.sell .px { color: var(--amber); }
+  .rung.buy { background: rgba(46,125,82,0.12); }
+  .rung.buy .px { color: var(--green); }
+  .rung.buy2 { background: rgba(46,125,82,0.07); }
+  .rung.buy2 .px { color: var(--green); }
+
   .todo { list-style: none; }
   .todo li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border-tertiary); font-size: 13px; line-height: 1.5; }
   .todo li:last-child { border-bottom: none; }
   .todo .tnum { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
-  /* 분배 100% 막대 */
-  .allocbar { display: flex; height: 34px; border-radius: var(--radius-md); overflow: hidden; border: 0.5px solid var(--border-tertiary); margin: 4px 0 10px; }
-  .allocbar > div { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
-  .allocbar .a1 { background: var(--green); }
-  .allocbar .a2 { background: var(--blue); }
-  .allocbar .a3 { background: var(--amber); }
-  .alloclegend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); }
-  .alloclegend span { display: inline-flex; align-items: center; gap: 6px; }
-  .alloclegend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 0.5px solid var(--border-tertiary); }
+  th { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  .ok { color: var(--green); font-weight: 700; } .no { color: var(--red); font-weight: 700; }
 
-  /* 버킷 카드 */
-  .bucket { border-left: 3px solid var(--border-secondary); padding-left: 12px; margin-bottom: 14px; }
-  .bucket.b1 { border-color: var(--green); }
-  .bucket.b2 { border-color: var(--blue); }
-  .bucket.b3 { border-color: var(--amber); }
-  .bucket .bh { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-  .bucket .bs { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
+  .calc { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .calc label { font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px; }
+  .calc input { width: 90px; font-family: var(--font-sans); font-size: 14px; padding: 6px 8px; border: 0.5px solid var(--border-secondary); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); text-align: right; }
+  .result { display: flex; gap: 10px; flex-wrap: wrap; }
+  .result .rbox { flex: 1; min-width: 120px; background: var(--bg-secondary); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+  .result .rbox .rl { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .result .rbox .rv { font-size: 19px; font-weight: 700; color: var(--green); }
 
-  /* SVG 그래프 */
-  .chartwrap { width: 100%; overflow-x: auto; }
-  svg.path { width: 100%; min-width: 560px; height: auto; display: block; }
-  .axislb { font-size: 10px; fill: var(--text-tertiary); }
-  .zonelb { font-size: 11px; font-weight: 700; }
-
-  /* 기간별 타임라인 strip */
-  .tlstrip { display: flex; gap: 0; overflow-x: auto; padding-bottom: 6px; }
-  .tlphase { flex: 1 0 130px; min-width: 130px; position: relative; padding: 0 8px; }
-  .tlphase::before { content: ''; position: absolute; top: 9px; left: 0; right: 0; height: 2px; background: var(--border-secondary); }
-  .tlphase .dot { position: relative; width: 18px; height: 18px; border-radius: 50%; background: var(--bg-primary); border: 2px solid var(--blue); margin: 0 auto 10px; z-index: 1; }
-  .tlphase.buy .dot { border-color: var(--green); background: var(--green); }
-  .tlphase.sell .dot { border-color: var(--red); }
-  .tlphase.key .dot { border-color: var(--amber); background: var(--amber); }
-  .tlphase .when { font-size: 11px; font-weight: 700; text-align: center; margin-bottom: 4px; }
-  .tlphase .what { font-size: 11px; color: var(--text-secondary); text-align: center; line-height: 1.4; }
+  .row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 0.5px solid var(--border-tertiary); font-size: 13px; gap: 8px; }
+  .row:last-child { border-bottom: none; }
+  .row .k { color: var(--text-secondary); } .row .dd { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row .dd.soon { color: var(--red); } .row .dd.past { color: var(--text-tertiary); }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .pill.buy { background: rgba(46,125,82,0.15); color: var(--green); }
+  .pill.key { background: rgba(43,108,176,0.15); color: var(--blue); }
 </style>
 </head>
 <body>
 <div class="page-header">
-  <h1><span class="tk">SPCX</span> 진입 계획 · SpaceX IPO</h1>
+  <h1><span class="tk">SPCX</span> 단타 + 재진입 플랜</h1>
   <p>상장 2026-06-12 · 공모가 $135 · 나스닥 · <a href="https://yezee0420.github.io/dev/finance_report.html">← finance_report</a></p>
 </div>
 
 <div class="container">
 
-  <!-- ★ 핵심 한 줄 ★ -->
   <div class="creed">
     <div class="tag">★ 단 하나의 원칙</div>
-    <p>오를까 봐 무서우면 <span class="hl2">오늘 ①로 일부만 사서 타고 있어라.</span> 나머지는 <span class="hl">절대 추격하지 말고 아래서 받아라.</span><br><span class="hl">$170 위는 사는 데가 아니다.</span></p>
+    <p><span class="hl2">오늘 안 사져도 괜찮다. 내려오는 날은 또 온다.</span> 그러니 <span class="hl">추격하지 말고 내 가격에서 기다린다. $170 위는 안 산다.</span></p>
   </div>
 
   <div class="grid4">
-    <div class="metric"><div class="label">투입 가능 현금</div><div class="value">$9,439</div><div class="sub" id="m-krw">≈ 1,303만원</div></div>
-    <div class="metric"><div class="label">해외주식 손실</div><div class="value" style="color:var(--red)">-1,529만</div><div class="sub">복구 목표 (부분)</div></div>
-    <div class="metric"><div class="label">공모가</div><div class="value">$135.00</div><div class="sub">3.3배 초과청약</div></div>
-    <div class="metric"><div class="label">추격 천장</div><div class="value" style="color:var(--red)">$170</div><div class="sub">위는 트림 구간</div></div>
+    <div class="metric"><div class="label">매수 지정가</div><div class="value" style="color:var(--green)">$135</div><div class="sub">25주 ≈ $3,375 (36%)</div></div>
+    <div class="metric"><div class="label">익절 목표</div><div class="value" style="color:var(--amber)">$165</div><div class="sub">단타 20주 · +22%</div></div>
+    <div class="metric"><div class="label">코어 홀딩</div><div class="value" style="color:var(--green)">5주</div><div class="sub">안 팖 · 폭등 대비</div></div>
+    <div class="metric"><div class="label">추격 천장</div><div class="value" style="color:var(--red)">$170</div><div class="sub">위는 매수금지</div></div>
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-s="today">오늘 할일</button>
-    <button class="tab" data-s="timeline">시간 흐름</button>
-    <button class="tab" data-s="buy">매수 3버킷</button>
-    <button class="tab" data-s="sell">매도 전략</button>
-    <button class="tab" data-s="lockup">락업 캘린더</button>
-    <button class="tab" data-s="recover">손실 복구</button>
+    <button class="tab active" data-s="plan">오늘 플랜</button>
+    <button class="tab" data-s="reentry">재진입 타이밍</button>
   </div>
 
-  <!-- ============ 오늘 할일 ============ -->
-  <div class="section active" id="today">
+  <!-- ========= 오늘 플랜 ========= -->
+  <div class="section active" id="plan">
     <div class="card">
-      <h3>오늘(6/12) 할일 — 순서대로</h3>
+      <h3>박스권 매매 — 한눈에</h3>
+      <div class="ladder">
+        <div class="rung ceil"><div class="px">$170+</div><div><div class="lb">❌ 추격 금지 구역</div><div class="ds">락업 트리거($175.50) 권역 — 신규매수 안 함</div></div></div>
+        <div class="rung sell"><div class="px">$165</div><div><div class="lb">🎯 익절 — 단타 20주 매도</div><div class="ds">내부자 물량 풀리기 전에 +22% 챙김</div></div></div>
+        <div class="rung buy"><div class="px">$135</div><div><div class="lb">🟢 매수 25주 (단타20 + 코어5)</div><div class="ds">공모가 = 바닥값 진입 · 코어 5주는 안 팖</div></div></div>
+        <div class="rung buy2"><div class="px">$128</div><div><div class="lb">🟢 추가매수 (선택)</div><div class="ds">더 빠지면 평단 낮추기</div></div></div>
+        <div class="rung buy2"><div class="px">$119</div><div><div class="lb">🟢 추가매수 (선택)</div><div class="ds">깊은 눌림</div></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>오늘(6/12) 할일</h3>
       <ul class="todo">
-        <li><span class="tnum">1</span><div><b>첫 1시간 관망.</b> 시장가 매수 절대 금지. 시초 변동성 가라앉히기.</div></li>
-        <li><span class="tnum">2</span><div><b>기존 $135×5주 주문 취소</b> 후 3버킷으로 재구성.</div></li>
-        <li><span class="tnum">3</span><div><span class="pill now">① 보장진입</span> 안정가 +3~5% 상한 지정가로 <b>~15주(~$2,000)</b> 즉시 매수 → <b>무슨 일이 있어도 이미 타고 있음.</b></div></li>
-        <li><span class="tnum">4</span><div><span class="pill key">② 눌림 사다리</span> GTC 지정가 <b>$135·$128·$119</b> 3단 깔기 (~$4,800).</div></li>
-        <li><span class="tnum">5</span><div><span class="pill wait">③ 마른화약</span> ~$2,600 <b>주문 걸지 말고 현금 보유</b> (11·12월 락업용).</div></li>
-        <li><span class="tnum">6</span><div>오를 때 <b>호가 올려서 추격 금지.</b> $170 넘으면 신규매수 중단·트림 구간.</div></li>
+        <li><span class="tnum">1</span><div><b>$135 지정가 25주</b> 매수 걸기. <b>시장가 금지</b>(IPO날 엉뚱한 가격에 체결됨).</div></li>
+        <li><span class="tnum">2</span><div><b>체결되면</b> → <b>20주만 $165 매도</b> 걸기. <b>5주는 코어</b>로 안 팔고 홀딩(폭등 대비).</div></li>
+        <li><span class="tnum">3</span><div><b>안 채워지면(팝)</b> → 쿨하게 패스. 추격 ❌. 다음 눌림 대기.</div></li>
+        <li><span class="tnum">4</span><div><b>남은 현금 $6,113</b> → 더 빠지면 $128·$119 추가 / 11·12월 락업 재진입용.</div></li>
+        <li><span class="tnum">5</span><div><b>$170 위는 신규매수 안 함.</b> 그 위는 파는 구간.</div></li>
       </ul>
     </div>
-    <div class="warn"><b>왜 이렇게?</b> 이 사다리는 전부 현재가 아래 호가라, 안 내려오고 쭉 오르면 한 주도 못 삼. 그래서 <b>①로 오늘 일부는 무조건 확보</b>(올라도 탑승) + 나머지는 아래서 받기. 추격은 데이터가 경고한 꼭지를 사는 것.</div>
-  </div>
 
-  <!-- ============ 시간 흐름 그래프 ============ -->
-  <div class="section" id="timeline">
     <div class="card">
-      <h3>예상 가격 경로 & 매수존</h3>
-      <p class="hint">애널리스트 시나리오 기반 <b>스케치</b>(실제 아님). 첫날 팝 → 2~4주 평균회귀 → 락업 디핑. 초록=매수존, 빨강=추격금지.</p>
-      <div class="chartwrap">
-        <svg class="path" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
-          <!-- 추격금지존 $170+ -->
-          <rect x="44" y="20" width="736" height="75" fill="rgba(192,57,43,0.09)"/>
-          <text class="zonelb" x="52" y="38" fill="var(--red)">❌ $170+ 추격금지 · 트림</text>
-          <!-- 매수존 $115~135 -->
-          <rect x="44" y="182" width="736" height="50" fill="rgba(46,125,82,0.12)"/>
-          <text class="zonelb" x="52" y="226" fill="var(--green)">✅ 매수존 $115~135</text>
-          <!-- 기준선 -->
-          <line x1="44" y1="95" x2="780" y2="95" stroke="var(--red)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
-          <line x1="44" y1="182" x2="780" y2="182" stroke="var(--border-secondary)" stroke-width="1" stroke-dasharray="4 4"/>
-          <!-- y 라벨 -->
-          <text class="axislb" x="8" y="24">$200</text>
-          <text class="axislb" x="8" y="99">$170</text>
-          <text class="axislb" x="8" y="186">$135</text>
-          <text class="axislb" x="8" y="274">$100</text>
-          <!-- 예상 경로 -->
-          <polyline points="44,182 120,107 200,170 300,200 440,190 560,225 650,232 770,145"
-            fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round"/>
-          <!-- 매수 마커 -->
-          <circle cx="44" cy="182" r="6" fill="var(--green)"/><text class="axislb" x="30" y="170" fill="var(--green)" font-weight="700">①</text>
-          <circle cx="300" cy="200" r="6" fill="var(--blue)"/><text class="axislb" x="290" y="222" fill="var(--blue)" font-weight="700">②</text>
-          <circle cx="560" cy="225" r="6" fill="var(--amber)"/><text class="axislb" x="548" y="248" fill="var(--amber)" font-weight="700">🎯③</text>
-          <circle cx="650" cy="232" r="6" fill="var(--amber)"/>
-          <!-- 팝/트림 지점 -->
-          <circle cx="120" cy="107" r="4" fill="var(--red)"/><text class="axislb" x="100" y="100" fill="var(--red)">팝(트림)</text>
-          <!-- x 라벨 -->
-          <text class="axislb" x="30" y="292">6/12</text>
-          <text class="axislb" x="180" y="292">1주</text>
-          <text class="axislb" x="278" y="292">2~4주</text>
-          <text class="axislb" x="415" y="292">8~10월</text>
-          <text class="axislb" x="540" y="292">11월</text>
-          <text class="axislb" x="745" y="292">2027</text>
-        </svg>
-      </div>
-    </div>
-    <div class="card">
-      <h3>기간별 할일</h3>
-      <div class="tlstrip">
-        <div class="tlphase buy"><div class="dot"></div><div class="when">오늘 6/12</div><div class="what">① 보장진입 ~15주<br>② 사다리 GTC</div></div>
-        <div class="tlphase"><div class="dot"></div><div class="when">1주차</div><div class="what">MSCI 편입(6/13)<br>관망·추격금지</div></div>
-        <div class="tlphase buy"><div class="dot"></div><div class="when">2~4주차</div><div class="what">평균회귀 $130~140<br>② 사다리 체결</div></div>
-        <div class="tlphase"><div class="dot"></div><div class="when">8~10월</div><div class="what">7% 단계 락업<br>변동성 관찰</div></div>
-        <div class="tlphase key"><div class="dot"></div><div class="when">🎯 11월 Q3</div><div class="what">최대물량 해제<br>③ 마른화약 투입</div></div>
-        <div class="tlphase key"><div class="dot"></div><div class="when">🎯 12/9</div><div class="what">180일 전량해제<br>③ 추가 매수</div></div>
-        <div class="tlphase sell"><div class="dot"></div><div class="when">$170↑ 시</div><div class="what">신규매수 중단<br>트림 시작</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ 매수 3버킷 ============ -->
-  <div class="section" id="buy">
-    <div class="card">
-      <h3>매수 3버킷 — $9,439 배분</h3>
-      <div class="allocbar">
-        <div class="a1" style="width:20%">20%</div>
-        <div class="a2" style="width:50%">50%</div>
-        <div class="a3" style="width:30%">30%</div>
-      </div>
-      <div class="alloclegend">
-        <span><i style="background:var(--green)"></i>① 오늘 즉시 ~$1,900</span>
-        <span><i style="background:var(--blue)"></i>② $135 아래 사다리 ~$4,700</span>
-        <span><i style="background:var(--amber)"></i>③ 락업 현금 ~$2,800</span>
-      </div>
-      <p class="hint" style="margin-top:8px">오늘 실제 매수 = <b>① 20%뿐.</b> ②는 GTC로 걸어만 두고 내려오면 자동 체결. ③은 현금.</p>
-      <div class="bucket b1">
-        <div class="bh">① 보장 진입 · ~$2,000 (21%) <span class="pill now">오늘 즉시</span></div>
-        <div class="bs">첫 1시간 후, 안정가 +3~5% 상한 지정가로 매수. "올라가면 어떡해"의 답 — 무조건 탑승.</div>
-      </div>
-      <div class="bucket b2">
-        <div class="bh">② 눌림 사다리 · ~$4,800 (51%) <span class="pill key">GTC 지정가</span></div>
-        <div class="bs">현재가 아래 3단. 2~4주차 평균회귀 오면 자동 체결.</div>
-      </div>
-      <div class="bucket b3">
-        <div class="bh">③ 마른 화약 · ~$2,600 (28%) <span class="pill wait">현금 대기</span></div>
-        <div class="bs">주문 걸지 않음. 11월 Q3·12/9 180일 락업 하락에 수동 투입.</div>
-      </div>
-      <p class="hint">체크하면 평단·잔여현금 자동 계산. 가격/수량 수정 가능. ① 가격은 시초가 따라 바꿔.</p>
-      <table id="buytable">
-        <tr><th></th><th>버킷</th><th class="num">가격</th><th class="num">수량</th><th class="num">금액</th><th>타입</th></tr>
-        <tr><td><input type="checkbox"></td><td><span class="pill now">①</span></td><td class="num"><input type="number" class="p" value="150"></td><td class="num"><input type="number" class="q" value="13"></td><td class="num amt">—</td><td style="font-size:11px;color:var(--text-tertiary)">오늘 즉시</td></tr>
-        <tr><td><input type="checkbox"></td><td><span class="pill key">②</span></td><td class="num"><input type="number" class="p" value="135"></td><td class="num"><input type="number" class="q" value="12"></td><td class="num amt">—</td><td style="font-size:11px;color:var(--text-tertiary)">GTC</td></tr>
-        <tr><td><input type="checkbox"></td><td><span class="pill key">②</span></td><td class="num"><input type="number" class="p" value="128"></td><td class="num"><input type="number" class="q" value="13"></td><td class="num amt">—</td><td style="font-size:11px;color:var(--text-tertiary)">GTC</td></tr>
-        <tr><td><input type="checkbox"></td><td><span class="pill key">②</span></td><td class="num"><input type="number" class="p" value="119"></td><td class="num"><input type="number" class="q" value="13"></td><td class="num amt">—</td><td style="font-size:11px;color:var(--text-tertiary)">GTC</td></tr>
-        <tr><td><input type="checkbox"></td><td><span class="pill wait">③</span></td><td class="num"><input type="number" class="p" value="115"></td><td class="num"><input type="number" class="q" value="22"></td><td class="num amt">—</td><td style="font-size:11px;color:var(--text-tertiary)">대기</td></tr>
-      </table>
-    </div>
-    <div class="grid2">
-      <div class="card"><h3>체결 현황</h3>
-        <div class="row"><span class="k">체결 주수</span><span class="v" id="b-sh">0주</span></div>
-        <div class="row"><span class="k">투입 금액</span><span class="v" id="b-inv">$0</span></div>
-        <div class="row"><span class="k">평균 단가</span><span class="v" id="b-avg">—</span></div>
-        <div class="row"><span class="k">잔여 현금</span><span class="v" id="b-cash">$9,439</span></div>
-      </div>
-      <div class="card"><h3>올라갈 때 규칙</h3>
-        <p class="note">• 호가 올려 <b>추격 금지</b> — 데이터상 꼭지<br>• 진짜 적립하려면 <b>가격 추격 X, 시간 분할 O</b> (2주 뒤 안정되면 한 번 더)<br>• <b style="color:var(--red)">$170 천장</b> — 위는 신규매수 중단, 트림 구간<br>• 안 내려와도 ① 덕에 이미 탑승 → 조급함 금지</p>
-      </div>
-    </div>
-    <div class="card"><h3>유지 기간 (GTC)</h3>
-      <p class="note">② 사다리는 GTC로 <b>2~4주</b> 걸고 <b>매주 금요일 종가 보고 갱신</b>. 한국 증권사 해외주식 GTC는 보통 최대 30~90일(앱에서 확인). ①은 당일 체결, ③은 주문 미보유.</p>
-    </div>
-  </div>
-
-  <!-- ============ 매도 ============ -->
-  <div class="section" id="sell">
-    <div class="scbtn">
-      <button class="on" data-sc="core">시나리오 A · 장기코어 위주</button>
-      <button data-sc="half">시나리오 B · 절반코어/절반트레이딩</button>
-    </div>
-    <div id="sc-core">
-      <div class="card"><h3>A · 장기코어 위주 <span class="pill key" style="margin-left:6px">추천</span></h3>
-        <p class="hint">SPCX 한 조각을 6~12개월 보유. 손절 없음. 락업 하락 = 추가매수. FIRE 관점.</p>
-        <table>
-          <tr><th>가격</th><th>행동</th><th>근거</th></tr>
-          <tr><td class="num">$175</td><td><span class="pill sell">소량 트림(선택)</span></td><td style="font-size:12px">+30% 락업 트리거 직전 — 원하면 10~20%만</td></tr>
-          <tr><td class="num">$200</td><td><span class="pill sell">소량 트림(선택)</span></td><td style="font-size:12px">3개월 불 케이스 · 그 외엔 홀딩</td></tr>
-          <tr><td class="num">락업 하락</td><td><span class="pill buy">추가매수</span></td><td style="font-size:12px">11월·12월 디핑은 매수 구간</td></tr>
-          <tr><td class="num">손절</td><td><span class="pill wait">없음</span></td><td style="font-size:12px">단기 변동은 노이즈로 무시</td></tr>
-        </table>
-      </div>
-    </div>
-    <div id="sc-half" style="display:none">
-      <div class="card"><h3>B · 절반코어 / 절반트레이딩</h3>
-        <p class="hint">절반은 장기 홀딩, 절반은 트레이딩 슬리브로 단기 수익실현. 변동성 활용.</p>
-        <table>
-          <tr><th>가격</th><th>행동</th><th>근거</th></tr>
-          <tr><td class="num">$175</td><td><span class="pill sell">트레이딩분 1/3 익절</span></td><td style="font-size:12px">+30%($175.50) 내부자 공급 선반영</td></tr>
-          <tr><td class="num">$195–200</td><td><span class="pill sell">트레이딩분 1/3 익절</span></td><td style="font-size:12px">3개월 불 케이스 $200</td></tr>
-          <tr><td class="num">코어</td><td><span class="pill wait">홀딩</span></td><td style="font-size:12px">락업 하락은 매수 구간</td></tr>
-          <tr><td class="num">$118 종가이탈</td><td><span class="pill sell">트레이딩분만 손절</span></td><td style="font-size:12px">⚠️ 첫날 꼬리 손절 금지(좁게 X)</td></tr>
-        </table>
-      </div>
-    </div>
-    <div class="card"><h3>주문 메커닉</h3>
-      <p class="note">매도는 <b>OCO/브라켓</b>(익절 지정가 + 손절 한 쌍, 하나 체결 시 다른 하나 자동 취소). <b style="color:var(--red)">$170 위는 사는 데가 아니라 파는 데.</b></p>
-    </div>
-  </div>
-
-  <!-- ============ 락업 ============ -->
-  <div class="section" id="lockup">
-    <div class="card">
-      <h3>락업 해제 캘린더 <span style="font-size:11px;color:var(--text-tertiary)">(상장 6/12 기준 · 오늘 자동 D-day)</span></h3>
-      <p class="hint">한 방이 아니라 8~12월 계단식. 🎯 = 마른 화약(③) 투입 핵심 구간.</p>
-      <table id="lockuptable">
-        <tr><th>이벤트</th><th class="num">날짜</th><th class="num">D-day</th><th>물량</th></tr>
-        <tr data-d="2026-08-21"><td>+70일</td><td class="num">08/21</td><td class="num dd"></td><td><span class="pill wait">7%</span></td></tr>
-        <tr data-d="2026-09-10"><td>+90일 · Q2 실적권</td><td class="num">09/10</td><td class="num dd"></td><td><span class="pill wait">7%+20%</span></td></tr>
-        <tr data-d="2026-09-25"><td>+105일</td><td class="num">09/25</td><td class="num dd"></td><td><span class="pill wait">7%</span></td></tr>
-        <tr data-d="2026-10-10"><td>+120일</td><td class="num">10/10</td><td class="num dd"></td><td><span class="pill wait">7%</span></td></tr>
-        <tr data-d="2026-10-25"><td>+135일</td><td class="num">10/25</td><td class="num dd"></td><td><span class="pill wait">7%</span></td></tr>
-        <tr data-d="2026-11-15" style="background:rgba(43,108,176,0.06)"><td>🎯 Q3 실적 (최대물량)</td><td class="num">~11월</td><td class="num dd"></td><td><span class="pill key">+28%</span></td></tr>
-        <tr data-d="2026-12-09" style="background:rgba(43,108,176,0.06)"><td>🎯 +180일 전량 해제</td><td class="num">12/09</td><td class="num dd"></td><td><span class="pill key">전량</span></td></tr>
-        <tr data-d="2027-06-13"><td>머스크 락업 해제</td><td class="num">2027/6</td><td class="num dd"></td><td><span class="pill wait">12.3%</span></td></tr>
-      </table>
-      <p class="hint" style="margin-top:10px"><b>+30% 트리거:</b> 주가가 $175.50 이상을 10일 중 5일 유지 시 내부자 10% 조기해제 → 공급 이벤트 = $175 부근 트림 근거.</p>
-    </div>
-  </div>
-
-  <!-- ============ 손실 복구 ============ -->
-  <div class="section" id="recover">
-    <div class="card">
-      <h3>손실 복구 시뮬레이터</h3>
-      <div class="controls">
-        <label>SPCX 가정가 $<input type="number" id="simprice" value="170" style="width:70px"></label>
-        <label>환율 ₩<input type="number" id="fx" value="1380" style="width:70px"></label>
-        <span id="sim-pos" style="color:var(--text-tertiary)"></span>
-      </div>
-      <div style="margin:14px 0 6px;display:flex;justify-content:space-between;font-size:13px"><span class="k">손실 1,529만 대비 복구율</span><b id="sim-pct">0%</b></div>
-      <div class="gauge-track"><div class="gauge-fill" id="sim-gauge"></div></div>
-      <div class="row" style="margin-top:14px"><span class="k">평가 손익 (가정가 기준)</span><span class="v" id="sim-pl">—</span></div>
-      <div class="row"><span class="k">복구 금액(원화)</span><span class="v" id="sim-krw">—</span></div>
-    </div>
-    <div class="card">
-      <h3>참고 · SPCX 수익률별 복구 (전량 체결 73주 기준)</h3>
+      <h3>주문 방식 — 팝하면 어떻게 되나</h3>
       <table>
-        <tr><th>SPCX</th><th class="num">복구 금액</th><th class="num">손실 대비</th></tr>
-        <tr><td class="num">+30%</td><td class="num">~391만</td><td class="num">26%</td></tr>
-        <tr><td class="num">+50%</td><td class="num">~651만</td><td class="num">43%</td></tr>
-        <tr><td class="num">+100%</td><td class="num">~1,303만</td><td class="num">85%</td></tr>
-        <tr><td class="num">+117%</td><td class="num">~1,529만</td><td class="num">100%</td></tr>
+        <tr><th>방식</th><th>팝($160)하면</th><th>판단</th></tr>
+        <tr><td>지정가 $135</td><td class="no">안 사짐</td><td>싸게만 살 때 ✅</td></tr>
+        <tr><td>시장가</td><td class="ok">사짐</td><td>비싼값 체결 ⚠️ 비추</td></tr>
+        <tr><td>지정가 $160</td><td class="ok">사짐</td><td>"이 값까진 산다"</td></tr>
       </table>
-      <p class="hint" style="margin-top:10px">2배 올라도 85% → <b>전액 복구는 이 종목 단독으로 비현실적.</b> 부분 회수 + 나머지 포트폴리오가 정답.</p>
+      <p class="note" style="margin-top:10px">→ <b>$135 지정가는 "내려오면만 산다"</b>는 주문. 팝하면 안 채워지는 게 정상이고, 그래도 괜찮음(재진입 탭 참고).</p>
+    </div>
+
+    <div class="card">
+      <h3>빠른 손익 계산기</h3>
+      <div class="calc">
+        <label>매수가 $<input type="number" id="cbuy" value="135"></label>
+        <label>매도가 $<input type="number" id="csell" value="165"></label>
+        <label>수량(단타분)<input type="number" id="cqty" value="20"></label>
+        <label>환율 ₩<input type="number" id="cfx" value="1380"></label>
+      </div>
+      <div class="result">
+        <div class="rbox"><div class="rl">수익률</div><div class="rv" id="cpct">+22%</div></div>
+        <div class="rbox"><div class="rl">수익 (USD)</div><div class="rv" id="cusd">+$420</div></div>
+        <div class="rbox"><div class="rl">수익 (원화)</div><div class="rv" id="ckrw">+58만</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========= 재진입 ========= -->
+  <div class="section" id="reentry">
+    <div class="card">
+      <h3>"지금 아니면 끝"이 아니다</h3>
+      <p class="note">오늘 $135 안 채워져도 괜찮은 이유 — <b>내려오는 날이 또 온다.</b><br>① 첫날 흥분 빠지며 <b>2~4주차 $130~140 평균회귀</b> 예상<br>② <b>11·12월 락업 해제</b> 때 또 눌림<br>→ 추격 대신 <b>$135(또는 더 아래) 지정가로 기다렸다 또 잡으면 됨.</b></p>
+    </div>
+
+    <div class="card">
+      <h3>재진입 노림 구간 (D-day 자동)</h3>
+      <div class="row"><span class="k">2~4주차 평균회귀 ($130~140)</span><span class="dd" id="d-rev"></span></div>
+      <div class="row"><span class="k">🎯 11월 Q3 락업 (최대물량)</span><span class="dd" data-d="2026-11-15"></span></div>
+      <div class="row"><span class="k">🎯 12/9 180일 전량해제</span><span class="dd" data-d="2026-12-09"></span></div>
+      <p class="note" style="margin-top:10px">락업 눌림은 <b>저가 재매수 기회</b>. 이때 쓰려고 현금 일부($2,000~3,000)는 남겨두면 좋음.</p>
+    </div>
+
+    <div class="card">
+      <h3>박스권 반복 매매</h3>
+      <p class="note"><b>$135 매수 → $165 익절 → 또 내려오면 $135 재매수</b> 반복. 변동성 큰 신규상장주에 잘 맞음.<br>⚠️ 유일한 리스크: 팔고 나서 안 내려오고 쭉 오르면 그 상승은 놓침. (단 $1.75조라 폭등 확률은 낮아 박스권일 가능성 큼)</p>
     </div>
   </div>
 </div>
@@ -390,54 +205,28 @@ SPCX(SpaceX) 진입 계획 트래커 · finance_report.html 흐름 연결
     t.classList.add('active');
     document.getElementById(t.dataset.s).classList.add('active');
   });
-  document.querySelectorAll('.scbtn button').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.scbtn button').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    document.getElementById('sc-core').style.display = b.dataset.sc === 'core' ? 'block' : 'none';
-    document.getElementById('sc-half').style.display = b.dataset.sc === 'half' ? 'block' : 'none';
-  });
 
-  const CASH = 9439, LOSS = 15290000;
-  function recalcBuy() {
-    let sh = 0, inv = 0;
-    document.querySelectorAll('#buytable tr').forEach(tr => {
-      const pi = tr.querySelector('.p'); if (!pi) return;
-      const p = +pi.value, q = +tr.querySelector('.q').value;
-      tr.querySelector('.amt').textContent = '$' + (p*q).toLocaleString();
-      if (tr.querySelector('input[type=checkbox]').checked) { sh += q; inv += p*q; }
-    });
-    document.getElementById('b-sh').textContent = sh + '주';
-    document.getElementById('b-inv').textContent = '$' + Math.round(inv).toLocaleString();
-    document.getElementById('b-avg').textContent = sh ? '$' + (inv/sh).toFixed(2) : '—';
-    document.getElementById('b-cash').textContent = '$' + Math.round(CASH-inv).toLocaleString();
+  function calc() {
+    const b = +cbuy.value, s = +csell.value, q = +cqty.value, fx = +cfx.value;
+    const usd = (s - b) * q, pct = b ? (s - b) / b * 100 : 0, krw = usd * fx;
+    cpct.textContent = (pct>=0?'+':'') + pct.toFixed(1) + '%';
+    cusd.textContent = (usd>=0?'+$':'-$') + Math.abs(Math.round(usd)).toLocaleString();
+    ckrw.textContent = (krw>=0?'+':'-') + Math.abs(Math.round(krw/10000)).toLocaleString() + '만';
+    [cpct,cusd,ckrw].forEach(e => e.style.color = usd>=0 ? 'var(--green)' : 'var(--red)');
   }
-  document.querySelectorAll('#buytable input').forEach(i => { i.oninput = recalcBuy; i.onchange = recalcBuy; });
-  recalcBuy();
+  ['cbuy','csell','cqty','cfx'].forEach(id => document.getElementById(id).oninput = calc);
+  calc();
 
   const today = new Date(); today.setHours(0,0,0,0);
-  document.querySelectorAll('#lockuptable tr[data-d]').forEach(tr => {
-    const d = new Date(tr.dataset.d), diff = Math.round((d - today)/86400000);
-    const cell = tr.querySelector('.dd');
-    if (diff < 0) { cell.textContent = '완료'; cell.classList.add('past'); }
-    else { cell.textContent = 'D-' + diff; if (diff <= 30) cell.classList.add('soon'); }
+  function dday(d) { return Math.round((new Date(d) - today)/86400000); }
+  document.querySelectorAll('[data-d]').forEach(el => {
+    const diff = dday(el.dataset.d);
+    if (diff < 0) { el.textContent = '완료'; el.classList.add('past'); }
+    else { el.textContent = 'D-' + diff; if (diff <= 30) el.classList.add('soon'); }
   });
-
-  const SHARES = 73, AVG = 128;
-  function recalcSim() {
-    const price = +document.getElementById('simprice').value, fx = +document.getElementById('fx').value;
-    const plUsd = (price - AVG) * SHARES, plKrw = plUsd * fx;
-    const pct = Math.max(0, Math.min(100, plKrw / LOSS * 100));
-    document.getElementById('sim-pos').textContent = `(${SHARES}주 · 평단 $${AVG} 가정)`;
-    document.getElementById('sim-pl').textContent = (plUsd>=0?'+$':'-$') + Math.abs(Math.round(plUsd)).toLocaleString();
-    document.getElementById('sim-pl').style.color = plUsd>=0 ? 'var(--green)' : 'var(--red)';
-    document.getElementById('sim-krw').textContent = (plKrw>=0?'+':'-') + Math.abs(Math.round(plKrw/10000)).toLocaleString() + '만';
-    document.getElementById('sim-pct').textContent = pct.toFixed(0) + '%';
-    document.getElementById('sim-gauge').style.width = pct + '%';
-  }
-  document.getElementById('simprice').oninput = recalcSim;
-  document.getElementById('fx').oninput = recalcSim;
-  document.getElementById('m-krw').textContent = '≈ ' + Math.round(CASH*1380/10000).toLocaleString() + '만원';
-  recalcSim();
+  // 평균회귀 구간(상장+14~28일)
+  const revStart = dday('2026-06-26'), revEnd = dday('2026-07-10');
+  document.getElementById('d-rev').textContent = revStart > 0 ? `D-${revStart}~${revEnd}` : '진행권';
 </script>
 </body>
 </html>
