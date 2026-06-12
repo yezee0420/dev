@@ -66,6 +66,8 @@ SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
   .rung.ceil .px { color: var(--red); }
   .rung.sell { background: rgba(183,121,31,0.12); }
   .rung.sell .px { color: var(--amber); }
+  .rung.safe { background: rgba(43,108,176,0.12); }
+  .rung.safe .px { color: var(--blue); font-size: 15px; }
   .rung.buy { background: rgba(46,125,82,0.12); }
   .rung.buy .px { color: var(--green); }
   .rung.buy2 { background: rgba(46,125,82,0.07); }
@@ -114,9 +116,9 @@ SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
   </div>
 
   <div class="grid4">
-    <div class="metric"><div class="label">매수 지정가</div><div class="value" style="color:var(--green)">$135</div><div class="sub">25주 ≈ $3,375 (36%)</div></div>
+    <div class="metric"><div class="label">단타 매수</div><div class="value" style="color:var(--green)">$135.10</div><div class="sub">20주 → $165 익절</div></div>
+    <div class="metric"><div class="label">🛡️ 안정장치</div><div class="value" style="color:var(--blue)">$150.10</div><div class="sub">5주 · 팝 대비 코어</div></div>
     <div class="metric"><div class="label">익절 목표</div><div class="value" style="color:var(--amber)">$165</div><div class="sub">단타 20주 · +22%</div></div>
-    <div class="metric"><div class="label">코어 홀딩</div><div class="value" style="color:var(--green)">5주</div><div class="sub">안 팖 · 폭등 대비</div></div>
     <div class="metric"><div class="label">추격 천장</div><div class="value" style="color:var(--red)">$170</div><div class="sub">위는 매수금지</div></div>
   </div>
 
@@ -132,7 +134,8 @@ SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
       <div class="ladder">
         <div class="rung ceil"><div class="px">$170+</div><div><div class="lb">❌ 추격 금지 구역</div><div class="ds">락업 트리거($175.50) 권역 — 신규매수 안 함</div></div></div>
         <div class="rung sell"><div class="px">$165</div><div><div class="lb">🎯 익절 — 단타 20주 매도</div><div class="ds">내부자 물량 풀리기 전에 +22% 챙김</div></div></div>
-        <div class="rung buy"><div class="px">$135</div><div><div class="lb">🟢 매수 25주 (단타20 + 코어5)</div><div class="ds">공모가 = 바닥값 진입 · 코어 5주는 안 팖</div></div></div>
+        <div class="rung safe"><div class="px">$150.10</div><div><div class="lb">🛡️ 안정장치 5주 (코어)</div><div class="ds">팝해도 탑승 보장 · 상한일 뿐 실제는 시초가에 체결 · 안 팖</div></div></div>
+        <div class="rung buy"><div class="px">$135.10</div><div><div class="lb">🟢 단타 매수 20주</div><div class="ds">눌림 매수 · 라운드넘버 줄 건너뛰기(+10센트)</div></div></div>
         <div class="rung buy2"><div class="px">$128</div><div><div class="lb">🟢 추가매수 (선택)</div><div class="ds">더 빠지면 평단 낮추기</div></div></div>
         <div class="rung buy2"><div class="px">$119</div><div><div class="lb">🟢 추가매수 (선택)</div><div class="ds">깊은 눌림</div></div></div>
       </div>
@@ -141,10 +144,10 @@ SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
     <div class="card">
       <h3>오늘(6/12) 할일</h3>
       <ul class="todo">
-        <li><span class="tnum">1</span><div><b>$135 지정가 25주</b> 매수 걸기. <b>시장가 금지</b>(IPO날 엉뚱한 가격에 체결됨).</div></li>
-        <li><span class="tnum">2</span><div><b>체결되면</b> → <b>20주만 $165 매도</b> 걸기. <b>5주는 코어</b>로 안 팔고 홀딩(폭등 대비).</div></li>
-        <li><span class="tnum">3</span><div><b>안 채워지면(팝)</b> → 쿨하게 패스. 추격 ❌. 다음 눌림 대기.</div></li>
-        <li><span class="tnum">4</span><div><b>남은 현금 $6,113</b> → 더 빠지면 $128·$119 추가 / 11·12월 락업 재진입용.</div></li>
+        <li><span class="tnum">1</span><div>🛡️ <b>안정장치 $150.10 지정가 5주</b> + 🟢 <b>단타 $135.10 지정가 20주</b> 걸기. <b>시장가 금지.</b></div></li>
+        <li><span class="tnum">2</span><div><b>팝하면</b> → 안정장치 5주가 시초가에 체결(탑승 보장). $150 위로 갭이면 미체결 → 다음 눌림.</div></li>
+        <li><span class="tnum">3</span><div><b>단타 20주 체결되면</b> → $165 매도 걸기. <b>안정장치 5주는 코어</b>로 홀딩(안 팖).</div></li>
+        <li><span class="tnum">4</span><div><b>남은 현금 ~$6,000</b> → 더 빠지면 $128·$119 추가 / 11·12월 락업 재진입용.</div></li>
         <li><span class="tnum">5</span><div><b>$170 위는 신규매수 안 함.</b> 그 위는 파는 구간.</div></li>
       </ul>
     </div>
@@ -163,7 +166,7 @@ SPCX(SpaceX) 단타+재진입 플랜 · finance_report.html 흐름 연결
     <div class="card">
       <h3>빠른 손익 계산기</h3>
       <div class="calc">
-        <label>매수가 $<input type="number" id="cbuy" value="135"></label>
+        <label>매수가 $<input type="number" id="cbuy" value="135.10"></label>
         <label>매도가 $<input type="number" id="csell" value="165"></label>
         <label>수량(단타분)<input type="number" id="cqty" value="20"></label>
         <label>환율 ₩<input type="number" id="cfx" value="1380"></label>
