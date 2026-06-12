@@ -340,102 +340,6 @@
   }
   .card-link:hover { text-decoration: underline; }
 
-  /* ── URL EVALUATOR ── */
-  .url-eval-panel {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 20px;
-  }
-  .url-eval-panel h3 {
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    color: var(--accent);
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-  .url-eval-row {
-    display: flex;
-    gap: 10px;
-  }
-  .url-eval-input {
-    flex: 1;
-    padding: 9px 12px;
-    border: 1.5px solid var(--light-gray);
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  .url-eval-input:focus { border-color: var(--accent); }
-  .url-eval-btn {
-    padding: 9px 18px;
-    background: var(--black);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.15s;
-  }
-  .url-eval-btn:hover { opacity: 0.8; }
-  .eval-result {
-    margin-top: 16px;
-    border-radius: 10px;
-    overflow: hidden;
-    display: none;
-  }
-  .eval-result.show { display: block; }
-  .eval-result-top {
-    padding: 16px 18px 12px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    background: #fafafa;
-    border: 1px solid var(--light-gray);
-    border-radius: 10px 10px 0 0;
-  }
-  .eval-score-circle {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    flex-shrink: 0;
-    line-height: 1.1;
-  }
-  .eval-score-circle span { font-size: 9px; font-weight: 500; }
-  .eval-info { flex: 1; }
-  .eval-brand { font-size: 10px; font-weight: 700; color: var(--warm-gray); letter-spacing: 0.1em; text-transform: uppercase; }
-  .eval-name { font-size: 14px; font-weight: 600; color: var(--black); margin: 4px 0; line-height: 1.4; }
-  .eval-verdict-chip {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 10px; font-weight: 700; color: #fff; margin-top: 4px;
-  }
-  .eval-details {
-    padding: 12px 18px;
-    background: #fff;
-    border: 1px solid var(--light-gray);
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font-size: 12px;
-  }
-  .eval-pro { color: var(--green); }
-  .eval-con { color: var(--red); }
-  .eval-loading { padding: 20px; text-align: center; color: var(--warm-gray); font-size: 13px; }
-
   /* ── MEMO ── */
   .card-memo {
     padding: 0 18px 12px;
@@ -644,6 +548,82 @@
   }
   .tooltip:hover::after { opacity: 1; }
 
+  /* ── URL EVALUATOR ── */
+  .url-eval-bar {
+    padding: 14px 40px;
+    background: #fff;
+    border-bottom: 1px solid var(--light-gray);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .url-eval-bar .url-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warm-gray);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .url-eval-input {
+    flex: 1;
+    min-width: 220px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--light-gray);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--black);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .url-eval-input:focus { border-color: var(--accent); }
+  .url-eval-input::placeholder { color: #ccc; }
+  .url-eval-btn {
+    padding: 8px 16px;
+    background: var(--black);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .url-eval-btn:hover { opacity: 0.8; }
+  .url-eval-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .url-eval-result {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: #f0f8f4;
+    border: 1px solid #c8e6d0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #2a5a3a;
+    display: none;
+  }
+  .url-eval-result.error { background: #fdf0f0; border-color: #e8c0c0; color: #8a2a2a; }
+
+  /* ── EDIT BUTTON ── */
+  .edit-btn {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1.5px solid var(--light-gray);
+    background: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--warm-gray);
+    transition: all 0.15s;
+  }
+  .edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 700px) {
+    .url-eval-bar { padding-left: 20px; padding-right: 20px; }
+  }
+
   /* ── TAGS ── */
   .card-tags {
     padding: 0 18px 10px;
@@ -708,6 +688,15 @@
   <button class="tab-btn" onclick="showTab('profile')">스타일 프로필</button>
 </div>
 
+<!-- URL EVALUATOR -->
+<div class="url-eval-bar">
+  <span class="url-label">🔗 URL 평가</span>
+  <input class="url-eval-input" id="url-eval-input" type="url"
+    placeholder="URL 붙여넣기 → 모달에서 상품명 입력 후 ✨ 자동 채점"
+    onkeydown="if(event.key==='Enter') evaluateURL()">
+  <button class="url-eval-btn" id="url-eval-btn" onclick="evaluateURL()">추가하기</button>
+</div>
+
 <!-- TOOLBAR -->
 <div class="toolbar">
   <button class="filter-btn active" onclick="setFilter('전체')">전체</button>
@@ -716,6 +705,7 @@
   <button class="filter-btn" onclick="setFilter('팬츠')">팬츠</button>
   <button class="filter-btn" onclick="setFilter('블라우스')">블라우스</button>
   <button class="filter-btn" onclick="setFilter('신발')">신발</button>
+  <button class="filter-btn" onclick="setFilter('가방')">가방</button>
   <button class="filter-btn" onclick="setFilter('즉시구매')">즉시구매만</button>
   <div class="toolbar-sep"></div>
   <button class="add-btn" onclick="openModal()">+ 새 상품 추가</button>
@@ -840,7 +830,7 @@
 <!-- ADD MODAL -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
-    <h3>새 상품 추가</h3>
+    <h3 id="modal-title">새 상품 추가</h3>
     <div class="form-row-half">
       <div class="form-row">
         <label>브랜드</label>
@@ -852,8 +842,10 @@
           <option value="원피스">원피스</option>
           <option value="스커트">스커트</option>
           <option value="팬츠">팬츠</option>
-          <option value="블라우스" selected>블라우스</option>
+          <option value="블라우스">블라우스</option>
           <option value="자켓">자켓</option>
+          <option value="신발">신발</option>
+          <option value="가방">가방</option>
           <option value="기타">기타</option>
         </select>
       </div>
@@ -872,10 +864,13 @@
         <input type="number" id="f-sale" placeholder="99300">
       </div>
     </div>
+    <div class="form-row" style="text-align:right;">
+      <button type="button" onclick="autoFillScore()" style="padding:6px 14px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:0.03em;">✨ 상품명으로 자동 채점</button>
+    </div>
     <div class="form-row-half">
       <div class="form-row">
         <label>점수 (0~100)</label>
-        <input type="number" id="f-score" min="0" max="100" placeholder="86">
+        <input type="number" id="f-score" min="0" max="100" placeholder="86" style="transition:background 0.4s;">
       </div>
       <div class="form-row">
         <label>판정</label>
@@ -898,6 +893,9 @@
       <label>날짜</label>
       <input type="text" id="f-date" placeholder="2026.06.08">
     </div>
+    <!-- 채점 근거 패널 -->
+    <div id="score-breakdown" style="display:none;background:#fafafa;border:1px solid var(--light-gray);border-radius:8px;padding:14px 16px;margin-bottom:6px;"></div>
+
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
       <button class="btn-save" onclick="saveItem()">저장</button>
@@ -910,6 +908,230 @@
 //  DATA
 // ─────────────────────────────────────────
 const DEFAULT_PICKS = [
+  {
+    id: 'd101',
+    date: '2026.06.12',
+    brand: '리엘',
+    category: '원피스',
+    name: '[30% 쿠폰] Lowell Belted Tweed Dress (Black)',
+    origPrice: 260000,
+    salePrice: 52962,
+    score: 93,
+    verdict: '즉시구매',
+    reason: '트위드(베스트 소재) + 벨티드로 허리선 자동 정리 + 블랙(베스트컬러 1순위)까지 삼중 적합. 79% 할인 + 30% 쿠폰가 5만원대.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=리엘 Lowell Belted Tweed Dress',
+    tags: ['트위드', '벨티드', '블랙', '★79%↓']
+  },
+  {
+    id: 'd102',
+    date: '2026.06.12',
+    brand: '리임',
+    category: '원피스',
+    name: 'Tweed Zip-up Dress (Ivory)',
+    origPrice: 450000,
+    salePrice: 86912,
+    score: 84,
+    verdict: '고려가능',
+    reason: '트위드 소재 + 아이보리(베스트컬러) 조합. 짚업 디테일로 활용도 높지만 다소 캐주얼한 느낌이라 오피스용은 실착 확인 권장. 80% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=리임 Tweed Zip-up Dress',
+    tags: ['트위드', '아이보리', '80%↓']
+  },
+  {
+    id: 'd103',
+    date: '2026.06.12',
+    brand: '제이제이지고트',
+    category: '원피스',
+    name: '[20% 쿠폰] 커프스 재킷 A라인 원피스',
+    origPrice: 429000,
+    salePrice: 84584,
+    score: 78,
+    verdict: '고려가능',
+    reason: '재킷형 구조 + 커프스로 포멀함 강화. A라인은 H라인·머메이드보다 후순위지만 직선 체형에 무난. 80% 할인 + 20% 쿠폰.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=제이제이지고트 커프스 재킷 A라인 원피스',
+    tags: ['재킷형', 'A라인', '80%↓']
+  },
+  {
+    id: 'd104',
+    date: '2026.06.12',
+    brand: '에스피엔케이',
+    category: '원피스',
+    name: '플로우 미디 원피스 (Black)',
+    origPrice: 129000,
+    salePrice: 22023,
+    score: 81,
+    verdict: '고려가능',
+    reason: '미디 기장 + 블랙(베스트컬러) 조합. 2만원대 초가성비(82% 할인)라 데일리 로테이션용으로 추천.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=에스피엔케이 플로우 미디 원피스 블랙',
+    tags: ['미디', '블랙', '★82%↓']
+  },
+  {
+    id: 'bl101',
+    date: '2026.06.12',
+    brand: '에스피엔케이',
+    category: '블라우스',
+    name: '폴리 샤이니 블라우스 (Black)',
+    origPrice: 139000,
+    salePrice: 23730,
+    score: 80,
+    verdict: '고려가능',
+    reason: '광택감 있는 샤이니 소재 + 블랙(베스트컬러). 오피스룩에 포인트 주기 좋고 82% 할인으로 가성비도 우수.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=에스피엔케이 폴리 샤이니 블라우스 블랙',
+    tags: ['실키소재', '블랙', '82%↓']
+  },
+  {
+    id: 'bl102',
+    date: '2026.06.12',
+    brand: '에스피엔케이',
+    category: '블라우스',
+    name: '크롭 원포켓 자켓형 블라우스 (White)',
+    origPrice: 159000,
+    salePrice: 27144,
+    score: 77,
+    verdict: '고려가능',
+    reason: '자켓형 구조적 디테일로 단정한 인상, 크롭 길이라 H라인 스커트·슬랙스와 매치 좋음. 화이트는 베스트컬러 외이지만 무난. 82% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=에스피엔케이 크롭 원포켓 자켓형 블라우스',
+    tags: ['자켓형', '크롭', '82%↓']
+  },
+  {
+    id: 'bl103',
+    date: '2026.06.12',
+    brand: '제이제이지고트',
+    category: '블라우스',
+    name: '[20% 쿠폰] 트위스트 오픈 칼라 블라우스',
+    origPrice: 189000,
+    salePrice: 43999,
+    score: 78,
+    verdict: '고려가능',
+    reason: '칼라 디테일 = 강한 이목구비와 균형 잡는 핵심 요소. 오픈 칼라라 캐주얼~포멀 겸용. 76% 할인 + 20% 쿠폰.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=제이제이지고트 트위스트 오픈 칼라 블라우스',
+    tags: ['칼라', '구조적', '76%↓']
+  },
+  {
+    id: 'bl104',
+    date: '2026.06.12',
+    brand: '테르사',
+    category: '블라우스',
+    name: 'Turtleneck High-neck Blouse (Navy)',
+    origPrice: 159000,
+    salePrice: 40717,
+    score: 76,
+    verdict: '고려가능',
+    reason: '네이비(베스트컬러) + 터틀넥 구조적 실루엣. 가을·겨울 오피스룩 베이스로 활용도 높음. 74% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=테르사 Turtleneck High-neck Blouse Navy',
+    tags: ['네이비', '터틀넥', '74%↓']
+  },
+  {
+    id: 'pt101',
+    date: '2026.06.12',
+    brand: '레이허',
+    category: '팬츠',
+    name: '[30% 쿠폰] Straight Slit Slacks (Black, 안감기모)',
+    origPrice: 178000,
+    salePrice: 36259,
+    score: 84,
+    verdict: '고려가능',
+    reason: '슬릿 디테일로 걸을 때 라인 살림 + 블랙(베스트컬러). 안감 기모로 보온성까지 챙김. 79% 할인 + 30% 쿠폰.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=레이허 Straight Slit Slacks Black',
+    tags: ['슬릿', '블랙', '79%↓']
+  },
+  {
+    id: 'pt102',
+    date: '2026.06.12',
+    brand: '애드호크',
+    category: '팬츠',
+    name: '여성 TR 테이퍼드핏 사이드 밴딩 팬츠 (Black)',
+    origPrice: 69000,
+    salePrice: 12261,
+    score: 78,
+    verdict: '고려가능',
+    reason: '블랙 베이직 테이퍼드 슬랙스, 1만원대 초가성비(82% 할인). 무난한 기본형으로 활용도 높음.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=애드호크 여성 TR 테이퍼드핏 사이드 밴딩 팬츠 블랙',
+    tags: ['블랙', '테이퍼드', '★82%↓']
+  },
+  {
+    id: 'pt103',
+    date: '2026.06.12',
+    brand: '에스피엔케이',
+    category: '팬츠',
+    name: '투턱 실루엣 팬츠 (Khaki)',
+    origPrice: 159000,
+    salePrice: 27144,
+    score: 75,
+    verdict: '고려가능',
+    reason: '투턱 디테일로 직선 체형에 구조감 추가. 카키는 베스트컬러 외이지만 가을 포인트 컬러로 활용 가능. 82% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=에스피엔케이 투턱 실루엣팬츠 카키',
+    tags: ['투턱', '82%↓']
+  },
+  {
+    id: 'sh101',
+    date: '2026.06.12',
+    brand: '룩캐스트',
+    category: '신발',
+    name: '[이번주 마지막] 로나 베이직 슬링백 (Black)',
+    origPrice: 72000,
+    salePrice: 27292,
+    score: 90,
+    verdict: '즉시구매',
+    reason: '슬링백 + 블랙 = 신발 1순위 조합. 베이직 디자인으로 활용도 최고, 평점 4.8(리뷰 146개)로 검증됨. 62% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=룩캐스트 로나 베이직 슬링백 블랙',
+    tags: ['슬링백', '블랙', '★평점4.8']
+  },
+  {
+    id: 'sh102',
+    date: '2026.06.12',
+    brand: '엘칸토',
+    category: '신발',
+    name: '[20% 쿠폰] 인텐스 여성 베이직 스틸레토 펌프스 7cm',
+    origPrice: 90000,
+    salePrice: 33136,
+    score: 92,
+    verdict: '즉시구매',
+    reason: '스틸레토 = 신발 1순위 키워드. 7cm는 데일리로 무리 없는 적정 높이. 63% 할인 + 20% 쿠폰.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=엘칸토 인텐스 여성 베이직 스틸레토 펌프스 7cm',
+    tags: ['스틸레토', '7cm', '63%↓']
+  },
+  {
+    id: 'sh103',
+    date: '2026.06.12',
+    brand: '룩캐스트',
+    category: '신발',
+    name: '[이번주 마지막] 재키 슬링백 슈즈',
+    origPrice: 72000,
+    salePrice: 27292,
+    score: 87,
+    verdict: '즉시구매',
+    reason: '슬링백 + 베스트셀러(리뷰 1,683개·평점 4.8)로 핏과 퀄리티 검증됨. 62% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=룩캐스트 재키 슬링백 슈즈',
+    tags: ['슬링백', '★베스트셀러']
+  },
+  {
+    id: 'bg101',
+    date: '2026.06.12',
+    brand: '몽삭',
+    category: '가방',
+    name: '레디 크로스 바디백 (Black)',
+    origPrice: 188000,
+    salePrice: 33271,
+    score: 86,
+    verdict: '즉시구매',
+    reason: '블랙 크로스바디 = 오피스룩 기본 가방. 심플한 구조라 어떤 옷에도 매치 좋음. 82% 할인으로 최고 가성비.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=몽삭 레디 크로스 바디백 블랙',
+    tags: ['가방', '블랙', '크로스바디', '★82%↓']
+  },
+  {
+    id: 'bg102',
+    date: '2026.06.12',
+    brand: '몽삭',
+    category: '가방',
+    name: '모니카 바게트백 (Dark Brown)',
+    origPrice: 188000,
+    salePrice: 33271,
+    score: 79,
+    verdict: '고려가능',
+    reason: '바게트백 = 구조적인 클래식 실루엣. 다크브라운은 베스트컬러 외이지만 캐주얼~세미정장까지 무난히 활용 가능. 82% 할인.',
+    url: 'https://www.wconcept.co.kr/Search?keyword=몽삭 모니카 바게트백 다크브라운',
+    tags: ['가방', '바게트백', '82%↓']
+  },
   {
     id: 'p001',
     date: '2026.06.08',
@@ -1037,76 +1259,6 @@ const DEFAULT_PICKS = [
     tags: ['머메이드', '아이보리', '여름용']
   },
   {
-    id: 'b001',
-    date: '2026.06.08',
-    brand: '프론트로우',
-    category: '블라우스',
-    name: '[Drama Signature] Tie-Collar Silky Blouse 6color',
-    origPrice: 149000,
-    salePrice: 108108,
-    score: 92,
-    verdict: '즉시구매',
-    reason: '타이 칼라 = 목선 정돈, 실루엣 세련. 실키 소재로 청바지에 넣어 입으면 캐주얼+고급 균형 완벽. 6컬러 중 블랙·아이보리·네이비 추천. 9999+ 리뷰로 품질 검증. 슬랙스에도 최상.',
-    url: 'https://www.wconcept.co.kr/Search?keyword=%ED%94%84%EB%A1%A0%ED%8A%B8%EB%A1%9C%EC%9A%B0+Tie-Collar+Silky+Blouse',
-    tags: ['타이칼라', '실키', '6컬러', '★9999+리뷰']
-  },
-  {
-    id: 'b002',
-    date: '2026.06.08',
-    brand: '무니드',
-    category: '블라우스',
-    name: 'GLOW OPEN COLLAR SHIRT (IVORY/BLUE)',
-    origPrice: 129000,
-    salePrice: 95099,
-    score: 90,
-    verdict: '즉시구매',
-    reason: '오픈 칼라 = 가장 단정하면서도 세련된 셔츠 폼. 광택감 있는 실키 소재로 청바지와 매치 시 "아무거나 입은 것 같은데 왜 이렇게 세련돼?" 연출. 아이보리·블루 모두 예지님 베스트 컬러.',
-    url: 'https://www.wconcept.co.kr/Search?keyword=%EB%AC%B4%EB%8B%88%EB%93%9C+GLOW+OPEN+COLLAR+SHIRT',
-    tags: ['오픈칼라', '실키광택', '아이보리/블루', '단독']
-  },
-  {
-    id: 'b003',
-    date: '2026.06.08',
-    brand: '주르티',
-    category: '블라우스',
-    name: '실키 타이 블라우스 3컬러 j1556',
-    origPrice: 105000,
-    salePrice: 57036,
-    score: 87,
-    verdict: '즉시구매',
-    reason: '타이 칼라로 목선 정리 + 실키 소재 = 청바지 투입 시 즉시 세련됨. 45% 세일로 가성비 최강. 347개 리뷰 4.9점. 블랙 버전이 특히 직선 체형에 날씬해 보이는 효과.',
-    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%A3%BC%EB%A5%B4%ED%8B%B0+%EC%8B%A4%ED%82%A4+%ED%83%80%EC%9D%B4+%EB%B8%94%EB%9D%BC%EC%9A%B0%EC%8A%A4+j1556',
-    tags: ['타이칼라', '실키', '★가성비45%↓', '347리뷰']
-  },
-  {
-    id: 'b004',
-    date: '2026.06.08',
-    brand: '모멧',
-    category: '블라우스',
-    name: '아르케 카라 셔츠 블라우스 3colors',
-    origPrice: 96000,
-    salePrice: 58666,
-    score: 86,
-    verdict: '즉시구매',
-    reason: '깔끔한 카라 셔츠 실루엣 = 슬랙스·청바지 모두에 최상. 구조적인 카라가 얼굴 선 정리해줌. 블랙·아이보리·네이비 중 선택. 셔츠 안에 넣어 입거나 풀어 입어도 OK.',
-    url: 'https://www.wconcept.co.kr/Search?keyword=%EB%AA%A8%EB%A9%A7+%EC%95%84%EB%A5%B4%EC%BC%80+%EC%B9%B4%EB%9D%BC+%EC%85%94%EC%B8%A0+%EB%B8%94%EB%9D%BC%EC%9A%B0%EC%8A%A4',
-    tags: ['카라셔츠', '구조적', '3컬러', '38%↓']
-  },
-  {
-    id: 'b005',
-    date: '2026.06.08',
-    brand: '슬로우롤리',
-    category: '블라우스',
-    name: 'Tuck detail blouse 2 Colors (5차)',
-    origPrice: 175000,
-    salePrice: 89119,
-    score: 85,
-    verdict: '즉시구매',
-    reason: '턱 디테일 = 프릴 없이 구조적 입체감. 직선 체형에 볼륨 없이 세련된 핏. 49% 세일. 5차 리오더로 검증된 아이템. 청바지 넣어 입기 딱 좋은 기장감.',
-    url: 'https://www.wconcept.co.kr/Search?keyword=%EC%8A%AC%EB%A1%9C%EC%9A%B0%EB%A1%A4%EB%A6%AC+Tuck+detail+blouse',
-    tags: ['턱디테일', '구조적', '★49%↓', '5차리오더']
-  },
-  {
     id: 's001',
     date: '2026.06.08',
     brand: '아비스파',
@@ -1201,35 +1353,30 @@ let memos = {}; // {id: 'memo text'}
 let activeFilter = '전체';
 
 function loadData() {
-  // 상품 데이터는 항상 DEFAULT_PICKS 사용 (카테고리 추가 시 자동 반영)
-  // 사용자 추가 항목만 localStorage에서 병합
-  const saved = localStorage.getItem('wc_picks_v4');
-  const savedIds = new Set(DEFAULT_PICKS.map(p => p.id));
+  const saved = localStorage.getItem('wc_picks_v2');
   if (saved) {
-    const savedPicks = JSON.parse(saved);
-    // 사용자가 직접 추가한 항목만 가져오기 (DEFAULT에 없는 id)
-    const userPicks = savedPicks.filter(p => !savedIds.has(p.id));
-    picks = [...DEFAULT_PICKS, ...userPicks];
+    picks = JSON.parse(saved);
   } else {
     picks = DEFAULT_PICKS;
+    saveData();
   }
-  const savedStatus = localStorage.getItem('wc_statuses_v4');
+  const savedStatus = localStorage.getItem('wc_statuses_v2');
   if (savedStatus) { statuses = JSON.parse(savedStatus); }
-  const savedMemos = localStorage.getItem('wc_memos_v4');
+  const savedMemos = localStorage.getItem('wc_memos_v2');
   if (savedMemos) { memos = JSON.parse(savedMemos); }
 }
 
 function saveData() {
-  localStorage.setItem('wc_picks_v4', JSON.stringify(picks));
+  localStorage.setItem('wc_picks_v2', JSON.stringify(picks));
 }
 
 function saveStatuses() {
-  localStorage.setItem('wc_statuses_v4', JSON.stringify(statuses));
+  localStorage.setItem('wc_statuses_v2', JSON.stringify(statuses));
 }
 
 function saveMemo(id, text) {
   memos[id] = text;
-  localStorage.setItem('wc_memos_v4', JSON.stringify(memos));
+  localStorage.setItem('wc_memos_v2', JSON.stringify(memos));
 }
 
 // ─────────────────────────────────────────
@@ -1294,6 +1441,7 @@ function renderCard(item) {
       <button class="status-btn ${status === '장바구니' ? 'active-장바구니' : ''}" onclick="setStatus('${item.id}', '장바구니')">🛒 담기</button>
       <button class="status-btn ${status === '완료' ? 'active-완료' : ''}" onclick="setStatus('${item.id}', '완료')">✓ 구매</button>
       <button class="status-btn ${status === '패스' ? 'active-패스' : ''}" onclick="setStatus('${item.id}', '패스')">✕ 패스</button>
+      <button class="edit-btn" onclick="openEditModal('${item.id}')">✏️ 수정</button>
       ${item.url ? `<a class="card-link" href="${item.url}" target="_blank">→ 보러가기</a>` : ''}
     </div>
   </div>`;
@@ -1308,8 +1456,9 @@ function renderAll() {
   if (activeFilter === '원피스') filtered = filtered.filter(p => p.category === '원피스');
   else if (activeFilter === '스커트') filtered = filtered.filter(p => p.category === '스커트');
   else if (activeFilter === '팬츠') filtered = filtered.filter(p => p.category === '팬츠');
-  else if (activeFilter === '블라우스') filtered = filtered.filter(p => p.category === '블라우스');
   else if (activeFilter === '신발') filtered = filtered.filter(p => p.category === '신발');
+  else if (activeFilter === '블라우스') filtered = filtered.filter(p => p.category === '블라우스');
+  else if (activeFilter === '가방') filtered = filtered.filter(p => p.category === '가방');
   else if (activeFilter === '즉시구매') filtered = filtered.filter(p => p.verdict === '즉시구매');
 
   // Sort by score desc
@@ -1417,16 +1566,50 @@ function setFilter(f) {
 // ─────────────────────────────────────────
 //  MODAL
 // ─────────────────────────────────────────
-function openModal() {
+let editingId = null;
+
+function openModal(prefill = {}) {
+  editingId = null;
+  document.getElementById('modal-title').textContent = '새 상품 추가';
   document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('f-date').value = getCurrentDate();
+  document.getElementById('f-date').value = prefill.date || getCurrentDate();
+  document.getElementById('f-brand').value = prefill.brand || '';
+  document.getElementById('f-name').value = prefill.name || '';
+  document.getElementById('f-orig').value = prefill.origPrice || '';
+  document.getElementById('f-sale').value = prefill.salePrice || '';
+  document.getElementById('f-score').value = prefill.score || '';
+  document.getElementById('f-verdict').value = prefill.verdict || '즉시구매';
+  document.getElementById('f-reason').value = prefill.reason || '';
+  document.getElementById('f-url').value = prefill.url || '';
+  if (prefill.category) document.getElementById('f-category').value = prefill.category;
+}
+
+function openEditModal(id) {
+  const item = picks.find(p => p.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = '상품 수정';
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('f-brand').value = item.brand;
+  document.getElementById('f-category').value = item.category;
+  document.getElementById('f-name').value = item.name;
+  document.getElementById('f-orig').value = item.origPrice || '';
+  document.getElementById('f-sale').value = item.salePrice || '';
+  document.getElementById('f-score').value = item.score || '';
+  document.getElementById('f-verdict').value = item.verdict;
+  document.getElementById('f-reason').value = item.reason || '';
+  document.getElementById('f-url').value = item.url || '';
+  document.getElementById('f-date').value = item.date || getCurrentDate();
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
+  editingId = null;
   ['f-brand','f-name','f-reason','f-url','f-orig','f-sale','f-score'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  const bd = document.getElementById('score-breakdown');
+  if (bd) { bd.style.display = 'none'; bd.innerHTML = ''; }
 }
 
 function saveItem() {
@@ -1434,8 +1617,7 @@ function saveItem() {
   const name = document.getElementById('f-name').value.trim();
   if (!brand || !name) { alert('브랜드와 상품명은 필수예요!'); return; }
 
-  const newItem = {
-    id: 'p' + Date.now(),
+  const itemData = {
     date: document.getElementById('f-date').value || getCurrentDate(),
     brand,
     category: document.getElementById('f-category').value,
@@ -1446,13 +1628,222 @@ function saveItem() {
     verdict: document.getElementById('f-verdict').value,
     reason: document.getElementById('f-reason').value.trim(),
     url: document.getElementById('f-url').value.trim(),
-    tags: []
   };
 
-  picks.unshift(newItem);
+  if (editingId) {
+    // Update existing item
+    const idx = picks.findIndex(p => p.id === editingId);
+    if (idx !== -1) {
+      picks[idx] = { ...picks[idx], ...itemData };
+    }
+  } else {
+    // Add new item
+    picks.unshift({ id: 'p' + Date.now(), tags: [], ...itemData });
+  }
+
   saveData();
   closeModal();
   renderAll();
+}
+
+// ─────────────────────────────────────────
+//  URL EVALUATOR
+// ─────────────────────────────────────────
+
+const SCORE_RULES = {
+  positive: [
+    { kw: ['머메이드','mermaid'], pts: 12, label: '머메이드 실루엣', reason: '직선 체형 최강 실루엣' },
+    { kw: ['카라','칼라','collar'], pts: 8, label: '카라/칼라 디테일', reason: '강한 이목구비와 균형' },
+    { kw: ['h라인','h-라인','hline'], pts: 10, label: 'H라인', reason: '직선 체형 핵심 실루엣' },
+    { kw: ['테일러드','tailored'], pts: 9, label: '테일러드', reason: '구조적·세련된 인상' },
+    { kw: ['수트','슈트','suit'], pts: 8, label: '수트 스타일', reason: '여성스러운 CEO 무드' },
+    { kw: ['트위드','tweed'], pts: 9, label: '트위드 소재', reason: '프로필 베스트 소재' },
+    { kw: ['슬릿','slit'], pts: 7, label: '슬릿', reason: '실루엣 살리는 디테일' },
+    { kw: ['벨티드','belted'], pts: 8, label: '벨티드', reason: '허리선 자연스럽게 정리' },
+    { kw: ['스틸레토','stiletto'], pts: 9, label: '스틸레토', reason: '프로필 신발 1순위' },
+    { kw: ['슬링백','slingback'], pts: 8, label: '슬링백', reason: '프로필 신발 1순위 조합' },
+    { kw: ['스퀘어토','square'], pts: 8, label: '스퀘어토', reason: '트렌드+구조적 실루엣' },
+    { kw: ['뾰족','포인티드','pointed'], pts: 7, label: '포인티드/뾰족코', reason: '전체 라인 살려줌' },
+    { kw: ['블랙','black'], pts: 6, label: '블랙', reason: '베스트 컬러 1순위' },
+    { kw: ['네이비','navy'], pts: 6, label: '네이비', reason: '베스트 컬러 1순위' },
+    { kw: ['아이보리','ivory'], pts: 5, label: '아이보리', reason: '베스트 컬러' },
+    { kw: ['울','wool'], pts: 6, label: '울 소재', reason: '잘 받는 소재' },
+    { kw: ['실키','silky','실크','silk'], pts: 5, label: '실크/실키', reason: '잘 받는 소재' },
+    { kw: ['스웨이드','suede'], pts: 5, label: '스웨이드', reason: '고급스러운 질감' },
+    { kw: ['재킷','자켓','jacket'], pts: 7, label: '재킷형', reason: '구조적 아우터' },
+    { kw: ['셋업','set up'], pts: 6, label: '셋업', reason: '활용도 높음' },
+    { kw: ['미디','midi'], pts: 5, label: '미디 기장', reason: '세련된 기장감' },
+    { kw: ['버튼','button'], pts: 5, label: '버튼 디테일', reason: '구조적 요소' },
+  ],
+  negative: [
+    { kw: ['프릴','frill'], pts: -15, label: '프릴', reason: '얼굴이 이미 화려함' },
+    { kw: ['러플','ruffle'], pts: -12, label: '러플', reason: '이목구비와 경쟁' },
+    { kw: ['셔링','shirring'], pts: -12, label: '셔링', reason: '상체 부해 보임' },
+    { kw: ['퍼프소매','퍼프 소매','puff sleeve','퍼프'], pts: -12, label: '퍼프 소매', reason: '어깨 넓어 보임' },
+    { kw: ['벌룬','balloon'], pts: -10, label: '벌룬 소매', reason: '어깨 강조 금물' },
+    { kw: ['보헤미안','bohemian'], pts: -14, label: '보헤미안', reason: '도시적 이미지 사라짐' },
+    { kw: ['큰 리본','빅 리본'], pts: -10, label: '큰 리본', reason: '얼굴과 경쟁' },
+    { kw: ['풍성한 플레어','맥시 플레어'], pts: -10, label: '풍성한 플레어', reason: '볼륨 과함' },
+    { kw: ['플레어','flare'], pts: -6, label: '플레어', reason: '볼륨 주의' },
+    { kw: ['레이온','rayon'], pts: -6, label: '레이온', reason: '흐물흐물 피해야 할 소재' },
+    { kw: ['오버사이즈','oversized','oversize'], pts: -7, label: '오버사이즈', reason: '체형 장점 묻힘' },
+    { kw: ['루즈','loose'], pts: -5, label: '루즈 핏', reason: '실루엣 무너짐' },
+    { kw: ['내추럴 린넨','린넨'], pts: -7, label: '린넨', reason: '도시적 이미지 감소' },
+  ]
+};
+
+function autoScore(text) {
+  const lower = text.toLowerCase();
+  let score = 70;
+  const hits = { positive: [], negative: [] };
+
+  for (const rule of SCORE_RULES.positive) {
+    if (rule.kw.some(k => lower.includes(k))) {
+      score += rule.pts;
+      hits.positive.push(rule);
+    }
+  }
+  for (const rule of SCORE_RULES.negative) {
+    if (rule.kw.some(k => lower.includes(k))) {
+      score += rule.pts;
+      hits.negative.push(rule);
+    }
+  }
+
+  score = Math.min(99, Math.max(20, score));
+  const verdict = score >= 88 ? '즉시구매' : score >= 75 ? '고려가능' : score >= 55 ? '비추천' : '구매금지';
+  return { score, verdict, hits };
+}
+
+function detectCategory(text) {
+  const lower = text.toLowerCase();
+  if (lower.match(/원피스|dress|one-?piece/)) return '원피스';
+  if (lower.match(/스커트|skirt/)) return '스커트';
+  if (lower.match(/팬츠|pants|slacks|슬랙스/)) return '팬츠';
+  if (lower.match(/힐|슬링백|펌프스|heel|pump|sling/)) return '신발';
+  if (lower.match(/블라우스|blouse|셔츠|shirt/)) return '블라우스';
+  if (lower.match(/자켓|재킷|jacket|코트|coat/)) return '자켓';
+  return '기타';
+}
+
+function showScoreBreakdown(score, verdict, hits) {
+  const el = document.getElementById('score-breakdown');
+  if (!el) return;
+
+  const verdictColor = verdict === '즉시구매' ? 'var(--green)' : verdict === '고려가능' ? 'var(--orange)' : 'var(--red)';
+
+  let html = `<div style="font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--warm-gray);margin-bottom:8px;">채점 근거</div>`;
+  html += `<div style="font-size:12px;color:#555;margin-bottom:6px;">기본 점수 <strong>70점</strong>에서 시작</div>`;
+
+  for (const r of hits.positive) {
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;">
+      <span style="background:#e8f4ec;color:var(--green);padding:1px 6px;border-radius:3px;font-weight:700;min-width:40px;text-align:center;">+${r.pts}점</span>
+      <span><strong>${r.label}</strong> — ${r.reason}</span>
+    </div>`;
+  }
+  for (const r of hits.negative) {
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;">
+      <span style="background:#fbeaea;color:var(--red);padding:1px 6px;border-radius:3px;font-weight:700;min-width:40px;text-align:center;">${r.pts}점</span>
+      <span><strong>${r.label}</strong> — ${r.reason}</span>
+    </div>`;
+  }
+
+  if (hits.positive.length === 0 && hits.negative.length === 0) {
+    html += `<div style="font-size:12px;color:#999;">키워드 감지 없음 — 상품명에 스타일 키워드를 추가해보세요</div>`;
+  }
+
+  html += `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--light-gray);font-size:13px;">
+    최종 <strong>${score}점</strong> → <strong style="color:${verdictColor};">${verdict}</strong>
+  </div>`;
+
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+async function evaluateURL() {
+  const input = document.getElementById('url-eval-input');
+  const btn = document.getElementById('url-eval-btn');
+  const url = input.value.trim();
+
+  if (!url) { alert('URL을 붙여넣어 주세요.'); return; }
+  if (!url.startsWith('http')) { alert('https://로 시작하는 URL을 입력해주세요.'); return; }
+
+  btn.textContent = '⏳ 가져오는 중...';
+  btn.disabled = true;
+
+  try {
+    // microlink.io: CORS 허용, 무료 API
+    const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`, { signal: AbortSignal.timeout(10000) });
+    const data = await res.json();
+
+    let name = '', brand = '', salePrice = 0, origPrice = 0;
+
+    if (data.status === 'success' && data.data) {
+      // 상품명
+      name = data.data.title || '';
+      // W CONCEPT 등 사이트명 제거
+      name = name.replace(/\s*[\|·\-–]\s*(W CONCEPT|W컨셉|무신사|29CM|ABLY|에이블리|SSF샵|LF몰).*/i, '').trim();
+
+      // 브랜드 (publisher = 사이트명이라 브랜드로 쓰기 어려움, 일단 빈칸)
+      brand = '';
+
+      // 가격 파싱 (description에서)
+      const desc = data.data.description || '';
+      const priceMatches = desc.match(/(\d{1,3}(?:,\d{3})+)원/g);
+      if (priceMatches && priceMatches.length >= 2) {
+        origPrice = parseInt(priceMatches[0].replace(/[^0-9]/g, ''));
+        salePrice = parseInt(priceMatches[1].replace(/[^0-9]/g, ''));
+      } else if (priceMatches && priceMatches.length === 1) {
+        salePrice = parseInt(priceMatches[0].replace(/[^0-9]/g, ''));
+      }
+    }
+
+    const category = detectCategory(name);
+    const { score, verdict, hits } = autoScore(name);
+
+    openModal({ name, brand, category, score, verdict, url, origPrice, salePrice });
+
+    // 채점 근거 표시 (모달 안)
+    setTimeout(() => showScoreBreakdown(score, verdict, hits), 100);
+
+  } catch (err) {
+    console.error(err);
+    openModal({ url });
+    alert('상품 정보를 자동으로 가져오지 못했어요.\n상품명을 직접 입력 후 ✨ 자동 채점을 눌러주세요.');
+  } finally {
+    btn.textContent = '평가하기';
+    btn.disabled = false;
+    input.value = '';
+  }
+}
+
+// 모달에서 상품명 기반 수동 채점
+function autoFillScore() {
+  const name = document.getElementById('f-name').value.trim();
+  const brand = document.getElementById('f-brand').value.trim();
+  const text = brand + ' ' + name;
+  if (!name) { alert('상품명을 먼저 입력해주세요.'); return; }
+
+  const { score, verdict, hits } = autoScore(text);
+  const category = detectCategory(text);
+
+  document.getElementById('f-score').value = score;
+  document.getElementById('f-verdict').value = verdict;
+  if (category !== '기타') document.getElementById('f-category').value = category;
+
+  // 이유 자동 작성
+  let reason = '';
+  if (hits.positive.length) reason += hits.positive.map(r => `${r.label}(${r.reason})`).join('. ') + '. ';
+  if (hits.negative.length) reason += `주의: ${hits.negative.map(r => r.label).join(', ')}.`;
+  if (!reason) reason = '키워드 미감지 — 직접 이유를 입력해주세요.';
+  document.getElementById('f-reason').value = reason;
+
+  showScoreBreakdown(score, verdict, hits);
+
+  // 점수 필드 색상 피드백
+  const si = document.getElementById('f-score');
+  si.style.background = score >= 88 ? '#e8f4ec' : score >= 75 ? '#fdf3e7' : '#fbeaea';
+  setTimeout(() => { si.style.background = ''; }, 2000);
 }
 
 function getCurrentDate() {
