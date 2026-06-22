@@ -1013,6 +1013,39 @@ https://yezee0420.github.io/dev/finance_report.html
       <textarea id="ac-json" readonly style="display:none; width:100%; height:120px; margin-top:10px; font-family:monospace; font-size:11px; padding:8px; border:0.5px solid var(--border-secondary); border-radius:var(--radius-md); background:var(--bg-secondary); color:var(--text-primary);"></textarea>
     </div>
 
+    <!-- 모으기(적립식 매수) 현황 -->
+    <div class="card" style="border-color:var(--border-primary);">
+      <h3>📥 모으기 현황 — 적립식 매수 <span class="badge info">연금저축 계좌</span></h3>
+      <p class="note" style="margin-top:0;">2026-06-02부터 매주 자동 모으기 시작. 아래는 종목별 매수 진행 상황입니다. (납입금 ≠ 매수 — 위 매트릭스는 계좌에 넣은 돈, 아래는 그 돈으로 산 종목)</p>
+      <div class="grid3" style="margin-top:12px;">
+        <div class="metric"><div class="label">누적 납입 (연금저축)</div><div class="value" style="color:#185FA5">167.6만</div><div class="sub">2026 1~6월 합계</div></div>
+        <div class="metric"><div class="label">모으기 시작일</div><div class="value" style="font-size:16px">06-02</div><div class="sub">매주 1회 자동</div></div>
+        <div class="metric"><div class="label">모으기 진행</div><div class="value" style="color:#3B6D11;font-size:16px">4 / 8주</div><div class="sub">오늘까지 4회 완료</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table class="ptable">
+          <thead>
+            <tr><th>종목</th><th class="num">방식</th><th class="num">누적 매수</th><th class="num">목표</th><th>역할</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tk">SOL 미국배당다우존스</span><span class="tk-sub">국내상장 · SCHD형 배당성장</span></td>
+              <td class="num">매주 1주</td><td class="num">4주</td><td class="num">8주</td>
+              <td>배당+성장 코어</td>
+            </tr>
+            <tr>
+              <td><span class="tk">PLUS 우주항공</span><span class="tk-sub">국내상장 · 우주항공 테마</span></td>
+              <td class="num">매주 1주</td><td class="num">4주</td><td class="num">8주</td>
+              <td>성장 위성 (테마)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <b>다음 액션 (연말정산 한도):</b> 연금저축 한도 600만까지 <b>432만</b> 더 + IRP <b>300만</b> = 합산 900만 채우면 환급 <b>118.8만</b>(13.2% 구간). 떨어진 나스닥은 <b>국내상장 나스닥100 ETF</b>(TIGER/KODEX/ACE)로 연금저축에 먼저 담아 한도 채우기 권장.
+      </div>
+    </div>
+
     <div class="card">
       <h3>월별 매트릭스 (가로 12개월 · 세로 연도)</h3>
       <div class="seg" id="ac-metric">
@@ -1343,7 +1376,8 @@ function reSetYear(id){ const e=RE_EVENTS.find(x=>x.id===id); e.year=Math.max(0,
    매월 실제 현금흐름(+/-) 입력 + 선택적 실제 평가액. 평가액 빈칸은 추정 수익률로 계산.
    저장: localStorage(즉시) + "깃 저장용 JSON" 내보내기로 ACTUAL_SEED에 커밋.
    ============================================================ */
-const ACTUAL_SEED = { startYear:2026, endYear:2026, metric:'flow', seed:0, flow:{"2026-6":110}, value:{} };  // seed=실제 시작 잔액(계획 시드와 별개), 수익률은 공유 SCEN_RATE
+// 예지 실제 연금저축 납입 (만원). 5,550원=0.555만. 5월부터 매달 21일 50만 자동이체.
+const ACTUAL_SEED = { startYear:2026, endYear:2026, metric:'flow', seed:0, flow:{"2026-1":12,"2026-2":0,"2026-3":0.555,"2026-4":55,"2026-5":50,"2026-6":50}, value:{} };  // seed=실제 시작 잔액(계획 시드와 별개), 수익률은 공유 SCEN_RATE
 let ACTUAL = JSON.parse(JSON.stringify(ACTUAL_SEED));
 let acChartInst = null;
 let acInited = false;
